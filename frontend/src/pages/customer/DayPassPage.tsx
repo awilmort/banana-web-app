@@ -23,7 +23,7 @@ import {
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { getCountriesForDisplay } from '../../utils/countries';
-import { pricingService } from '../../services/api';
+import { pricingService, reservationsService } from '../../services/api';
 import { findApplicablePricing, PricingRule } from '../../utils/pricing';
 
 interface DayPassData {
@@ -167,27 +167,16 @@ const DayPassPage: React.FC = () => {
         guests: bookingData.guestDetails.adults + bookingData.guestDetails.children + bookingData.guestDetails.infants,
       };
 
-      // Use the unified reservations API instead of separate daypass API
-      const response = await fetch('http://localhost:5001/api/reservations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add authorization header if user is logged in
-          ...(localStorage.getItem('token') && {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          })
-        },
-        body: JSON.stringify(reservationData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || t('daypass.errors.bookingFailed'));
+      // Use axios client with base URL for dev/prod
+      const resp = await reservationsService.createReservation(reservationData);
+      if (resp.data?.success) {
+        setSuccess(true);
+      } else {
+        throw new Error(resp.data?.message || t('daypass.errors.bookingFailed'));
       }
-
-      setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || t('daypass.errors.bookingFailed'));
+      const msg = err?.response?.data?.message || err?.message || t('daypass.errors.bookingFailed');
+      setError(msg);
     } finally {
       setLoading(false);
     }

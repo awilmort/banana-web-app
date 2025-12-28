@@ -96,7 +96,6 @@ app.use(session({
   name: 'sessionId' // Don't use default session name
 }));
 
-app.use(limiter);
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -126,6 +125,12 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+app.use((req, res, next) => {
+  if (req.path === '/health') return next();
+  limiter(req, res, next);
+})
+//app.use(limiter);
 
 // Render health check compatibility (alias)
 app.get('/health', (req, res) => {
