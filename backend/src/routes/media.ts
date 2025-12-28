@@ -12,7 +12,7 @@ const router = express.Router();
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../uploads');
+    const uploadPath = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -220,7 +220,7 @@ router.post('/upload', authenticate, authorize('admin', 'staff'), upload.single(
     }
 
     const finalName = `${base}${ext}`;
-    const uploadDir = path.join(__dirname, '../../uploads');
+    const uploadDir = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
     const finalPath = path.join(uploadDir, finalName);
 
     // Enforce uniqueness: check DB and filesystem
@@ -346,7 +346,7 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
     }
 
     // Delete file from filesystem
-    const uploadsDir = path.join(__dirname, '../../uploads');
+    const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
     const filePath = path.join(uploadsDir, media.filename || path.basename(media.url));
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);

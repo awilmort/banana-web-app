@@ -11,7 +11,7 @@ function getTypeFromExt(ext: string): 'image' | 'video' {
 }
 
 export async function syncUploadsToMedia(): Promise<{ created: number; skipped: number }> {
-  const uploadsDir = path.join(__dirname, '../../uploads');
+  const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
   if (!fs.existsSync(uploadsDir)) {
     return { created: 0, skipped: 0 };
   }

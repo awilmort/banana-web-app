@@ -100,8 +100,9 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files for media uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Static files for media uploads (persistent disk when available)
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../uploads');
+app.use('/uploads', express.static(UPLOADS_DIR));
 // Static files for seed data images (serve from frontend public directory)
 app.use('/images', express.static(path.join(__dirname, '../../frontend/public/images')));
 

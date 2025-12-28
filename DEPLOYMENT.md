@@ -64,6 +64,7 @@ Root Directory: `backend`
   - `MONGODB_URI=<atlas_connection_string>`
   - `JWT_SECRET=<strong_random>`
   - `SESSION_SECRET=<strong_random>`
+  - `UPLOADS_DIR=/uploads` (matches your Render Disk mount path)
     Enable CI/CD:
 - Connect Render service to your GitHub repo and enable auto-deploy on `main` (or create a staging service for a `staging` branch).
 - On each push, Render will rebuild and redeploy.
@@ -75,6 +76,13 @@ Root Directory: `backend`
 - Node Version: leave default or set to latest LTS.
 - Trust Proxy: Enabled for accurate client IP behind Render’s proxy.
 - Verify health endpoint: `https://<service>.onrender.com/api/health`
+
+### Persistent Media Storage (Render Disks)
+
+- Add a Disk in the Render service and set the Mount Path to `/uploads`.
+- Set `UPLOADS_DIR=/uploads` in the service environment. The backend reads/writes uploads from this path and serves them via `/uploads/*`.
+- Files stored under `/uploads` persist across restarts and deployments. App-local paths (e.g., `dist/uploads`) are ephemeral and will be wiped on deploy.
+- Existing media records use URLs like `/uploads/image.png`; these resolve against your backend origin, e.g., `https://<service>.onrender.com/uploads/image.png`.
 
 ### Notes
 
