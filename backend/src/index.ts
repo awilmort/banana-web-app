@@ -118,6 +118,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Render health check compatibility (alias)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'Banana Ranch Villages API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
