@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
+import MongoStore from 'connect-mongo';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -73,10 +74,18 @@ app.use(cors({
 // Session configuration
 app.use(cookieParser());
 const isProd = process.env.NODE_ENV === 'production';
+// Use persistent session store in production (MongoDB Atlas)
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/banana-ranch';
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-super-secret-session-key-change-this-in-production',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: MONGO_URI,
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60, // 1 day
+    autoRemove: 'native',
+  }),
   cookie: {
     secure: isProd, // HTTPS only in production
     httpOnly: true,
