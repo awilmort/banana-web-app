@@ -353,6 +353,7 @@ export const mediaService = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 60000, // allow up to 60s in production to avoid timeouts
     }),
 
   updateMedia: (id: string, data: Partial<{
