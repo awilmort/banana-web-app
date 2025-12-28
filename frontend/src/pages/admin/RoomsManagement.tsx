@@ -49,6 +49,7 @@ import { roomsService, adminService } from '../../services/api';
 import { Room } from '../../types';
 import AdminLayout from '../../components/admin/AdminLayout';
 import MediaPicker from '../../components/admin/MediaPicker';
+import { resolveMediaUrl } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
 interface RoomFormData {
@@ -274,8 +275,7 @@ const RoomsManagement: React.FC = () => {
 
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return '/api/placeholder/400/300';
-    if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5001${imagePath}`;
+    return resolveMediaUrl(imagePath);
   };
 
   if (!user || user.role !== 'admin') {

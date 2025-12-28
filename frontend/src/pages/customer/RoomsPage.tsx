@@ -12,7 +12,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Amenity, Room } from '../../types';
-import { amenitiesService, roomsService } from '../../services/api';
+import { amenitiesService, roomsService, resolveMediaUrl } from '../../services/api';
 import BookingForm from '../../components/booking/BookingForm';
 import { useTranslation } from 'react-i18next';
 
@@ -127,7 +127,7 @@ const RoomsPage: React.FC = () => {
                     <img
                       src={
                         room.images && room.images.length > 0
-                          ? `http://localhost:5001${room.images[0]}`
+                          ? resolveMediaUrl(room.images[0])
                           : '/api/placeholder/400/200'
                       }
                       alt={room.name}
@@ -218,9 +218,7 @@ const RoomsPage: React.FC = () => {
                         amenity.image
                           ? amenity.image.startsWith('http')
                             ? amenity.image
-                            : amenity.image.startsWith('/uploads/')
-                              ? `http://localhost:5001${amenity.image}`
-                              : amenity.image
+                            : resolveMediaUrl(amenity.image)
                           : '/api/placeholder/300/200'
                       }
                       alt={amenity.name}

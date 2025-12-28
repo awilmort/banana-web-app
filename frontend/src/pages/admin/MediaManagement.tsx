@@ -26,7 +26,7 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { mediaService } from '../../services/api';
+import { mediaService, resolveMediaUrl } from '../../services/api';
 import { MediaItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -142,7 +142,7 @@ const MediaManagement: React.FC = () => {
     }
   };
 
-  const getUrl = (url: string) => url.startsWith('http') ? url : `http://localhost:5001${url}`;
+  const getUrl = (url: string) => resolveMediaUrl(url);
 
   if (!user || user.role !== 'admin') {
     return (

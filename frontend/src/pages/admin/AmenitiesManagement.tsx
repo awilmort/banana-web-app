@@ -41,6 +41,7 @@ import { Amenity } from '../../types';
 import { amenitiesService } from '../../services/api';
 import AdminLayout from '../../components/admin/AdminLayout';
 import MediaPicker from '../../components/admin/MediaPicker';
+import { resolveMediaUrl } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
 interface AmenityFormData {
@@ -134,7 +135,7 @@ const AmenitiesManagement: React.FC = () => {
       order: amenity.order,
       isActive: amenity.isActive,
     });
-    setImagePreview(`http://localhost:5001${amenity.image}`);
+    setImagePreview(resolveMediaUrl(amenity.image));
     setFormDialog({ open: true, mode: 'edit', amenity });
   };
 
@@ -258,7 +259,7 @@ const AmenitiesManagement: React.FC = () => {
                   <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ position: 'relative' }}>
                       <img
-                        src={amenity.image?.startsWith('http') ? amenity.image : `http://localhost:5001${amenity.image}`}
+                        src={amenity.image?.startsWith('http') ? amenity.image : resolveMediaUrl(amenity.image)}
                         alt={amenity.name}
                         style={{
                           width: '100%',
@@ -455,7 +456,7 @@ const AmenitiesManagement: React.FC = () => {
               onSelect={(urls) => {
                 const url = urls[0];
                 setFormData(prev => ({ ...prev, imageUrl: url, imageFile: null }));
-                setImagePreview(url.startsWith('http') ? url : `http://localhost:5001${url}`);
+                setImagePreview(resolveMediaUrl(url));
               }}
             />
 

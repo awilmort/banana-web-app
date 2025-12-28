@@ -18,7 +18,7 @@ import {
   InputLabel,
   Box,
 } from '@mui/material';
-import { mediaService } from '../../services/api';
+import { mediaService, resolveMediaUrl } from '../../services/api';
 import { MediaItem } from '../../types';
 
 interface MediaPickerProps {
@@ -60,7 +60,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ open, onClose, onSelect, mult
     (m.title || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const getUrl = (url: string) => url.startsWith('http') ? url : `http://localhost:5001${url}`;
+  const getUrl = (url: string) => resolveMediaUrl(url);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

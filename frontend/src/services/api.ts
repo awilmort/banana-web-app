@@ -2,6 +2,18 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { User, Room, Reservation, MediaItem, ContactMessage, Amenity, EventType } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+// Derive the API origin to resolve file URLs like /uploads/xxx
+export const API_ORIGIN = (() => {
+  try {
+    return new URL(API_BASE_URL).origin;
+  } catch {
+    return API_BASE_URL.replace(/\/api$/, '');
+  }
+})();
+
+// Resolve relative media URLs (e.g., /uploads/xyz) against backend origin
+export const resolveMediaUrl = (url: string): string =>
+  url?.startsWith('http') ? url : `${API_ORIGIN}${url || ''}`;
 
 // Create axios instance with default configuration
 const apiClient: AxiosInstance = axios.create({

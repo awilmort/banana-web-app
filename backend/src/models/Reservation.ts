@@ -122,7 +122,7 @@ const reservationSchema = new Schema<IReservation>({
     type: String,
     unique: true,
     sparse: true, // Allow multiple null values
-    index: true
+    // unique implies an index; no need for additional index flag
   },
 
   // Human-friendly reservation code
@@ -130,7 +130,7 @@ const reservationSchema = new Schema<IReservation>({
     type: String,
     unique: true,
     sparse: true,
-    index: true
+    // unique implies an index; no need for additional index flag
   },
 
   // Reservation type
@@ -384,6 +384,6 @@ reservationSchema.index({ status: 1 });
 reservationSchema.index({ checkInDate: 1, checkOutDate: 1 });
 reservationSchema.index({ actualCheckInAt: 1 });
 reservationSchema.index({ actualCheckOutAt: 1 });
-reservationSchema.index({ reservationCode: 1 });
+// reservationCode already has a unique index via field definition; avoid duplicate index
 
 export default mongoose.model<IReservation>('Reservation', reservationSchema);

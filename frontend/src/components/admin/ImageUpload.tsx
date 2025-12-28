@@ -21,7 +21,7 @@ import {
   ArrowUpward,
   ArrowDownward,
 } from '@mui/icons-material';
-import { mediaService } from '../../services/api';
+import { mediaService, resolveMediaUrl } from '../../services/api';
 
 interface ImageUploadProps {
   images: string[];
@@ -188,7 +188,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                   <CardMedia
                     component="img"
                     height="150"
-                    image={image.startsWith('http') ? image : `http://localhost:5001${image}`}
+                    image={resolveMediaUrl(image)}
                     alt={`Room image ${index + 1}`}
                     sx={{
                       objectFit: 'cover',
