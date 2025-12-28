@@ -26,6 +26,7 @@ const roleSchema = new Schema<IRole>({
   permissions: [{ type: String, trim: true }]
 }, { timestamps: true });
 
-roleSchema.index({ name: 1 });
+// 'name' already has a unique index via `unique: true` on the field.
+// Removing redundant index to avoid duplicate schema index warnings.
 
 export default mongoose.model<IRole>('Role', roleSchema);
