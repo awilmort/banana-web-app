@@ -1,0 +1,887 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Container,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Alert,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Tooltip,
+  Snackbar,
+  Box,
+} from '@mui/material';
+import {
+  Visibility,
+  CheckCircle,
+  Pending,
+  Cancel,
+  Hotel,
+  Edit,
+  Delete,
+} from '@mui/icons-material';
+import { Reservation, Room } from '../../types';
+import { reservationsService, roomsService } from '../../services/api';
+import AdminLayout from '../../components/admin/AdminLayout';
+import ReservationDetails from '../../components/admin/ReservationDetails';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
+
+const ReservationManagement: React.FC = () => {
+  const { t } = useTranslation();
+  const { user, permissions } = useAuth();
+  // Using unified admin.schedule.* keys
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState<'all' | 'room' | 'daypass' | 'PasaTarde' | 'event'>('all');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error' | 'warning' | 'info'
+  });
+  const [filterDateFrom, setFilterDateFrom] = useState<string>('');
+  const [filterDateTo, setFilterDateTo] = useState<string>('');
+
+  // Removed Assign Room dialog state and form (feature deprecated)
+
+  // Page-style details view state
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const [editDialog, setEditDialog] = useState<{ open: boolean; reservation: Reservation | null }>({ open: false, reservation: null });
+  const [editForm, setEditForm] = useState({
+    checkInDate: '',
+    checkOutDate: '',
+    adults: 1,
+    children: 0,
+    infants: 0,
+    adultPrice: 0,
+    childrenPrice: 0,
+    totalPrice: 0,
+    email: '',
+    phone: '',
+    specialRequests: '',
+    status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed',
+    roomId: ''
+  });
+
+  // Check-in / Check-out modal state
+  const [opsDialog, setOpsDialog] = useState<{ open: boolean; mode: 'checkin' | 'checkout'; reservation: Reservation | null }>({ open: false, mode: 'checkin', reservation: null });
+  const [idDocument, setIdDocument] = useState<string>('');
+
+  const fetchReservations = useCallback(async (opts?: { reset?: boolean }) => {
+    try {
+      const reset = !!opts?.reset;
+      if (reset) {
+        setPage(1);
+        setHasMore(true);
+        setReservations([]);
+      }
+      const currentPage = reset ? 1 : page;
+      const params: any = { page: currentPage, limit: 20, sort: '-createdAt' };
+      if (filterStatus !== 'all') params.status = filterStatus;
+      if (filterType !== 'all') params.type = filterType;
+      if (search.trim()) params.search = search.trim();
+      // Pass raw date strings; backend will interpret day boundaries
+      if (filterDateFrom) params.dateFrom = filterDateFrom;
+      if (filterDateTo) params.dateTo = filterDateTo;
+      if (reset) setLoading(true); else setLoadingMore(true);
+      setError(null);
+      const response = await reservationsService.getReservations(params);
+      const newItems = response.data.data || [];
+      setReservations(prev => reset ? newItems : [...prev, ...newItems]);
+      const pagination = (response.data as any).pagination;
+      if (pagination) {
+        setHasMore(pagination.page < pagination.totalPages);
+      } else {
+        setHasMore(newItems.length === params.limit);
+      }
+      if (!reset) setPage(currentPage + 1);
+    } catch (error: any) {
+      console.error('Error fetching reservations:', error);
+      setError(t('admin.reservations.messages.loadFailed'));
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [page, filterStatus, filterType, search, filterDateFrom, filterDateTo, t]);
+
+  const fetchRooms = async () => {
+    try {
+      const response = await roomsService.getRooms();
+      if (response.data.data?.rooms) {
+        setRooms(response.data.data.rooms);
+      } else if (Array.isArray(response.data.data)) {
+        setRooms(response.data.data);
+      } else {
+        setRooms([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching rooms:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchReservations({ reset: true });
+    fetchRooms();
+  }, [fetchReservations]);
+
+  useEffect(() => {
+    const t = setTimeout(() => fetchReservations({ reset: true }), 300);
+    return () => clearTimeout(t);
+  }, [filterStatus, filterType, search, filterDateFrom, filterDateTo, fetchReservations]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'warning';
+      case 'confirmed': return 'success';
+      case 'cancelled': return 'error';
+      case 'checked-in': return 'info';
+      case 'checked-out': return 'default';
+      default: return 'default';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <Pending />;
+      case 'confirmed': return <CheckCircle />;
+      case 'cancelled': return <Cancel />;
+      default: return <Hotel />;
+    }
+  };
+
+  const getAvailableRooms = (reservation: Reservation) => {
+    if (!reservation) return [];
+    // Availability based solely on room status; no roomType filtering
+    return rooms.filter(room => room.status === 'available');
+  };
+
+  const getAssignableRooms = (reservation: Reservation) => {
+    if (!reservation) return [];
+    const available = getAvailableRooms(reservation);
+    // Include currently assigned room even if unavailable to allow viewing/keeping
+    const currentId = (reservation.room && typeof reservation.room === 'object') ? reservation.room._id : (reservation.room as any);
+    const currentRoom = rooms.find(r => r._id === currentId);
+    const merged = currentRoom && !available.find(r => r._id === currentRoom._id)
+      ? [currentRoom, ...available]
+      : available;
+    return merged;
+  };
+
+  // Removed Assign Room handler (feature deprecated)
+
+  const filteredReservations = reservations.filter(reservation =>
+    filterStatus === 'all' || reservation.status === filterStatus
+  );
+  const openDetailsView = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setShowDetails(true);
+  };
+
+  const closeDetailsView = () => {
+    setShowDetails(false);
+    setSelectedReservation(null);
+  };
+
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return t('admin.reservations.na');
+    try {
+      return new Date(dateString).toLocaleString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  const toInputDate = (dateString: string) => {
+    const d = new Date(dateString);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const isImmutableReservation = (res?: Reservation | null) => {
+    if (!res) return false;
+    return res.status === 'completed' || res.status === 'cancelled';
+  };
+
+  const openEdit = (reservation: Reservation) => {
+    setEditDialog({ open: true, reservation });
+    setEditForm({
+      checkInDate: toInputDate(reservation.checkInDate),
+      checkOutDate: reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : toInputDate(reservation.checkInDate),
+      adults: reservation.guestDetails.adults,
+      children: reservation.guestDetails.children,
+      infants: reservation.guestDetails.infants,
+      adultPrice: reservation.adultPrice || 0,
+      childrenPrice: reservation.childrenPrice || 0,
+      totalPrice: reservation.totalPrice ?? 0,
+      email: reservation.contactInfo.email || '',
+      phone: reservation.contactInfo.phone || '',
+      specialRequests: reservation.specialRequests || '',
+      status: reservation.status as any,
+      roomId: (reservation.room && typeof reservation.room === 'object') ? (reservation.room._id || '') : ((reservation.room as any) || '')
+    });
+    // Load date-based available rooms for this reservation
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editDialog.reservation) return;
+    try {
+      setLoading(true);
+      const immutable = isImmutableReservation(editDialog.reservation);
+      let payload: any = {};
+      if (!immutable) {
+        payload = {
+          guestDetails: {
+            adults: editForm.adults,
+            children: editForm.children,
+            infants: editForm.infants,
+          },
+          contactInfo: {
+            email: editForm.email,
+            phone: editForm.phone,
+          },
+          specialRequests: editForm.specialRequests,
+        };
+      }
+
+      // Include dates only if changed to avoid unnecessary validation
+      const originalCheckIn = toInputDate(editDialog.reservation.checkInDate);
+      const originalCheckOut = editDialog.reservation.checkOutDate
+        ? toInputDate(editDialog.reservation.checkOutDate)
+        : toInputDate(editDialog.reservation.checkInDate);
+      if (editForm.checkInDate !== originalCheckIn) {
+        payload.checkInDate = editForm.checkInDate;
+      }
+      if (editForm.checkOutDate !== originalCheckOut) {
+        payload.checkOutDate = editForm.checkOutDate;
+      }
+      const isAdmin = String(user?.role).toLowerCase() === 'admin';
+      const canUpdatePrice = isAdmin || permissions.includes('admin.reservations.priceUpdate');
+      const canUpdateTotal = isAdmin || permissions.includes('admin.reservations.amountUpdate');
+      if (canUpdatePrice) {
+        // send price fields only when changed to minimize backend friction
+        if ((editDialog.reservation.adultPrice || 0) !== editForm.adultPrice) {
+          payload.adultPrice = editForm.adultPrice;
+        }
+        if ((editDialog.reservation.childrenPrice || 0) !== editForm.childrenPrice) {
+          payload.childrenPrice = editForm.childrenPrice;
+        }
+      }
+      if (canUpdateTotal) {
+        // IMPORTANT: only send totalPrice if user manually changed it
+        if ((editDialog.reservation.totalPrice || 0) !== editForm.totalPrice) {
+          payload.totalPrice = editForm.totalPrice;
+        }
+      }
+      let updated = editDialog.reservation as Reservation;
+      if (!immutable) {
+        const res = await reservationsService.updateReservation(editDialog.reservation._id, payload);
+        updated = res.data.data as Reservation;
+      }
+      if (editDialog.reservation.status !== editForm.status) {
+        const statusRes = await reservationsService.updateReservationStatus(editDialog.reservation._id, editForm.status);
+        updated = statusRes.data.data as Reservation;
+      }
+
+      // Handle room assignment changes only for room reservations
+      if (!immutable && editDialog.reservation.type === 'room') {
+        const originalRoomId = (editDialog.reservation.room && typeof editDialog.reservation.room === 'object')
+          ? (editDialog.reservation.room._id || '')
+          : ((editDialog.reservation.room as any) || '');
+        const desiredRoomId = editForm.roomId || '';
+        if (originalRoomId !== desiredRoomId) {
+          const assignRes = await reservationsService.assignRoom(editDialog.reservation._id, desiredRoomId ? desiredRoomId : null);
+          updated = assignRes.data.data as Reservation;
+          // Refresh rooms after assignment so availability reflects the change
+          await fetchRooms();
+        }
+      }
+
+      setReservations(prev => prev.map(r => r._id === updated._id ? updated : r));
+      setSnackbar({ open: true, message: 'Reservation updated successfully!', severity: 'success' });
+      setEditDialog({ open: false, reservation: null });
+    } catch (error: any) {
+      setSnackbar({ open: true, message: error.response?.data?.message || 'Failed to update reservation', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cancel action handled via status field in edit dialog
+
+  const editImmutable = isImmutableReservation(editDialog.reservation);
+
+  if (loading && reservations.length === 0) {
+    return (
+      <AdminLayout>
+        <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
+          <CircularProgress size={60} />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            {t('admin.reservations.loading')}
+          </Typography>
+        </Container>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            {t('admin.reservations.title')}
+              </Typography>
+          <Typography variant="body1" color="text.secondary">
+            {t('admin.reservations.subtitle')}
+          </Typography>
+        </Box>
+        {showDetails && selectedReservation ? (
+          <ReservationDetails
+            reservation={selectedReservation}
+            onBack={closeDetailsView}
+            onUpdated={(updated) => {
+              setSelectedReservation(updated);
+              setReservations(prev => prev.map(r => r._id === updated._id ? updated : r));
+            }}
+          />
+        ) : (
+        <>
+        {/* Alerts */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
+
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccessMessage(null)}>
+            {successMessage}
+          </Alert>
+        )}
+
+        {/* Filters */}
+        <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>{t('admin.reservations.filters.statusLabel')}</InputLabel>
+            <Select
+              value={filterStatus}
+              label={t('admin.reservations.filters.statusLabel')}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <MenuItem value="all">{t('admin.reservations.filters.status.all')}</MenuItem>
+              <MenuItem value="pending">{t('admin.reservations.statusLabels.pending')}</MenuItem>
+              <MenuItem value="confirmed">{t('admin.reservations.statusLabels.confirmed')}</MenuItem>
+              <MenuItem value="checked-in">{t('admin.reservations.statusLabels.checked_in')}</MenuItem>
+              <MenuItem value="checked-out">{t('admin.reservations.statusLabels.checked_out')}</MenuItem>
+              <MenuItem value="cancelled">{t('admin.reservations.statusLabels.cancelled')}</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>{t('admin.reservations.filters.typeLabel')}</InputLabel>
+            <Select
+              value={filterType}
+              label={t('admin.reservations.filters.typeLabel')}
+              onChange={(e) => setFilterType(e.target.value as any)}
+            >
+                <MenuItem value="all">{t('admin.reservations.filters.types.all')}</MenuItem>
+                <MenuItem value="room">{t('admin.reservations.typeLabels.room')}</MenuItem>
+              <MenuItem value="daypass">{t('admin.reservations.typeLabels.daypass')}</MenuItem>
+              <MenuItem value="PasaTarde">{t('admin.reservations.typeLabels.pasatarde')}</MenuItem>
+              <MenuItem value="event">{t('admin.reservations.typeLabels.event')}</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField size="small" label={t('admin.reservations.filters.search')} value={search} onChange={(e) => setSearch(e.target.value)} />
+          <TextField size="small" type="date" label={t('admin.reservations.filters.from')} value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} />
+          <TextField size="small" type="date" label={t('admin.reservations.filters.to')} value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} InputLabelProps={{ shrink: true }} />
+          <Button onClick={() => {
+            const d = new Date();
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const today = `${yyyy}-${mm}-${dd}`;
+            setFilterDateFrom(today);
+            setFilterDateTo(today);
+          }}>{t('admin.reservations.filters.today')}</Button>
+          <Button color="error" variant="outlined" onClick={() => {
+            setFilterStatus('all');
+            setFilterType('all');
+            setSearch('');
+            setFilterDateFrom('');
+            setFilterDateTo('');
+          }}>{t('admin.reservations.filters.clear')}</Button>
+        </Box>
+
+        {/* Reservations Table */}
+        <TableContainer component={Paper} sx={{ mb: 4 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('admin.reservations.table.guest')}</TableCell>
+                <TableCell>{t('admin.reservations.table.type')}</TableCell>
+                <TableCell>{t('admin.reservations.table.dates')}</TableCell>
+                <TableCell>{t('admin.reservations.table.guests')}</TableCell>
+                <TableCell>{t('admin.reservations.table.status')}</TableCell>
+                <TableCell>{t('admin.reservations.table.assignedRoom')}</TableCell>
+                <TableCell>{t('admin.reservations.table.total')}</TableCell>
+                <TableCell>{t('admin.reservations.table.actions')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredReservations.map((reservation) => (
+                <TableRow key={reservation._id}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <Button variant="text" size="small" onClick={() => openDetailsView(reservation)} sx={{ p: 0, minWidth: 0, textTransform: 'none' }}>
+                        <Typography variant="body2" fontWeight="medium">
+                          {reservation.guestName && reservation.guestName.firstName
+                            ? `${reservation.guestName.firstName} ${reservation.guestName.lastName || ''}`.trim()
+                            : (reservation.user && typeof reservation.user === 'object'
+                              ? `${reservation.user.firstName} ${reservation.user.lastName}`
+                              : t('admin.dashboard.recentReservations.guestFallback'))}
+                        </Typography>
+                      </Button>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', wordBreak: 'break-word' }}>
+                        {reservation.contactInfo?.email}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={(() => {
+                        const type = reservation.type || 'unknown';
+                        const key = type === 'PasaTarde' ? 'pasatarde' : type;
+                        return t(`admin.reservations.typeLabels.${key}`);
+                      })()}
+                      size="small"
+                      sx={{ textTransform: 'capitalize' }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box>
+                      <Typography variant="body2">
+                        {formatDate(reservation.checkInDate)} - {reservation.checkOutDate ? formatDate(reservation.checkOutDate) : t('admin.reservations.na')}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {reservation.totalNights} {t('admin.reservations.nights')}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>{reservation.guests}</TableCell>
+                  <TableCell>
+                    <Chip
+                      icon={getStatusIcon(reservation.status)}
+                      label={t(`admin.reservations.statusLabels.${reservation.status.replace('-', '_')}`)}
+                      color={getStatusColor(reservation.status) as any}
+                      size="small"
+                      sx={{ textTransform: 'capitalize' }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {reservation.room && typeof reservation.room === 'object' ? (
+                      <Box>
+                        <Typography variant="body2" fontWeight="medium">
+                          {reservation.room.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('admin.schedule.table.room')} {reservation.room._id?.slice(-4)}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        {t('admin.schedule.notAssigned')}
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="medium">
+                      ${reservation.totalPrice}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {/* Assign Room feature removed */}
+                      <Tooltip title={t('admin.reservations.actions.viewDetails')}>
+                        <IconButton size="small" color="info" onClick={() => openDetailsView(reservation)}>
+                          <Visibility />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={t('admin.reservations.actions.editReservation')}>
+                        <IconButton size="small" color="secondary" onClick={() => openEdit(reservation)}>
+                          <Edit />
+                        </IconButton>
+                      </Tooltip>
+                      {/* Admin-only remove action */}
+                      {String(user?.role).toLowerCase() === 'admin' && (
+                        <Tooltip title={t('admin.reservations.actions.removeReservation')}>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={async () => {
+                              const ok = window.confirm(t('admin.reservations.dialog.deletePrompt'));
+                              if (!ok) return;
+                              try {
+                                await reservationsService.deleteReservation(reservation._id);
+                                setReservations(prev => prev.filter(r => r._id !== reservation._id));
+                                setSnackbar({ open: true, message: t('admin.reservations.messages.removed'), severity: 'success' });
+                              } catch (err: any) {
+                                setSnackbar({ open: true, message: err?.response?.data?.message || t('admin.reservations.messages.removeFailed'), severity: 'error' });
+                              }
+                            }}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {reservation.type === 'room' && (
+                        <>
+                          {!reservation.actualCheckInAt && (
+                            <Tooltip title={reservation.room ? t('admin.reservations.tooltips.checkin') : t('admin.reservations.tooltips.assignBeforeCheckin')}>
+                              <span>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  disabled={!reservation.room}
+                                  onClick={() => {
+                                    // Guard: require assigned room before check-in to avoid backend 400
+                                    if (!reservation.room) {
+                                      setSnackbar({ open: true, message: t('admin.reservations.messages.assignBeforeCheckin'), severity: 'warning' });
+                                      return;
+                                    }
+                                    setOpsDialog({ open: true, mode: 'checkin', reservation });
+                                    setIdDocument('');
+                                  }}
+                                >
+                                  {t('admin.reservations.actions.checkin')}
+                                </Button>
+                              </span>
+                            </Tooltip>
+                          )}
+                          {reservation.actualCheckInAt && !reservation.actualCheckOutAt && (
+                            <Button size="small" variant="outlined" onClick={() => setOpsDialog({ open: true, mode: 'checkout', reservation })}>{t('admin.reservations.actions.checkout')}</Button>
+                          )}
+                        </>
+                      )}
+                      {/* Cancel action removed; use Edit to change status */}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {filteredReservations.length === 0 && (
+          <Box sx={{ textAlign: 'center', py: 6 }}>
+            <Typography variant="h6" color="text.secondary">
+              {t('admin.reservations.empty.title')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {filterStatus === 'all'
+                ? t('admin.reservations.empty.initial')
+                : t('admin.reservations.empty.filtered', { status: t(`admin.reservations.statusLabels.${filterStatus.replace('-', '_')}`) })
+              }
+            </Typography>
+          </Box>
+        )}
+
+        {hasMore && (
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Button variant="outlined" onClick={() => fetchReservations()} disabled={loadingMore}>
+              {loadingMore ? t('admin.reservations.loadingMore') : t('admin.reservations.loadMore')}
+            </Button>
+          </Box>
+        )}
+
+        </>
+        )}
+
+        {/* Assign Room dialog removed */}
+
+        {/* Edit Reservation Dialog */}
+        <Dialog
+          open={editDialog.open}
+          onClose={() => setEditDialog({ open: false, reservation: null })}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>{t('admin.reservations.dialog.editTitle')}</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
+              {editDialog.reservation && (
+                <Box>
+                  <Typography variant="subtitle2">{t('admin.reservations.form.guest')}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {editDialog.reservation.guestName && editDialog.reservation.guestName.firstName
+                      ? `${editDialog.reservation.guestName.firstName} ${editDialog.reservation.guestName.lastName || ''}`.trim()
+                      : (editDialog.reservation.user && typeof editDialog.reservation.user === 'object'
+                        ? `${editDialog.reservation.user.firstName} ${editDialog.reservation.user.lastName}`
+                        : t('admin.dashboard.recentReservations.guestFallback'))}
+                  </Typography>
+                </Box>
+              )}
+              <TextField
+                label={t('admin.reservations.form.checkinDate')}
+                type="date"
+                value={editForm.checkInDate}
+                onChange={(e) => setEditForm({ ...editForm, checkInDate: e.target.value })}
+                InputLabelProps={{ shrink: true }}
+                disabled={editImmutable}
+              />
+              <TextField
+                label={t('admin.reservations.form.checkoutDate')}
+                type="date"
+                value={editForm.checkOutDate}
+                onChange={(e) => setEditForm({ ...editForm, checkOutDate: e.target.value })}
+                InputLabelProps={{ shrink: true }}
+                disabled={editImmutable}
+              />
+              {editDialog.reservation?.type === 'room' && (
+                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  <TextField
+                    label={t('admin.reservations.form.actualCheckin')}
+                    value={formatDateTime(editDialog.reservation.actualCheckInAt)}
+                    InputProps={{ readOnly: true }}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <TextField
+                    label={t('admin.reservations.form.actualCheckout')}
+                    value={formatDateTime(editDialog.reservation.actualCheckOutAt)}
+                    InputProps={{ readOnly: true }}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Box>
+              )}
+              {editDialog.reservation?.type === 'room' && (
+                <FormControl fullWidth>
+                  <InputLabel>{t('admin.reservations.form.assignedRoom')}</InputLabel>
+                  <Select
+                    value={editForm.roomId}
+                    label={t('admin.reservations.form.assignedRoom')}
+                    onChange={(e) => setEditForm({ ...editForm, roomId: e.target.value })}
+                    disabled={editImmutable}
+                  >
+                    <MenuItem value="">{t('admin.reservations.none')}</MenuItem>
+                    {editDialog.reservation && getAssignableRooms(editDialog.reservation).map((room) => (
+                      <MenuItem key={room._id} value={room._id}>
+                        <Box>
+                          <Typography variant="body2">{room.name}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {room.type}
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+              <FormControl fullWidth>
+                <InputLabel>{t('admin.reservations.form.status')}</InputLabel>
+                <Select
+                  value={editForm.status}
+                  label={t('admin.reservations.form.status')}
+                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value as any })}
+                >
+                  <MenuItem value="pending">{t('admin.reservations.statusLabels.pending')}</MenuItem>
+                  <MenuItem value="confirmed">{t('admin.reservations.statusLabels.confirmed')}</MenuItem>
+                  <MenuItem value="cancelled">{t('admin.reservations.statusLabels.cancelled')}</MenuItem>
+                  <MenuItem value="completed">{t('admin.reservations.statusLabels.completed')}</MenuItem>
+                </Select>
+              </FormControl>
+              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <TextField
+                  label={t('admin.reservations.form.adults')}
+                  type="number"
+                  inputProps={{ min: 1 }}
+                  value={editForm.adults}
+                  onChange={(e) => setEditForm({ ...editForm, adults: Number(e.target.value) })}
+                  disabled={editImmutable}
+                />
+                <TextField
+                  label={t('admin.reservations.form.children')}
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  value={editForm.children}
+                  onChange={(e) => setEditForm({ ...editForm, children: Number(e.target.value) })}
+                  disabled={editImmutable}
+                />
+                <TextField
+                  label={t('admin.reservations.form.infants')}
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  value={editForm.infants}
+                  onChange={(e) => setEditForm({ ...editForm, infants: Number(e.target.value) })}
+                  disabled={editImmutable}
+                />
+              </Box>
+              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(2, 1fr)', mt: 1 }}>
+                <TextField
+                  label={t('admin.reservations.form.adultPrice')}
+                  type="number"
+                  inputProps={{ min: 0, step: 0.01 }}
+                  value={editForm.adultPrice}
+                  onChange={(e) => setEditForm({ ...editForm, adultPrice: Number(e.target.value) })}
+                  disabled={editImmutable || !(String(user?.role).toLowerCase() === 'admin' || permissions.includes('admin.reservations.priceUpdate'))}
+                />
+                <TextField
+                  label={t('admin.reservations.form.childrenPrice')}
+                  type="number"
+                  inputProps={{ min: 0, step: 0.01 }}
+                  value={editForm.childrenPrice}
+                  onChange={(e) => setEditForm({ ...editForm, childrenPrice: Number(e.target.value) })}
+                  disabled={editImmutable || !(String(user?.role).toLowerCase() === 'admin' || permissions.includes('admin.reservations.priceUpdate'))}
+                />
+              </Box>
+              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: '1fr' }}>
+                <TextField
+                  label={t('admin.reservations.form.totalPrice')}
+                  type="number"
+                  inputProps={{ min: 0, step: 0.01 }}
+                  value={editForm.totalPrice}
+                  onChange={(e) => setEditForm({ ...editForm, totalPrice: Number(e.target.value) })}
+                  disabled={editImmutable || !(String(user?.role).toLowerCase() === 'admin' || permissions.includes('admin.reservations.amountUpdate'))}
+                />
+              </Box>
+              <TextField
+                label={t('admin.reservations.form.email')}
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                disabled={editImmutable}
+              />
+              <TextField
+                label={t('admin.reservations.form.phone')}
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                disabled={editImmutable}
+              />
+              <TextField
+                label={t('admin.reservations.form.specialRequests')}
+                multiline rows={3}
+                value={editForm.specialRequests}
+                onChange={(e) => setEditForm({ ...editForm, specialRequests: e.target.value })}
+                disabled={editImmutable}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditDialog({ open: false, reservation: null })}>{t('admin.reservations.actions.cancel')}</Button>
+            <Button variant="contained" onClick={handleSaveEdit}>{t('admin.reservations.actions.saveChanges')}</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Check-In / Check-Out Dialog */}
+        <Dialog
+          open={opsDialog.open}
+          onClose={() => setOpsDialog({ open: false, mode: 'checkin', reservation: null })}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle>{opsDialog.mode === 'checkin' ? t('admin.reservations.checkin.title') : t('admin.reservations.checkout.title')}</DialogTitle>
+          <DialogContent>
+            {opsDialog.mode === 'checkin' ? (
+              <Box sx={{ display: 'grid', gap: 2 }}>
+                <Alert severity="info">{t('admin.reservations.checkin.provideId')}</Alert>
+                <TextField
+                  label={t('admin.reservations.checkin.idDocument')}
+                  value={idDocument}
+                  onChange={(e) => setIdDocument(e.target.value)}
+                  required
+                />
+              </Box>
+            ) : (
+              <Alert severity="warning">{t('admin.reservations.checkout.confirm')}</Alert>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpsDialog({ open: false, mode: 'checkin', reservation: null })}>{t('admin.reservations.actions.cancel')}</Button>
+            <Button
+              variant="contained"
+              onClick={async () => {
+                if (!opsDialog.reservation) return;
+                try {
+                  setLoading(true);
+                  if (opsDialog.mode === 'checkin') {
+                    if (!idDocument.trim()) {
+                      setSnackbar({ open: true, message: t('admin.reservations.checkin.idRequired'), severity: 'error' });
+                    } else {
+                      const res = await reservationsService.checkInReservation(opsDialog.reservation._id, { identificationDocument: idDocument.trim() });
+                      const updated = res.data.data as Reservation;
+                      setReservations(prev => prev.map(r => r._id === updated._id ? updated : r));
+                      setSnackbar({ open: true, message: t('admin.reservations.messages.checkinSuccess'), severity: 'success' });
+                      setOpsDialog({ open: false, mode: 'checkin', reservation: null });
+                    }
+                  } else {
+                    const res = await reservationsService.checkOutReservation(opsDialog.reservation._id, {});
+                    const updated = res.data.data as Reservation;
+                    setReservations(prev => prev.map(r => r._id === updated._id ? updated : r));
+                    setSnackbar({ open: true, message: t('admin.reservations.messages.checkoutSuccess'), severity: 'success' });
+                    // Refresh rooms so the newly freed room appears available
+                    await fetchRooms();
+                    setOpsDialog({ open: false, mode: 'checkin', reservation: null });
+                  }
+                } catch (e: any) {
+                  const msg = e?.response?.data?.message || e?.message || t('admin.reservations.messages.operationFailed');
+                  setSnackbar({ open: true, message: msg, severity: 'error' });
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={opsDialog.mode === 'checkin' && !idDocument.trim()}
+            >
+              {opsDialog.mode === 'checkin' ? t('admin.reservations.checkin.confirm') : t('admin.reservations.checkout.confirmButton')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          <Alert
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </AdminLayout>
+  );
+};
+
+export default ReservationManagement;
