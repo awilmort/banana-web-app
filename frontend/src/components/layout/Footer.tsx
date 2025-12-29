@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
           {/* Brand & Description */}
           <Grid item xs={12} md={4}>
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-              🏝️ Banana Ranch Villages
+              Banana Ranch Villages
             </Typography>
             <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
               {t('footer.description')}

@@ -66,6 +66,8 @@
       "selectDate": "Please select a visit date",
       "nameRequired": "Please enter your first and last name",
       "emailRequired": "Please enter your email address",
+        "emailInvalid": "Please enter a valid email address",
+        "phoneRequired": "Please enter your phone number",
       "adultsRequired": "At least one adult is required",
       "bookingFailed": "Failed to book day pass"
     }
@@ -593,6 +595,7 @@
         "status": "Status",
         "assignedRoom": "Assigned Room",
         "total": "Total",
+        "payment": "Payment",
         "actions": "Actions"
       },
       "actions": {
@@ -658,9 +661,80 @@
         "confirmButton": "Confirm Check-Out"
       },
       "loadMore": "Load More",
-      "loadingMore": "Loading..."
+      "loadingMore": "Loading...",
+      "details": {
+        "title": "Reservation Details",
+        "deleteConfirm": "This will permanently remove the reservation. Continue?",
+        "delete": "Delete Reservation",
+        "back": "Back to Reservations",
+        "section": {
+          "reservation": "Reservation",
+          "payment": "Payment",
+          "operational": "Operational",
+          "event": "Event",
+          "room": "Room",
+          "specialRequests": "Special Requests",
+          "payments": "Payments"
+        },
+        "labels": {
+          "type": "Type",
+          "dates": "Dates",
+          "guests": "Guests",
+          "reservationCode": "Reservation Code",
+          "status": "Status",
+          "total": "Total",
+          "totalPayments": "Total Payments",
+          "pendingBalance": "Pending Balance",
+          "actualCheckIn": "Actual Check-In",
+          "actualCheckOut": "Actual Check-Out",
+          "eventType": "Event Type",
+          "description": "Description",
+          "assignedRoom": "Assigned Room"
+        },
+        "table": {
+          "date": "Date",
+          "method": "Method",
+          "amount": "Amount",
+          "note": "Note",
+          "actions": "Actions",
+          "noPayments": "No payments recorded"
+        },
+        "actions": {
+          "addPayment": "Add Payment",
+          "edit": "Edit",
+          "delete": "Delete",
+          "cancel": "Cancel",
+          "saveChanges": "Save Changes"
+        },
+        "paymentDialog": {
+          "titleAdd": "Add Payment",
+          "titleEdit": "Edit Payment",
+          "amount": "Amount",
+          "method": "Method",
+          "methodSelect": "Select Method",
+          "methodCash": "Cash",
+          "methodCard": "Card",
+          "methodTransfer": "Transfer",
+          "noteOptional": "Note (optional)",
+          "pendingBalance": "Pending Balance: {{amount}}",
+          "afterPayment": "After payment: {{amount}}",
+          "recorded": "Payment recorded",
+          "failed": "Failed to record payment"
+        },
+        "errors": {
+          "deletePaymentConfirm": "Delete this payment?",
+          "deletePaymentFailed": "Failed to delete payment",
+          "deleteReservationFailed": "Failed to remove reservation"
+        },
+        "status": {
+          "pending": "Pending",
+          "confirmed": "Confirmed",
+          "cancelled": "Cancelled",
+          "checked-in": "Checked-in",
+          "checked-out": "Checked-out"
+        }
       }
-    ,
+    },
     "schedule": {
       "title": "Schedule Summary",
       "today": "Today",

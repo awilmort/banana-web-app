@@ -38,6 +38,7 @@ import {
   Category,
 } from '@mui/icons-material';
 import { Amenity } from '../../types';
+import NumberField from '../../components/common/NumberField';
 import { amenitiesService } from '../../services/api';
 import AdminLayout from '../../components/admin/AdminLayout';
 import MediaPicker from '../../components/admin/MediaPicker';
@@ -406,13 +407,12 @@ const AmenitiesManagement: React.FC = () => {
                       </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField
+                      <NumberField
                         fullWidth
                         label={t('admin.amenities.form.displayOrder')}
-                        type="number"
                         value={formData.order}
-                        onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                        inputProps={{ min: 0 }}
+                        onChange={(val) => setFormData({ ...formData, order: val ?? 0 })}
+                        min={0}
                       />
                     </Grid>
                     <Grid item xs={12}>

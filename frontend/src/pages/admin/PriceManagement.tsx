@@ -5,6 +5,7 @@ import {
   Switch, FormControlLabel, Alert
 } from '@mui/material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import NumberField from '../../components/common/NumberField';
 import { pricingService } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
@@ -237,8 +238,8 @@ const PriceManagement: React.FC = () => {
                 </Box>
               )}
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                <TextField type="number" label={tr('admin.pricing.form.adultPrice', 'pricing.form.adultPrice')} value={form.adultPrice} onChange={(e) => setForm({ ...form, adultPrice: Number(e.target.value) })} />
-                <TextField type="number" label={tr('admin.pricing.form.childrenPrice', 'pricing.form.childrenPrice')} value={form.childrenPrice} onChange={(e) => setForm({ ...form, childrenPrice: Number(e.target.value) })} />
+                <NumberField label={tr('admin.pricing.form.adultPrice', 'pricing.form.adultPrice')} value={form.adultPrice} onChange={(val) => setForm({ ...form, adultPrice: val ?? 0 })} min={0} />
+                <NumberField label={tr('admin.pricing.form.childrenPrice', 'pricing.form.childrenPrice')} value={form.childrenPrice} onChange={(val) => setForm({ ...form, childrenPrice: val ?? 0 })} min={0} />
               </Box>
               <FormControlLabel control={<Switch checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />} label={tr('admin.pricing.form.active', 'pricing.form.active')} />
             </Box>

@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { getCountriesForDisplay } from '../../utils/countries';
 import { pricingService, reservationsService } from '../../services/api';
+import NumberField from '../../components/common/NumberField';
 import { findApplicablePricing, PricingRule } from '../../utils/pricing';
 
 interface DayPassData {
@@ -128,6 +129,16 @@ const DayPassPage: React.FC = () => {
     }
     if (!bookingData.contactInfo.email) {
       setError(t('daypass.errors.emailRequired'));
+      return;
+    }
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(bookingData.contactInfo.email)) {
+      setError(t('daypass.errors.emailInvalid'));
+      return;
+    }
+    if (!bookingData.contactInfo.phone) {
+      setError(t('daypass.errors.phoneRequired'));
       return;
     }
     if (bookingData.guestDetails.adults < 1) {
@@ -315,45 +326,42 @@ const DayPassPage: React.FC = () => {
                   </Grid>
 
                   <Grid item xs={12} md={4}>
-                    <TextField
+                    <NumberField
                       label={t('daypass.adults')}
-                      type="number"
                       value={bookingData.guestDetails.adults}
-                      onChange={(e) => setBookingData(prev => ({
+                      onChange={(val) => setBookingData(prev => ({
                         ...prev,
-                        guestDetails: { ...prev.guestDetails, adults: Math.max(1, parseInt(e.target.value) || 1) }
+                        guestDetails: { ...prev.guestDetails, adults: val == null ? 0 : val }
                       }))}
+                      min={1}
                       fullWidth
                       required
-                      inputProps={{ min: 1 }}
                     />
                   </Grid>
 
                   <Grid item xs={12} md={4}>
-                    <TextField
+                    <NumberField
                       label={t('daypass.children')}
-                      type="number"
                       value={bookingData.guestDetails.children}
-                      onChange={(e) => setBookingData(prev => ({
+                      onChange={(val) => setBookingData(prev => ({
                         ...prev,
-                        guestDetails: { ...prev.guestDetails, children: Math.max(0, parseInt(e.target.value) || 0) }
+                        guestDetails: { ...prev.guestDetails, children: val == null ? 0 : val }
                       }))}
+                      min={0}
                       fullWidth
-                      inputProps={{ min: 0 }}
                     />
                   </Grid>
 
                   <Grid item xs={12} md={4}>
-                    <TextField
+                    <NumberField
                       label={t('daypass.infants')}
-                      type="number"
                       value={bookingData.guestDetails.infants}
-                      onChange={(e) => setBookingData(prev => ({
+                      onChange={(val) => setBookingData(prev => ({
                         ...prev,
-                        guestDetails: { ...prev.guestDetails, infants: Math.max(0, parseInt(e.target.value) || 0) }
+                        guestDetails: { ...prev.guestDetails, infants: val == null ? 0 : val }
                       }))}
+                      min={0}
                       fullWidth
-                      inputProps={{ min: 0 }}
                     />
                   </Grid>
 
@@ -407,12 +415,14 @@ const DayPassPage: React.FC = () => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       label={t('daypass.phone')}
+                      type="tel"
                       value={bookingData.contactInfo.phone}
                       onChange={(e) => setBookingData(prev => ({
                         ...prev,
                         contactInfo: { ...prev.contactInfo, phone: e.target.value }
                       }))}
                       fullWidth
+                      required
                     />
                   </Grid>
 

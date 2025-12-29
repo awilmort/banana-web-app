@@ -1,3 +1,4 @@
+import NumberField from '../common/NumberField';
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -135,28 +136,6 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
 
   const stepIds = ['eventDetails', 'contactInfo', 'servicesExtras', 'confirmation'] as const;
 
-  const calculateTotalPrice = () => {
-    const basePrice = eventData?.priceFrom || 500;
-    let total = basePrice;
-
-    // Add service costs
-    if (bookingData.services.catering) total += 50 * bookingData.expectedAttendees;
-    if (bookingData.services.decoration) total += 300;
-    if (bookingData.services.photography) total += 500;
-    if (bookingData.services.musicSystem) total += 200;
-    if (bookingData.services.breakfast) total += 25 * bookingData.expectedAttendees;
-    if (bookingData.services.spa) total += 100 * bookingData.guestDetails.adults;
-    if (bookingData.services.aquaPark) total += 30 * (bookingData.guestDetails.adults + bookingData.guestDetails.children);
-
-    // Multi-day event multiplier
-    if (bookingData.endDate && bookingData.eventDate) {
-      const days = Math.ceil((bookingData.endDate.getTime() - bookingData.eventDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      total *= days;
-    }
-
-    return total;
-  };
-
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 0:
@@ -220,7 +199,8 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
         contactInfo: bookingData.contactInfo,
         services: bookingData.services,
         specialRequests: bookingData.specialRequests,
-        totalPrice: calculateTotalPrice(),
+        // Prices for events will be set manually by an admin later
+        totalPrice: 0,
       };
       // Always include the guestName from contact info for clarity in emails
       (reservationData as any).guestName = {
@@ -352,12 +332,11 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <TextField
+              <NumberField
                 label={t('pages.eventBooking.adults')}
-                type="number"
                 value={bookingData.guestDetails.adults}
-                onChange={(e) => {
-                  const adults = parseInt(e.target.value) || 0;
+                onChange={(val) => {
+                  const adults = val == null ? 0 : val;
                   const total = adults + bookingData.guestDetails.children + bookingData.guestDetails.infants;
                   setBookingData(prev => ({
                     ...prev,
@@ -365,19 +344,19 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                     expectedAttendees: total
                   }));
                 }}
-                inputProps={{ min: 1, max: eventData?.maxAdults ?? undefined }}
+                min={1}
+                max={eventData?.maxAdults ?? undefined}
                 fullWidth
                 required
               />
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <TextField
+              <NumberField
                 label={t('pages.eventBooking.children')}
-                type="number"
                 value={bookingData.guestDetails.children}
-                onChange={(e) => {
-                  const children = parseInt(e.target.value) || 0;
+                onChange={(val) => {
+                  const children = val == null ? 0 : val;
                   const total = bookingData.guestDetails.adults + children + bookingData.guestDetails.infants;
                   setBookingData(prev => ({
                     ...prev,
@@ -385,18 +364,18 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                     expectedAttendees: total
                   }));
                 }}
-                inputProps={{ min: 0, max: eventData?.maxChildren ?? undefined }}
+                min={0}
+                max={eventData?.maxChildren ?? undefined}
                 fullWidth
               />
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <TextField
+              <NumberField
                 label={t('pages.eventBooking.infants')}
-                type="number"
                 value={bookingData.guestDetails.infants}
-                onChange={(e) => {
-                  const infants = parseInt(e.target.value) || 0;
+                onChange={(val) => {
+                  const infants = val == null ? 0 : val;
                   const total = bookingData.guestDetails.adults + bookingData.guestDetails.children + infants;
                   setBookingData(prev => ({
                     ...prev,
@@ -404,7 +383,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                     expectedAttendees: total
                   }));
                 }}
-                inputProps={{ min: 0 }}
+                min={0}
                 fullWidth
               />
             </Grid>
@@ -765,60 +744,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <Paper variant="outlined" sx={{ p: 3, bgcolor: 'grey.50' }}>
-                <Typography variant="h6" gutterBottom>
-                  {t('pages.eventBooking.priceSummary')}
-                </Typography>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography>{t('pages.eventBooking.basePrice')}</Typography>
-                  <Typography>${eventData?.priceFrom || 500}</Typography>
-                </Box>
-
-                {bookingData.services.catering && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">{t('pages.eventBooking.labels.catering')}:</Typography>
-                    <Typography variant="body2">${50 * bookingData.expectedAttendees}</Typography>
-                  </Box>
-                )}
-
-                {Object.entries(bookingData.services).map(([key, value]) => {
-                  if (!value || key === 'catering') return null;
-                  let price = 0;
-                  if (key === 'decoration') price = 300;
-                  if (key === 'photography') price = 500;
-                  if (key === 'musicSystem') price = 200;
-                  if (key === 'breakfast') price = 25 * bookingData.expectedAttendees;
-                  if (key === 'spa') price = 100 * bookingData.guestDetails.adults;
-                  if (key === 'aquaPark') price = 30 * (bookingData.guestDetails.adults + bookingData.guestDetails.children);
-
-                  return (
-                    <Box key={key} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {t(`pages.eventBooking.serviceLabels.${key}`)}:
-                      </Typography>
-                      <Typography variant="body2">${price}</Typography>
-                    </Box>
-                  );
-                })}
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {t('pages.eventBooking.total')}
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                    ${calculateTotalPrice()}
-                  </Typography>
-                </Box>
-
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  {t('pages.eventBooking.finalPriceNote')}
-                </Typography>
-              </Paper>
-            </Grid>
+            {/* Price summary removed: events are manually priced by admin */}
           </Grid>
         );
 

@@ -7,7 +7,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   FormControl,
   InputLabel,
   Select,
@@ -26,6 +25,7 @@ import {
   Tooltip,
   Snackbar,
   Box,
+  TextField,
 } from '@mui/material';
 import {
   Visibility,
@@ -42,6 +42,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import ReservationDetails from '../../components/admin/ReservationDetails';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import NumberField from '../../components/common/NumberField';
 
 const ReservationManagement: React.FC = () => {
   const { t } = useTranslation();
@@ -50,11 +51,13 @@ const ReservationManagement: React.FC = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState<'all' | 'room' | 'daypass' | 'PasaTarde' | 'event'>('all');
   const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -99,7 +102,10 @@ const ReservationManagement: React.FC = () => {
       if (reset) {
         setPage(1);
         setHasMore(true);
-        setReservations([]);
+        // Avoid clearing list on subsequent resets to preserve focus/UX
+        if (!initialLoadDone) {
+          setReservations([]);
+        }
       }
       const currentPage = reset ? 1 : page;
       const params: any = { page: currentPage, limit: 20, sort: '-createdAt' };
@@ -109,11 +115,12 @@ const ReservationManagement: React.FC = () => {
       // Pass raw date strings; backend will interpret day boundaries
       if (filterDateFrom) params.dateFrom = filterDateFrom;
       if (filterDateTo) params.dateTo = filterDateTo;
-      if (reset) setLoading(true); else setLoadingMore(true);
+      if (reset && !initialLoadDone) setLoading(true); else setLoadingMore(true);
       setError(null);
       const response = await reservationsService.getReservations(params);
       const newItems = response.data.data || [];
       setReservations(prev => reset ? newItems : [...prev, ...newItems]);
+      setInitialLoadDone(true);
       const pagination = (response.data as any).pagination;
       if (pagination) {
         setHasMore(pagination.page < pagination.totalPages);
@@ -128,7 +135,7 @@ const ReservationManagement: React.FC = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [page, filterStatus, filterType, search, filterDateFrom, filterDateTo, t]);
+  }, [page, filterStatus, filterType, search, filterDateFrom, filterDateTo, initialLoadDone, t]);
 
   const fetchRooms = async () => {
     try {
@@ -148,12 +155,19 @@ const ReservationManagement: React.FC = () => {
   useEffect(() => {
     fetchReservations({ reset: true });
     fetchRooms();
-  }, [fetchReservations]);
+    // Run once on mount to initialize data
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => fetchReservations({ reset: true }), 300);
     return () => clearTimeout(t);
   }, [filterStatus, filterType, search, filterDateFrom, filterDateTo, fetchReservations]);
+
+  // Debounce search input updates to actual filter to reduce re-fetches
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -343,7 +357,7 @@ const ReservationManagement: React.FC = () => {
 
   const editImmutable = isImmutableReservation(editDialog.reservation);
 
-  if (loading && reservations.length === 0) {
+  if (loading && !initialLoadDone) {
     return (
       <AdminLayout>
         <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
@@ -423,7 +437,7 @@ const ReservationManagement: React.FC = () => {
               <MenuItem value="event">{t('admin.reservations.typeLabels.event')}</MenuItem>
             </Select>
           </FormControl>
-          <TextField size="small" label={t('admin.reservations.filters.search')} value={search} onChange={(e) => setSearch(e.target.value)} />
+          <TextField size="small" label={t('admin.reservations.filters.search')} value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
           <TextField size="small" type="date" label={t('admin.reservations.filters.from')} value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} />
           <TextField size="small" type="date" label={t('admin.reservations.filters.to')} value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} InputLabelProps={{ shrink: true }} />
           <Button onClick={() => {
@@ -439,6 +453,7 @@ const ReservationManagement: React.FC = () => {
             setFilterStatus('all');
             setFilterType('all');
             setSearch('');
+            setSearchInput('');
             setFilterDateFrom('');
             setFilterDateTo('');
           }}>{t('admin.reservations.filters.clear')}</Button>
@@ -456,6 +471,7 @@ const ReservationManagement: React.FC = () => {
                 <TableCell>{t('admin.reservations.table.status')}</TableCell>
                 <TableCell>{t('admin.reservations.table.assignedRoom')}</TableCell>
                 <TableCell>{t('admin.reservations.table.total')}</TableCell>
+                  <TableCell>{t('admin.reservations.table.payment')}</TableCell>
                 <TableCell>{t('admin.reservations.table.actions')}</TableCell>
               </TableRow>
             </TableHead>
@@ -529,6 +545,22 @@ const ReservationManagement: React.FC = () => {
                     <Typography variant="body2" fontWeight="medium">
                       ${reservation.totalPrice}
                     </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const total = reservation.totalPrice ?? 0;
+                      const paid = (reservation as any).totalPayments ?? 0;
+                      const pendingBalance = Math.max(0, total - paid);
+                      const isPaid = pendingBalance === 0;
+                      return (
+                        <Chip
+                          label={isPaid ? t('admin.reservations.paymentStatus.paid') : t('admin.reservations.paymentStatus.pending')}
+                          color={isPaid ? 'success' : 'warning'}
+                          size="small"
+                          sx={{ textTransform: 'capitalize' }}
+                        />
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
@@ -721,57 +753,54 @@ const ReservationManagement: React.FC = () => {
                 </Select>
               </FormControl>
               <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                <TextField
+                <NumberField
                   label={t('admin.reservations.form.adults')}
-                  type="number"
-                  inputProps={{ min: 1 }}
                   value={editForm.adults}
-                  onChange={(e) => setEditForm({ ...editForm, adults: Number(e.target.value) })}
+                  onChange={(val) => setEditForm({ ...editForm, adults: val == null ? 1 : val })}
+                  min={1}
                   disabled={editImmutable}
                 />
-                <TextField
+                <NumberField
                   label={t('admin.reservations.form.children')}
-                  type="number"
-                  inputProps={{ min: 0 }}
                   value={editForm.children}
-                  onChange={(e) => setEditForm({ ...editForm, children: Number(e.target.value) })}
+                  onChange={(val) => setEditForm({ ...editForm, children: val == null ? 0 : val })}
+                  min={0}
                   disabled={editImmutable}
                 />
-                <TextField
+                <NumberField
                   label={t('admin.reservations.form.infants')}
-                  type="number"
-                  inputProps={{ min: 0 }}
                   value={editForm.infants}
-                  onChange={(e) => setEditForm({ ...editForm, infants: Number(e.target.value) })}
+                  onChange={(val) => setEditForm({ ...editForm, infants: val == null ? 0 : val })}
+                  min={0}
                   disabled={editImmutable}
                 />
               </Box>
               <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(2, 1fr)', mt: 1 }}>
-                <TextField
+                <NumberField
                   label={t('admin.reservations.form.adultPrice')}
-                  type="number"
-                  inputProps={{ min: 0, step: 0.01 }}
                   value={editForm.adultPrice}
-                  onChange={(e) => setEditForm({ ...editForm, adultPrice: Number(e.target.value) })}
+                  onChange={(val) => setEditForm({ ...editForm, adultPrice: val == null ? 0 : val })}
+                  min={0}
                   disabled={editImmutable || !(String(user?.role).toLowerCase() === 'admin' || permissions.includes('admin.reservations.priceUpdate'))}
+                  inputProps={{ step: 0.01 }}
                 />
-                <TextField
+                <NumberField
                   label={t('admin.reservations.form.childrenPrice')}
-                  type="number"
-                  inputProps={{ min: 0, step: 0.01 }}
                   value={editForm.childrenPrice}
-                  onChange={(e) => setEditForm({ ...editForm, childrenPrice: Number(e.target.value) })}
+                  onChange={(val) => setEditForm({ ...editForm, childrenPrice: val == null ? 0 : val })}
+                  min={0}
                   disabled={editImmutable || !(String(user?.role).toLowerCase() === 'admin' || permissions.includes('admin.reservations.priceUpdate'))}
+                  inputProps={{ step: 0.01 }}
                 />
               </Box>
               <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: '1fr' }}>
-                <TextField
+                <NumberField
                   label={t('admin.reservations.form.totalPrice')}
-                  type="number"
-                  inputProps={{ min: 0, step: 0.01 }}
                   value={editForm.totalPrice}
-                  onChange={(e) => setEditForm({ ...editForm, totalPrice: Number(e.target.value) })}
+                  onChange={(val) => setEditForm({ ...editForm, totalPrice: val == null ? 0 : val })}
+                  min={0}
                   disabled={editImmutable || !(String(user?.role).toLowerCase() === 'admin' || permissions.includes('admin.reservations.amountUpdate'))}
+                  inputProps={{ step: 0.01 }}
                 />
               </Box>
               <TextField

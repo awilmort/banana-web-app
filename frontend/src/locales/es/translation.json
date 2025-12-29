@@ -66,6 +66,8 @@
       "selectDate": "Por favor selecciona una fecha de visita",
       "nameRequired": "Por favor ingresa tu nombre y apellido",
       "emailRequired": "Por favor ingresa tu correo electrónico",
+        "emailInvalid": "Por favor ingresa un correo electrónico válido",
+        "phoneRequired": "Por favor ingresa tu número de teléfono",
       "adultsRequired": "Se requiere al menos un adulto",
       "bookingFailed": "Error al reservar el DayPass"
     }
@@ -593,6 +595,7 @@
         "status": "Estado",
         "assignedRoom": "Habitación asignada",
         "total": "Total",
+        "payment": "Pago",
         "actions": "Acciones"
       },
       "actions": {
@@ -658,9 +661,80 @@
         "confirmButton": "Confirmar Check-Out"
       },
       "loadMore": "Cargar más",
-      "loadingMore": "Cargando..."
+      "loadingMore": "Cargando...",
+      "details": {
+        "title": "Detalles de la reserva",
+        "deleteConfirm": "Esto eliminará permanentemente la reserva. ¿Continuar?",
+        "delete": "Eliminar reserva",
+        "back": "Volver a reservas",
+        "section": {
+          "reservation": "Reserva",
+          "payment": "Pago",
+          "operational": "Operativo",
+          "event": "Evento",
+          "room": "Habitación",
+          "specialRequests": "Peticiones especiales",
+          "payments": "Pagos"
+        },
+        "labels": {
+          "type": "Tipo",
+          "dates": "Fechas",
+          "guests": "Huéspedes",
+          "reservationCode": "Código de reserva",
+          "status": "Estado",
+          "total": "Total",
+          "totalPayments": "Pagos totales",
+          "pendingBalance": "Saldo pendiente",
+          "actualCheckIn": "Check-In real",
+          "actualCheckOut": "Check-Out real",
+          "eventType": "Tipo de evento",
+          "description": "Descripción",
+          "assignedRoom": "Habitación asignada"
+        },
+        "table": {
+          "date": "Fecha",
+          "method": "Método",
+          "amount": "Monto",
+          "note": "Nota",
+          "actions": "Acciones",
+          "noPayments": "No hay pagos registrados"
+        },
+        "actions": {
+          "addPayment": "Agregar pago",
+          "edit": "Editar",
+          "delete": "Eliminar",
+          "cancel": "Cancelar",
+          "saveChanges": "Guardar cambios"
+        },
+        "paymentDialog": {
+          "titleAdd": "Agregar pago",
+          "titleEdit": "Editar pago",
+          "amount": "Monto",
+          "method": "Método",
+          "methodSelect": "Seleccionar método",
+          "methodCash": "Efectivo",
+          "methodCard": "Tarjeta",
+          "methodTransfer": "Transferencia",
+          "noteOptional": "Nota (opcional)",
+          "pendingBalance": "Saldo pendiente: {{amount}}",
+          "afterPayment": "Después del pago: {{amount}}",
+          "recorded": "Pago registrado",
+          "failed": "No se pudo registrar el pago"
+        },
+        "errors": {
+          "deletePaymentConfirm": "¿Eliminar este pago?",
+          "deletePaymentFailed": "No se pudo eliminar el pago",
+          "deleteReservationFailed": "No se pudo eliminar la reserva"
+        },
+        "status": {
+          "pending": "Pendiente",
+          "confirmed": "Confirmada",
+          "cancelled": "Cancelada",
+          "checked-in": "Check-In",
+          "checked-out": "Check-Out"
+        }
       }
-    ,
+    },
     "schedule": {
       "title": "Resumen de agenda",
       "today": "Hoy",

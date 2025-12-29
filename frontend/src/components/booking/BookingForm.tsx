@@ -1,3 +1,4 @@
+import NumberField from '../common/NumberField';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
@@ -383,33 +384,33 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <TextField
+              <NumberField
                 fullWidth
                 label={t('pages.roomBooking.adults')}
-                type="number"
                 value={bookingData.adults}
-                onChange={(e) => setBookingData({ ...bookingData, adults: parseInt(e.target.value) || 1 })}
-                inputProps={{ min: 1, max: 8 }}
+                onChange={(val) => setBookingData({ ...bookingData, adults: val == null ? 1 : val })}
+                min={1}
+                max={8}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <TextField
+              <NumberField
                 fullWidth
                 label={t('pages.roomBooking.children')}
-                type="number"
                 value={bookingData.children}
-                onChange={(e) => setBookingData({ ...bookingData, children: parseInt(e.target.value) || 0 })}
-                inputProps={{ min: 0, max: 4 }}
+                onChange={(val) => setBookingData({ ...bookingData, children: val == null ? 0 : val })}
+                min={0}
+                max={4}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <TextField
+              <NumberField
                 fullWidth
                 label={t('pages.roomBooking.infants')}
-                type="number"
                 value={bookingData.infants}
-                onChange={(e) => setBookingData({ ...bookingData, infants: parseInt(e.target.value) || 0 })}
-                inputProps={{ min: 0, max: 2 }}
+                onChange={(val) => setBookingData({ ...bookingData, infants: val == null ? 0 : val })}
+                min={0}
+                max={2}
               />
             </Grid>
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Checkbox, Chip } from '@mui/material';
+import NumberField from '../../components/common/NumberField';
 import { Edit, Delete, Add } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { eventTypesService } from '../../services/api';
@@ -166,20 +167,20 @@ const EventTypesManagement: React.FC = () => {
                 <TextField label={t('admin.eventTypes.form.features')} value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} fullWidth />
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField label={t('admin.eventTypes.form.priceFrom')} type="number" value={form.priceFrom} onChange={(e) => setForm({ ...form, priceFrom: Number(e.target.value) })} fullWidth required />
+                <NumberField label={t('admin.eventTypes.form.priceFrom')} value={form.priceFrom} onChange={(val) => setForm({ ...form, priceFrom: val ?? 0 })} min={0} fullWidth required />
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField label={t('admin.eventTypes.form.maxGuests')} type="number" value={form.maxGuests} onChange={(e) => setForm({ ...form, maxGuests: Number(e.target.value) })} fullWidth required />
+                <NumberField label={t('admin.eventTypes.form.maxGuests')} value={form.maxGuests} onChange={(val) => setForm({ ...form, maxGuests: val ?? 1 })} min={1} fullWidth required />
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField label={t('admin.eventTypes.form.maxChildren')} type="number" value={form.maxChildren} onChange={(e) => setForm({ ...form, maxChildren: Number(e.target.value) })} fullWidth />
+                <NumberField label={t('admin.eventTypes.form.maxChildren')} value={form.maxChildren} onChange={(val) => setForm({ ...form, maxChildren: val ?? 0 })} min={0} fullWidth />
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField
+                <NumberField
                   label={t('admin.eventTypes.form.maxAdults')}
-                  type="number"
-                  value={form.maxAdults ?? ''}
-                  onChange={(e) => setForm({ ...form, maxAdults: e.target.value === '' ? undefined : Number(e.target.value) })}
+                  value={form.maxAdults ?? null}
+                  onChange={(val) => setForm({ ...form, maxAdults: val === null ? undefined : val })}
+                  min={1}
                   fullWidth
                   helperText={t('admin.eventTypes.form.maxAdultsHelper')}
                 />

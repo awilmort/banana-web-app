@@ -133,7 +133,7 @@ const Header: React.FC<HeaderProps> = ({ showHamburger = false, onHamburgerClick
                 gap: 1,
               }}
             >
-              🏝️ Banana Ranch Villages
+              Banana Ranch Villages
             </Typography>
           </Box>
 

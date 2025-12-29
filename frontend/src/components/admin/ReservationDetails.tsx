@@ -4,6 +4,8 @@ import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { Reservation } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { reservationsService } from '../../services/api';
+import { useTranslation } from 'react-i18next';
+import NumberField from '../../components/common/NumberField';
 
 type Props = {
   reservation: Reservation;
@@ -16,6 +18,7 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
   useEffect(() => { setCurrent(reservation); }, [reservation]);
   const { user } = useAuth();
   const isAdmin = String(user?.role).toLowerCase() === 'admin';
+  const { t } = useTranslation();
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -32,6 +35,15 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
       return new Date(dateString).toLocaleString();
     } catch {
       return String(dateString);
+    }
+  };
+
+  const formatCurrency = (value?: number) => {
+    if (value == null) return t('admin.reservations.na');
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(value);
+    } catch {
+      return `$${(value || 0).toFixed(2)}`;
     }
   };
 
@@ -64,28 +76,28 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
     <>
     <Container maxWidth="lg" sx={{ py: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Reservation Details</Typography>
+        <Typography variant="h5">{t('admin.reservations.details.title')}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {isAdmin && (
             <Button
               variant="contained"
               color="error"
               onClick={async () => {
-                const ok = window.confirm('This will permanently remove the reservation. Continue?');
+                const ok = window.confirm(t('admin.reservations.details.deleteConfirm'));
                 if (!ok) return;
                 try {
                   await reservationsService.deleteReservation(current._id);
                   if (onUpdated) onUpdated(current);
                   onBack();
                 } catch (err: any) {
-                  alert(err?.response?.data?.message || 'Failed to remove reservation');
+                  alert(err?.response?.data?.message || t('admin.reservations.details.errors.deleteReservationFailed'));
                 }
               }}
             >
-              Delete Reservation
+              {t('admin.reservations.details.delete')}
             </Button>
           )}
-          <Button variant="outlined" onClick={onBack}>Back to Reservations</Button>
+          <Button variant="outlined" onClick={onBack}>{t('admin.reservations.details.back')}</Button>
         </Box>
       </Box>
 
@@ -95,63 +107,63 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
             <Typography variant="h6" gutterBottom>{guestName}</Typography>
             <Typography variant="body2" color="text.secondary">{current.contactInfo?.email} • {current.contactInfo?.phone}</Typography>
           </Box>
-          <Chip label={current.status} color={getStatusColor(current.status) as any} sx={{ textTransform: 'capitalize' }} />
+          <Chip label={t(`admin.reservations.details.status.${current.status}`)} color={getStatusColor(current.status) as any} sx={{ textTransform: 'capitalize' }} />
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Reservation</Typography>
+            <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.reservation')}</Typography>
             <Box sx={{ pl: 1 }}>
-              <Typography variant="body2"><strong>Type:</strong> {current.type}</Typography>
-              <Typography variant="body2"><strong>Dates:</strong> {formatDate(current.checkInDate)} {current.checkOutDate ? `- ${formatDate(current.checkOutDate)}` : ''}</Typography>
-              <Typography variant="body2"><strong>Guests:</strong> {current.guestDetails.adults} Adults, {current.guestDetails.children} Children, {current.guestDetails.infants} Infants</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.type')}:</strong> {current.type}</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.dates')}:</strong> {formatDate(current.checkInDate)} {current.checkOutDate ? `- ${formatDate(current.checkOutDate)}` : ''}</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.guests')}:</strong> {current.guestDetails.adults} {t('schedule.cards.adults')}, {current.guestDetails.children} {t('schedule.cards.children')}, {current.guestDetails.infants} {t('reservationSummary.labels.guest')}</Typography>
               {current.reservationCode && (
-                <Typography variant="body2"><strong>Reservation Code:</strong> {current.reservationCode}</Typography>
+                <Typography variant="body2"><strong>{t('admin.reservations.details.labels.reservationCode')}:</strong> {current.reservationCode}</Typography>
               )}
-              <Typography variant="body2"><strong>Status:</strong> {current.status}</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.status')}:</strong> {t(`admin.reservations.details.status.${current.status}`)}</Typography>
             </Box>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Payment</Typography>
+            <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.payment')}</Typography>
             <Box sx={{ pl: 1 }}>
-              <Typography variant="body2"><strong>Total:</strong> ${current.totalPrice}</Typography>
-              <Typography variant="body2"><strong>Total Payments:</strong> {current.totalPayments ?? 0}</Typography>
-              <Typography variant="body2"><strong>Pending Balance:</strong> {pendingBalance}</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.total')}:</strong> {formatCurrency(current.totalPrice)}</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.totalPayments')}:</strong> {formatCurrency(current.totalPayments ?? 0)}</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.pendingBalance')}:</strong> {formatCurrency(pendingBalance)}</Typography>
             </Box>
           </Grid>
           {current.type === 'room' && (
             <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>Operational</Typography>
+              <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.operational')}</Typography>
               <Box sx={{ pl: 1 }}>
-                <Typography variant="body2"><strong>Actual Check-In:</strong> {formatDateTime(current.actualCheckInAt)}</Typography>
-                <Typography variant="body2"><strong>Actual Check-Out:</strong> {formatDateTime(current.actualCheckOutAt)}</Typography>
+                <Typography variant="body2"><strong>{t('admin.reservations.details.labels.actualCheckIn')}:</strong> {formatDateTime(current.actualCheckInAt)}</Typography>
+                <Typography variant="body2"><strong>{t('admin.reservations.details.labels.actualCheckOut')}:</strong> {formatDateTime(current.actualCheckOutAt)}</Typography>
               </Box>
             </Grid>
           )}
           {current.type === 'event' && (
             <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>Event</Typography>
+              <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.event')}</Typography>
               <Box sx={{ pl: 1 }}>
-                <Typography variant="body2"><strong>Event Type:</strong> {current.eventType}</Typography>
+                <Typography variant="body2"><strong>{t('admin.reservations.details.labels.eventType')}:</strong> {current.eventType}</Typography>
                 {current.eventDescription && (
-                  <Typography variant="body2"><strong>Description:</strong> {current.eventDescription}</Typography>
+                  <Typography variant="body2"><strong>{t('admin.reservations.details.labels.description')}:</strong> {current.eventDescription}</Typography>
                 )}
               </Box>
             </Grid>
           )}
           {current.type === 'room' && current.room && typeof current.room === 'object' && (
             <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>Room</Typography>
+              <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.room')}</Typography>
               <Box sx={{ pl: 1 }}>
-                <Typography variant="body2"><strong>Assigned Room:</strong> {current.room.name}</Typography>
+                <Typography variant="body2"><strong>{t('admin.reservations.details.labels.assignedRoom')}:</strong> {current.room.name}</Typography>
               </Box>
             </Grid>
           )}
           {current.specialRequests && (
             <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>Special Requests</Typography>
+              <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.specialRequests')}</Typography>
               <Box sx={{ pl: 1 }}>
                 <Typography variant="body2">{current.specialRequests}</Typography>
               </Box>
@@ -162,10 +174,10 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
           <Grid item xs={12}>
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="subtitle2">Payments</Typography>
+              <Typography variant="subtitle2">{t('admin.reservations.details.section.payments')}</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="body2">Pending Balance: {pendingBalance}</Typography>
-                <Button variant="contained" onClick={() => { setSubmitError(null); setSubmitSuccess(null); setAmount(0); setMethod(''); setNote(''); setPaymentDialogOpen(true); }}>Add Payment</Button>
+                <Typography variant="body2">{t('admin.reservations.details.paymentDialog.pendingBalance', { amount: formatCurrency(pendingBalance) })}</Typography>
+                <Button variant="contained" onClick={() => { setSubmitError(null); setSubmitSuccess(null); setAmount(0); setMethod(''); setNote(''); setPaymentDialogOpen(true); }}>{t('admin.reservations.details.actions.addPayment')}</Button>
               </Box>
             </Box>
 
@@ -174,11 +186,11 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Method</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                    <TableCell>Note</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    <TableCell>{t('admin.reservations.details.table.date')}</TableCell>
+                    <TableCell>{t('admin.reservations.details.table.method')}</TableCell>
+                    <TableCell align="right">{t('admin.reservations.details.table.amount')}</TableCell>
+                    <TableCell>{t('admin.reservations.details.table.note')}</TableCell>
+                    <TableCell align="right">{t('admin.reservations.details.table.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -186,11 +198,11 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
                     current.payments.map((p) => (
                       <TableRow key={(p as any)._id || `${p.createdAt}-${p.amount}`}>
                         <TableCell>{new Date(p.createdAt).toLocaleString()}</TableCell>
-                        <TableCell sx={{ textTransform: 'capitalize' }}>{p.method}</TableCell>
-                        <TableCell align="right">${p.amount.toFixed(2)}</TableCell>
+                        <TableCell sx={{ textTransform: 'capitalize' }}>{t(`admin.reservations.details.paymentDialog.method${p.method.charAt(0).toUpperCase() + p.method.slice(1)}`)}</TableCell>
+                        <TableCell align="right">{formatCurrency(p.amount)}</TableCell>
                         <TableCell>{p.note || '-'}</TableCell>
                         <TableCell align="right">
-                          <Tooltip title="Edit">
+                          <Tooltip title={t('admin.reservations.details.actions.edit')}>
                             <IconButton size="small" onClick={() => {
                               setEditingPayment({ _id: (p as any)._id, amount: p.amount, method: p.method, note: p.note });
                               setAmount(p.amount);
@@ -203,9 +215,9 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Delete">
+                          <Tooltip title={t('admin.reservations.details.actions.delete')}>
                             <IconButton size="small" color="error" onClick={async () => {
-                              const ok = window.confirm('Delete this payment?');
+                              const ok = window.confirm(t('admin.reservations.details.errors.deletePaymentConfirm'));
                               if (!ok) return;
                               try {
                                 const res = await reservationsService.deleteReservationPayment(current._id, (p as any)._id);
@@ -213,7 +225,7 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
                                 setCurrent(updated);
                                 if (onUpdated) onUpdated(updated);
                               } catch (err: any) {
-                                setSubmitError(err?.response?.data?.message || 'Failed to delete payment');
+                                setSubmitError(err?.response?.data?.message || t('admin.reservations.details.errors.deletePaymentFailed'));
                               }
                             }}>
                               <DeleteIcon fontSize="small" />
@@ -224,7 +236,7 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">No payments recorded</TableCell>
+                      <TableCell colSpan={5} align="center">{t('admin.reservations.details.table.noPayments')}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -237,38 +249,38 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
 
     {/* Add Payment Dialog */}
     <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)} maxWidth="sm" fullWidth>
-      <DialogTitle>{editingPayment ? 'Edit Payment' : 'Add Payment'}</DialogTitle>
+      <DialogTitle>{editingPayment ? t('admin.reservations.details.paymentDialog.titleEdit') : t('admin.reservations.details.paymentDialog.titleAdd')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(3, 1fr)', mt: 1 }}>
-          <TextField
-            label="Amount"
-            type="number"
-            inputProps={{ min: 0, step: 0.01 }}
+          <NumberField
+            label={t('admin.reservations.details.paymentDialog.amount')}
             value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            onChange={(val) => setAmount(val == null ? 0 : val)}
+            min={0}
+            inputProps={{ step: 0.01 }}
           />
           <TextField
             select
-            label="Method"
+            label={t('admin.reservations.details.paymentDialog.method')}
             value={method}
             onChange={(e) => setMethod(e.target.value as any)}
           >
-            <MenuItem value="">Select Method</MenuItem>
-            <MenuItem value="cash">Cash</MenuItem>
-            <MenuItem value="card">Card</MenuItem>
-            <MenuItem value="transfer">Transfer</MenuItem>
+            <MenuItem value="">{t('admin.reservations.details.paymentDialog.methodSelect')}</MenuItem>
+            <MenuItem value="cash">{t('admin.reservations.details.paymentDialog.methodCash')}</MenuItem>
+            <MenuItem value="card">{t('admin.reservations.details.paymentDialog.methodCard')}</MenuItem>
+            <MenuItem value="transfer">{t('admin.reservations.details.paymentDialog.methodTransfer')}</MenuItem>
           </TextField>
           <TextField
-            label="Note (optional)"
+            label={t('admin.reservations.details.paymentDialog.noteOptional')}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
         </Box>
         <Box sx={{ mt: 2 }}>
-          <Typography variant="body2">Pending Balance: {pendingBalance}</Typography>
+          <Typography variant="body2">{t('admin.reservations.details.paymentDialog.pendingBalance', { amount: formatCurrency(pendingBalance) })}</Typography>
           {amount > 0 && (
             <Typography variant="caption" color={amount > pendingBalance ? 'error' : 'text.secondary'}>
-              After payment: {Math.max(0, pendingBalance - amount)}
+              {t('admin.reservations.details.paymentDialog.afterPayment', { amount: formatCurrency(Math.max(0, pendingBalance - amount)) })}
             </Typography>
           )}
           {submitError && (
@@ -280,7 +292,7 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setPaymentDialogOpen(false)} disabled={submitting}>Cancel</Button>
+        <Button onClick={() => setPaymentDialogOpen(false)} disabled={submitting}>{t('admin.reservations.details.actions.cancel')}</Button>
         <Button
           variant="contained"
           disabled={submitting || amount <= 0 || amount > pendingBalance || !method}
@@ -301,17 +313,17 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
               setMethod('');
               setNote('');
               setEditingPayment(null);
-              setSubmitSuccess('Payment recorded');
+              setSubmitSuccess(t('admin.reservations.details.paymentDialog.recorded'));
               setPaymentDialogOpen(false);
               if (onUpdated) onUpdated(updated);
             } catch (err: any) {
-              setSubmitError(err?.response?.data?.message || 'Failed to record payment');
+              setSubmitError(err?.response?.data?.message || t('admin.reservations.details.paymentDialog.failed'));
             } finally {
               setSubmitting(false);
             }
           }}
         >
-          {editingPayment ? 'Save Changes' : 'Add Payment'}
+          {editingPayment ? t('admin.reservations.details.actions.saveChanges') : t('admin.reservations.details.actions.addPayment')}
         </Button>
       </DialogActions>
     </Dialog>
