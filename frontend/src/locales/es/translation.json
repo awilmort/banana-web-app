@@ -289,6 +289,8 @@
       },
       "permissionLabels": {
         "adminAccess": "Acceso de administración (general)",
+        "reservationsAssignRoom": "Reservas: Asignar habitación",
+        "reservationsManagePayments": "Reservas: Gestionar pagos",
         "reservationsPriceUpdate": "Reservas: Actualización de precios",
         "reservationsAmountUpdate": "Reservas: Actualización de precio total",
         "salesman": "Vendedor"

@@ -289,6 +289,8 @@
       },
       "permissionLabels": {
         "adminAccess": "Admin Access (General)",
+        "reservationsAssignRoom": "Reservations: Assign Room",
+        "reservationsManagePayments": "Reservations: Manage Payments",
         "reservationsPriceUpdate": "Reservations: Price Update",
         "reservationsAmountUpdate": "Reservations: Total Price Update",
         "salesman": "Salesman"

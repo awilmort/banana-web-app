@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import Reservation from '../models/Reservation';
 import Room from '../models/Room';
 import Role from '../models/Role';
-import { authenticate, authorize, AuthRequest } from '../middleware/auth';
+import { authenticate, authorize, authorizePermission, AuthRequest } from '../middleware/auth';
 import { validateReservation } from '../middleware/validation';
 import { getSortObject } from '../utils/helpers';
 import { sendReservationConfirmationEmail } from '../utils/email';
@@ -886,7 +886,7 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req: AuthRe
 // @route   PUT /api/reservations/:id/assign-room
 // @desc    Assign room to reservation (Admin only)
 // @access  Private/Admin
-router.put('/:id/assign-room', authenticate, authorize('admin'), async (req: AuthRequest, res: Response) => {
+router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservations.assignRoom'), async (req: AuthRequest, res: Response) => {
   try {
     const { roomId } = req.body;
     const reservationId = req.params.id;
@@ -1343,7 +1343,7 @@ export default router;
 // @route   POST /api/reservations/:id/payments
 // @desc    Record a payment against a reservation and update totals
 // @access  Private (Admin)
-router.post('/:id/payments', authenticate, authorize('admin'), async (req: AuthRequest, res: Response) => {
+router.post('/:id/payments', authenticate, authorizePermission('admin.reservations.managePayments'), async (req: AuthRequest, res: Response) => {
   try {
     const { amount, method, note } = req.body as { amount?: number; method?: 'card' | 'cash' | 'transfer'; note?: string };
 
@@ -1404,7 +1404,7 @@ router.post('/:id/payments', authenticate, authorize('admin'), async (req: AuthR
 // @route   PATCH /api/reservations/:id/payments/:paymentId
 // @desc    Edit a payment record and update totals
 // @access  Private (Admin)
-router.patch('/:id/payments/:paymentId', authenticate, authorize('admin'), async (req: AuthRequest, res: Response) => {
+router.patch('/:id/payments/:paymentId', authenticate, authorizePermission('admin.reservations.managePayments'), async (req: AuthRequest, res: Response) => {
   try {
     const { amount, method, note } = req.body as { amount?: number; method?: 'card' | 'cash' | 'transfer'; note?: string };
     const reservation = await Reservation.findById(req.params.id);
@@ -1465,7 +1465,7 @@ router.patch('/:id/payments/:paymentId', authenticate, authorize('admin'), async
 // @route   DELETE /api/reservations/:id/payments/:paymentId
 // @desc    Delete a payment record and update totals
 // @access  Private (Admin)
-router.delete('/:id/payments/:paymentId', authenticate, authorize('admin'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id/payments/:paymentId', authenticate, authorizePermission('admin.reservations.managePayments'), async (req: AuthRequest, res: Response) => {
   try {
     const reservation = await Reservation.findById(req.params.id);
     if (!reservation) return res.status(404).json({ success: false, message: 'Reservation not found' });

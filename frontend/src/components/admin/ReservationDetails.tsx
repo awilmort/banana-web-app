@@ -16,8 +16,9 @@ type Props = {
 const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated }) => {
   const [current, setCurrent] = useState<Reservation>(reservation);
   useEffect(() => { setCurrent(reservation); }, [reservation]);
-  const { user } = useAuth();
+  const { user, permissions } = useAuth();
   const isAdmin = String(user?.role).toLowerCase() === 'admin';
+  const canManagePayments = isAdmin || (permissions || []).includes('admin.reservations.managePayments');
   const { t } = useTranslation();
 
   const formatDate = (dateString?: string) => {
@@ -177,7 +178,9 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
               <Typography variant="subtitle2">{t('admin.reservations.details.section.payments')}</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="body2">{t('admin.reservations.details.paymentDialog.pendingBalance', { amount: formatCurrency(pendingBalance) })}</Typography>
-                <Button variant="contained" onClick={() => { setSubmitError(null); setSubmitSuccess(null); setAmount(0); setMethod(''); setNote(''); setPaymentDialogOpen(true); }}>{t('admin.reservations.details.actions.addPayment')}</Button>
+                {canManagePayments && (
+                  <Button variant="contained" onClick={() => { setSubmitError(null); setSubmitSuccess(null); setAmount(0); setMethod(''); setNote(''); setPaymentDialogOpen(true); }}>{t('admin.reservations.details.actions.addPayment')}</Button>
+                )}
               </Box>
             </Box>
 
@@ -190,7 +193,9 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
                     <TableCell>{t('admin.reservations.details.table.method')}</TableCell>
                     <TableCell align="right">{t('admin.reservations.details.table.amount')}</TableCell>
                     <TableCell>{t('admin.reservations.details.table.note')}</TableCell>
-                    <TableCell align="right">{t('admin.reservations.details.table.actions')}</TableCell>
+                    {canManagePayments && (
+                      <TableCell align="right">{t('admin.reservations.details.table.actions')}</TableCell>
+                    )}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -201,42 +206,44 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
                         <TableCell sx={{ textTransform: 'capitalize' }}>{t(`admin.reservations.details.paymentDialog.method${p.method.charAt(0).toUpperCase() + p.method.slice(1)}`)}</TableCell>
                         <TableCell align="right">{formatCurrency(p.amount)}</TableCell>
                         <TableCell>{p.note || '-'}</TableCell>
-                        <TableCell align="right">
-                          <Tooltip title={t('admin.reservations.details.actions.edit')}>
-                            <IconButton size="small" onClick={() => {
-                              setEditingPayment({ _id: (p as any)._id, amount: p.amount, method: p.method, note: p.note });
-                              setAmount(p.amount);
-                              setMethod(p.method);
-                              setNote(p.note || '');
-                              setSubmitError(null);
-                              setSubmitSuccess(null);
-                              setPaymentDialogOpen(true);
-                            }}>
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('admin.reservations.details.actions.delete')}>
-                            <IconButton size="small" color="error" onClick={async () => {
-                              const ok = window.confirm(t('admin.reservations.details.errors.deletePaymentConfirm'));
-                              if (!ok) return;
-                              try {
-                                const res = await reservationsService.deleteReservationPayment(current._id, (p as any)._id);
-                                const updated = res.data.data as Reservation;
-                                setCurrent(updated);
-                                if (onUpdated) onUpdated(updated);
-                              } catch (err: any) {
-                                setSubmitError(err?.response?.data?.message || t('admin.reservations.details.errors.deletePaymentFailed'));
-                              }
-                            }}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
+                        {canManagePayments && (
+                          <TableCell align="right">
+                            <Tooltip title={t('admin.reservations.details.actions.edit')}>
+                              <IconButton size="small" onClick={() => {
+                                setEditingPayment({ _id: (p as any)._id, amount: p.amount, method: p.method, note: p.note });
+                                setAmount(p.amount);
+                                setMethod(p.method);
+                                setNote(p.note || '');
+                                setSubmitError(null);
+                                setSubmitSuccess(null);
+                                setPaymentDialogOpen(true);
+                              }}>
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title={t('admin.reservations.details.actions.delete')}>
+                              <IconButton size="small" color="error" onClick={async () => {
+                                const ok = window.confirm(t('admin.reservations.details.errors.deletePaymentConfirm'));
+                                if (!ok) return;
+                                try {
+                                  const res = await reservationsService.deleteReservationPayment(current._id, (p as any)._id);
+                                  const updated = res.data.data as Reservation;
+                                  setCurrent(updated);
+                                  if (onUpdated) onUpdated(updated);
+                                } catch (err: any) {
+                                  setSubmitError(err?.response?.data?.message || t('admin.reservations.details.errors.deletePaymentFailed'));
+                                }
+                              }}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">{t('admin.reservations.details.table.noPayments')}</TableCell>
+                      <TableCell colSpan={canManagePayments ? 5 : 4} align="center">{t('admin.reservations.details.table.noPayments')}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
