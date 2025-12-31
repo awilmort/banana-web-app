@@ -20,6 +20,7 @@ export interface IReservation extends Document {
 
   // Room-specific fields (required for room reservations)
   room?: mongoose.Types.ObjectId; // Specific room assigned by admin
+  rooms?: mongoose.Types.ObjectId[]; // Multiple rooms assigned (optional)
 
   // Event-specific fields (required for event reservations)
   eventType?: 'wedding' | 'conference' | 'birthday' | 'corporate' | 'other';
@@ -145,6 +146,11 @@ const reservationSchema = new Schema<IReservation>({
     ref: 'Room',
     required: false // Optional - assigned by admin later for room reservations
   },
+  rooms: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Room',
+    required: false
+  }],
 
   // Event-specific fields
   eventType: {
@@ -374,6 +380,7 @@ reservationSchema.pre('save', function (next) {
 // Index for efficient queries
 reservationSchema.index({ user: 1, createdAt: -1 });
 reservationSchema.index({ room: 1, checkInDate: 1, checkOutDate: 1 });
+reservationSchema.index({ rooms: 1, checkInDate: 1, checkOutDate: 1 });
 reservationSchema.index({ status: 1 });
 reservationSchema.index({ checkInDate: 1, checkOutDate: 1 });
 reservationSchema.index({ actualCheckInAt: 1 });

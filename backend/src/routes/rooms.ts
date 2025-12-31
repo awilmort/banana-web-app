@@ -60,15 +60,24 @@ router.get('/', optionalAuth, async (req, res) => {
       // Occupancy condition: checkInDate <= dayStart AND checkOutDate > dayStart
       const reservations = await Reservation.find({
         type: 'room',
-        room: { $ne: null },
+        $or: [
+          { room: { $ne: null } },
+          { rooms: { $exists: true, $ne: [] } }
+        ],
         status: { $in: ['pending', 'confirmed', 'completed'] },
         checkInDate: { $lte: dayStart },
         checkOutDate: { $gt: dayStart },
-      }).select('room actualCheckInAt').lean();
+      }).select('room rooms actualCheckInAt').lean();
       const byRoom = new Map<string, any>();
       for (const r of reservations as any[]) {
-        const roomId = String(r.room);
-        byRoom.set(roomId, r);
+        if (r.room) {
+          byRoom.set(String(r.room), r);
+        }
+        if (Array.isArray(r.rooms)) {
+          for (const rr of r.rooms) {
+            byRoom.set(String(rr), r);
+          }
+        }
       }
       roomsWithAvailability = rooms.map(r => {
         const inactive = r.status === 'inactive';
@@ -127,12 +136,21 @@ router.get('/available', async (req, res) => {
     // Find overlapping reservations for these rooms
     const overlaps = await Reservation.find({
       type: 'room',
-      room: { $in: roomIds },
+      $or: [
+        { room: { $in: roomIds } },
+        { rooms: { $in: roomIds } }
+      ],
       status: { $in: ['pending', 'confirmed', 'completed'] },
       checkInDate: { $lt: end },
       checkOutDate: { $gt: start },
-    }).select('room').lean();
-    const busySet = new Set(overlaps.map((r: any) => String(r.room)));
+    }).select('room rooms').lean();
+    const busySet = new Set<string>();
+    for (const r of overlaps as any[]) {
+      if (r.room) busySet.add(String(r.room));
+      if (Array.isArray(r.rooms)) {
+        for (const rr of r.rooms) busySet.add(String(rr));
+      }
+    }
     const availableRooms = rooms.filter(r => !busySet.has(String(r._id)));
     res.status(200).json({ success: true, data: availableRooms });
   } catch (error: any) {
@@ -333,7 +351,10 @@ router.get('/:id/availability', async (req, res) => {
       const dayStart = parseLocalDate(date);
       const overlapping = await Reservation.findOne({
         type: 'room',
-        room: room._id,
+        $or: [
+          { room: room._id },
+          { rooms: room._id }
+        ],
         status: { $in: ['pending', 'confirmed', 'completed'] },
         checkInDate: { $lte: dayStart },
         checkOutDate: { $gt: dayStart },
@@ -351,7 +372,10 @@ router.get('/:id/availability', async (req, res) => {
     // Find any overlapping reservation in [start, end) range
     const overlapping = await Reservation.findOne({
       type: 'room',
-      room: room._id,
+      $or: [
+        { room: room._id },
+        { rooms: room._id }
+      ],
       status: { $in: ['pending', 'confirmed', 'completed'] },
       checkInDate: { $lt: end },
       checkOutDate: { $gt: start },

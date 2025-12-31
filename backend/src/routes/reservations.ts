@@ -144,6 +144,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
     const reservations = await Reservation.find(filter)
       .populate('user', 'firstName lastName email')
       .populate('room', 'name status')
+      .populate('rooms', 'name status')
       .sort(sortObject)
       .limit(limitNumber * 1)
       .skip((pageNumber - 1) * limitNumber)
@@ -178,7 +179,8 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const reservation = await Reservation.findById(req.params.id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name status amenities');
+      .populate('room', 'name status amenities')
+      .populate('rooms', 'name status amenities');
 
     if (!reservation) {
       return res.status(404).json({
@@ -503,7 +505,8 @@ router.post('/', async (req: Request, res: Response) => {
     // Populate the reservation before sending response and email
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name status price'); // room may be null
+      .populate('room', 'name status price') // room may be null
+      .populate('rooms', 'name status price');
 
     // Send confirmation email (don't wait for it to complete)
     sendReservationConfirmationEmail(populatedReservation)
@@ -796,7 +799,8 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
     // Populate the reservation before sending response
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type status');
+      .populate('room', 'name status')
+      .populate('rooms', 'name status');
 
     res.status(200).json({
       success: true,
@@ -861,7 +865,8 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req: AuthRe
     // Populate the reservation before sending response
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type price');
+      .populate('room', 'name status price')
+      .populate('rooms', 'name status price');
 
     res.status(200).json({
       success: true,
@@ -898,6 +903,10 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
     if (!roomId) {
       const previousRoomId = reservation.room as any;
       reservation.room = undefined as any;
+      // Also remove from rooms array if present
+      if (Array.isArray(reservation.rooms)) {
+        reservation.rooms = reservation.rooms.filter((rid: any) => String(rid) !== String(previousRoomId));
+      }
       reservation.assignedBy = undefined as any;
       reservation.assignedAt = undefined as any;
       // Do not change totalPrice or status here; admin may update separately
@@ -947,21 +956,14 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
     // Check for overlapping reservations on this specific room
     const overlappingReservation = await Reservation.findOne({
       _id: { $ne: reservationId },
-      room: roomId,
       status: { $in: ['confirmed'] },
-      $or: [
-        {
-          checkInDate: { $lte: reservation.checkInDate },
-          checkOutDate: { $gt: reservation.checkInDate }
-        },
-        {
-          checkInDate: { $lt: reservation.checkOutDate },
-          checkOutDate: { $gte: reservation.checkOutDate }
-        },
-        {
-          checkInDate: { $gte: reservation.checkInDate },
-          checkOutDate: { $lte: reservation.checkOutDate }
-        }
+      $and: [
+        { $or: [ { room: roomId }, { rooms: roomId } ] },
+        { $or: [
+          { checkInDate: { $lte: reservation.checkInDate }, checkOutDate: { $gt: reservation.checkInDate } },
+          { checkInDate: { $lt: reservation.checkOutDate }, checkOutDate: { $gte: reservation.checkOutDate } },
+          { checkInDate: { $gte: reservation.checkInDate }, checkOutDate: { $lte: reservation.checkOutDate } }
+        ] }
       ]
     });
 
@@ -977,6 +979,11 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
 
     // Update reservation with room assignment
     reservation.room = roomId as any;
+    // Ensure rooms array contains this room
+    const currentRooms = Array.isArray(reservation.rooms) ? reservation.rooms.map(r => String(r)) : [];
+    if (!currentRooms.includes(String(roomId))) {
+      reservation.rooms = (reservation.rooms || []).concat([roomId as any]);
+    }
     reservation.assignedBy = req.user!.id as any;
     reservation.assignedAt = new Date();
 
@@ -1010,7 +1017,8 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
     // Populate the updated reservation
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type status')
+      .populate('room', 'name status')
+      .populate('rooms', 'name status')
       .populate('assignedBy', 'firstName lastName email');
 
     res.status(200).json({
@@ -1024,6 +1032,75 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
       success: false,
       message: 'Server error while assigning room'
     });
+  }
+});
+
+// @route   PUT /api/reservations/:id/assign-rooms
+// @desc    Assign multiple rooms to reservation (Admin only)
+// @access  Private/Admin
+router.put('/:id/assign-rooms', authenticate, authorizePermission('admin.reservations.assignRoom'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { roomIds } = req.body as { roomIds?: string[] };
+    const reservationId = req.params.id;
+
+    const reservation = await Reservation.findById(reservationId);
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Reservation not found' });
+    }
+
+    const ids = Array.isArray(roomIds) ? roomIds.filter(Boolean) : [];
+    if (ids.length === 0) {
+      reservation.rooms = [] as any;
+      reservation.room = undefined as any;
+      reservation.assignedBy = undefined as any;
+      reservation.assignedAt = undefined as any;
+      await reservation.save();
+      const populatedReservation = await Reservation.findById(reservation._id)
+        .populate('user', 'firstName lastName email')
+        .populate('room', 'name status')
+        .populate('rooms', 'name status')
+        .populate('assignedBy', 'firstName lastName email');
+      return res.status(200).json({ success: true, message: 'Rooms assignment cleared', data: populatedReservation });
+    }
+
+    // Validate each room and overlapping reservations
+    const uniqueIds = Array.from(new Set(ids));
+    for (const rid of uniqueIds) {
+      const room = await Room.findById(rid);
+      if (!room) return res.status(404).json({ success: false, message: `Room not found: ${rid}` });
+      if (room.status !== 'active') return res.status(400).json({ success: false, message: `Room is inactive: ${room.name}` });
+      const overlapping = await Reservation.findOne({
+        _id: { $ne: reservationId },
+        status: { $in: ['confirmed'] },
+        $and: [
+          { $or: [ { room: rid }, { rooms: rid } ] },
+          { $or: [
+            { checkInDate: { $lte: reservation.checkInDate }, checkOutDate: { $gt: reservation.checkInDate } },
+            { checkInDate: { $lt: reservation.checkOutDate }, checkOutDate: { $gte: reservation.checkOutDate } },
+            { checkInDate: { $gte: reservation.checkInDate }, checkOutDate: { $lte: reservation.checkOutDate } }
+          ] }
+        ]
+      });
+      if (overlapping) return res.status(400).json({ success: false, message: `Room not available for selected dates: ${room.name}` });
+    }
+
+    reservation.rooms = uniqueIds as any;
+    reservation.room = uniqueIds[0] as any; // Backward compatibility
+    reservation.assignedBy = req.user!.id as any;
+    reservation.assignedAt = new Date();
+    reservation.status = 'confirmed';
+    await reservation.save();
+
+    const populatedReservation = await Reservation.findById(reservation._id)
+      .populate('user', 'firstName lastName email')
+      .populate('room', 'name status')
+      .populate('rooms', 'name status')
+      .populate('assignedBy', 'firstName lastName email');
+
+    res.status(200).json({ success: true, message: 'Rooms assigned successfully', data: populatedReservation });
+  } catch (error: any) {
+    console.error('Assign rooms error:', error);
+    res.status(500).json({ success: false, message: 'Server error while assigning rooms' });
   }
 });
 
@@ -1242,7 +1319,7 @@ router.patch('/:id/check-in', authenticate, authorize('admin', 'staff', 'mainten
       return res.status(400).json({ success: false, message: 'Check-in is only applicable to room reservations' });
     }
 
-    if (!reservation.room) {
+    if (!reservation.room && (!reservation.rooms || reservation.rooms.length === 0)) {
       return res.status(400).json({ success: false, message: 'Reservation has no room assigned' });
     }
 
@@ -1263,7 +1340,8 @@ router.patch('/:id/check-in', authenticate, authorize('admin', 'staff', 'mainten
     reservation.identificationDocument = String(identificationDocument).trim();
 
     // Do not change room status; availability is computed from reservations
-    const room = await Room.findById(reservation.room);
+    const primaryRoomId = reservation.room || (reservation.rooms && reservation.rooms[0]);
+    const room = primaryRoomId ? await Room.findById(primaryRoomId) : null;
     if (!room) {
       return res.status(404).json({ success: false, message: 'Assigned room not found' });
     }
@@ -1272,7 +1350,8 @@ router.patch('/:id/check-in', authenticate, authorize('admin', 'staff', 'mainten
 
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name status');
+      .populate('room', 'name status')
+      .populate('rooms', 'name status');
 
     res.status(200).json({ success: true, message: 'Check-in completed', data: populatedReservation });
   } catch (error: any) {
@@ -1297,7 +1376,7 @@ router.patch('/:id/check-out', authenticate, authorize('admin', 'staff', 'mainte
       return res.status(400).json({ success: false, message: 'Check-out is only applicable to room reservations' });
     }
 
-    if (!reservation.room) {
+    if (!reservation.room && (!reservation.rooms || reservation.rooms.length === 0)) {
       return res.status(400).json({ success: false, message: 'Reservation has no room assigned' });
     }
 
@@ -1308,7 +1387,8 @@ router.patch('/:id/check-out', authenticate, authorize('admin', 'staff', 'mainte
     reservation.status = 'completed';
 
     // Update room condition only; status remains active/inactive
-    const room = await Room.findById(reservation.room);
+    const primaryRoomId = reservation.room || (reservation.rooms && reservation.rooms[0]);
+    const room = primaryRoomId ? await Room.findById(primaryRoomId) : null;
     if (!room) {
       return res.status(404).json({ success: false, message: 'Assigned room not found' });
     }
@@ -1319,7 +1399,8 @@ router.patch('/:id/check-out', authenticate, authorize('admin', 'staff', 'mainte
 
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type status condition');
+      .populate('room', 'name status condition')
+      .populate('rooms', 'name status condition');
 
     res.status(200).json({ success: true, message: 'Check-out completed', data: populatedReservation });
   } catch (error: any) {
