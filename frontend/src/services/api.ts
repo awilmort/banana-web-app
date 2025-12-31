@@ -245,6 +245,9 @@ export const reservationsService = {
   assignRoom: (reservationId: string, roomId: string | null): Promise<AxiosResponse<ApiResponse<Reservation>>> =>
     apiClient.put(`/reservations/${reservationId}/assign-room`, { roomId }),
 
+  assignRooms: (reservationId: string, roomIds: string[]): Promise<AxiosResponse<ApiResponse<Reservation>>> =>
+    apiClient.put(`/reservations/${reservationId}/assign-rooms`, { roomIds }),
+
   updateReservation: (id: string, data: Partial<{
     checkInDate: string | Date;
     checkOutDate: string | Date;

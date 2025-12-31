@@ -89,7 +89,7 @@ const ReservationManagement: React.FC = () => {
     phone: '',
     specialRequests: '',
     status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed',
-    roomId: ''
+    roomsIds: [] as string[]
   });
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
 
@@ -207,12 +207,20 @@ const ReservationManagement: React.FC = () => {
   const getAssignableRooms = (reservation: Reservation) => {
     if (!reservation) return [];
     const available = availableRooms;
-    // Include currently assigned room even if unavailable to allow viewing/keeping
-    const currentId = (reservation.room && typeof reservation.room === 'object') ? reservation.room._id : (reservation.room as any);
-    const currentRoom = rooms.find(r => r._id === currentId);
-    const merged = currentRoom && !available.find(r => r._id === currentRoom._id)
-      ? [currentRoom, ...available]
-      : available;
+    // Include currently assigned room(s) even if unavailable to allow viewing/keeping
+    const merged: Room[] = [...available];
+    const addIfMissing = (rm?: Room) => {
+      if (!rm) return;
+      if (!merged.find(r => r._id === rm._id)) merged.unshift(rm);
+    };
+    const currentSingleId = (reservation.room && typeof reservation.room === 'object') ? reservation.room._id : (reservation.room as any);
+    const currentSingle = rooms.find(r => r._id === currentSingleId);
+    addIfMissing(currentSingle);
+    const currentArray = Array.isArray((reservation as any).rooms) ? (reservation as any).rooms : [];
+    currentArray.forEach((rid: any) => {
+      const id = typeof rid === 'object' ? rid._id : rid;
+      addIfMissing(rooms.find(r => r._id === id));
+    });
     return merged;
   };
 
@@ -300,7 +308,18 @@ const ReservationManagement: React.FC = () => {
       phone: reservation.contactInfo.phone || '',
       specialRequests: reservation.specialRequests || '',
       status: reservation.status as any,
-      roomId: (reservation.room && typeof reservation.room === 'object') ? (reservation.room._id || '') : ((reservation.room as any) || '')
+      roomsIds: (() => {
+        const ids: string[] = [];
+        const arr = (reservation as any).rooms as any[] | undefined;
+        if (Array.isArray(arr)) {
+          arr.forEach((rid: any) => ids.push(String((rid && rid._id) ? rid._id : rid)));
+        }
+        // Include single room for backward compatibility if no array
+        if (ids.length === 0 && reservation.room) {
+          ids.push(String((reservation.room && typeof reservation.room === 'object') ? (reservation.room as any)._id : (reservation.room as any)));
+        }
+        return ids;
+      })()
     });
     // Load date-based available rooms for this reservation
     const ci = toInputDate(reservation.checkInDate);
@@ -368,16 +387,24 @@ const ReservationManagement: React.FC = () => {
         updated = statusRes.data.data as Reservation;
       }
 
-      // Handle room assignment changes only for room reservations
+      // Handle rooms assignment changes for room reservations (multi-room support)
       if (!immutable && editDialog.reservation.type === 'room') {
-        const originalRoomId = (editDialog.reservation.room && typeof editDialog.reservation.room === 'object')
-          ? (editDialog.reservation.room._id || '')
-          : ((editDialog.reservation.room as any) || '');
-        const desiredRoomId = editForm.roomId || '';
-        if (originalRoomId !== desiredRoomId) {
-          const assignRes = await reservationsService.assignRoom(editDialog.reservation._id, desiredRoomId ? desiredRoomId : null);
+        const originalIds: string[] = (() => {
+          const ids: string[] = [];
+          const arr = (editDialog.reservation as any).rooms as any[] | undefined;
+          if (Array.isArray(arr)) {
+            arr.forEach((rid: any) => ids.push(String((rid && rid._id) ? rid._id : rid)));
+          }
+          if (ids.length === 0 && editDialog.reservation.room) {
+            ids.push(String((editDialog.reservation.room && typeof editDialog.reservation.room === 'object') ? (editDialog.reservation.room as any)._id : (editDialog.reservation.room as any)));
+          }
+          return ids;
+        })();
+        const desiredIds = Array.isArray(editForm.roomsIds) ? editForm.roomsIds.filter(Boolean) : [];
+        const changed = originalIds.length !== desiredIds.length || originalIds.some(id => !desiredIds.includes(id)) || desiredIds.some(id => !originalIds.includes(id));
+        if (changed) {
+          const assignRes = await reservationsService.assignRooms(editDialog.reservation._id, desiredIds);
           updated = assignRes.data.data as Reservation;
-          // Refresh rooms after assignment so availability reflects the change
           await fetchRooms();
         }
       }
@@ -565,20 +592,35 @@ const ReservationManagement: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    {reservation.room && typeof reservation.room === 'object' ? (
-                      <Box>
-                        <Typography variant="body2" fontWeight="medium">
-                          {reservation.room.name}
+                    {(() => {
+                      const rooms = (reservation as any).rooms as any[] | undefined;
+                      if (Array.isArray(rooms) && rooms.length > 0) {
+                        return (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {rooms.map((rm: any) => (
+                              <Chip key={rm?._id || String(rm)} label={typeof rm === 'object' ? rm.name : String(rm)} size="small" />
+                            ))}
+                          </Box>
+                        );
+                      }
+                      if (reservation.room && typeof reservation.room === 'object') {
+                        return (
+                          <Box>
+                            <Typography variant="body2" fontWeight="medium">
+                              {reservation.room.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('admin.schedule.table.room')} {reservation.room._id?.slice(-4)}
+                            </Typography>
+                          </Box>
+                        );
+                      }
+                      return (
+                        <Typography variant="body2" color="text.secondary">
+                          {t('admin.schedule.notAssigned')}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {t('admin.schedule.table.room')} {reservation.room._id?.slice(-4)}
-                        </Typography>
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        {t('admin.schedule.notAssigned')}
-                      </Typography>
-                    )}
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
@@ -652,7 +694,8 @@ const ReservationManagement: React.FC = () => {
                                   size="small"
                                   variant="contained"
                                   disabled={(() => {
-                                    if (!reservation.room) return true;
+                                    const hasRoom = !!reservation.room || (Array.isArray((reservation as any).rooms) && (reservation as any).rooms.length > 0);
+                                    if (!hasRoom) return true;
                                     const now = new Date();
                                     const ci = new Date(reservation.checkInDate);
                                     const co = reservation.checkOutDate ? new Date(reservation.checkOutDate) : null;
@@ -661,7 +704,8 @@ const ReservationManagement: React.FC = () => {
                                   })()}
                                   onClick={() => {
                                     // Guard: require assigned room before check-in to avoid backend 400
-                                    if (!reservation.room) {
+                                    const hasRoom = !!reservation.room || (Array.isArray((reservation as any).rooms) && (reservation as any).rooms.length > 0);
+                                    if (!hasRoom) {
                                       setSnackbar({ open: true, message: t('admin.reservations.messages.assignBeforeCheckin'), severity: 'warning' });
                                       return;
                                     }
@@ -781,12 +825,20 @@ const ReservationManagement: React.FC = () => {
                 <FormControl fullWidth>
                   <InputLabel>{t('admin.reservations.form.assignedRoom')}</InputLabel>
                   <Select
-                    value={editForm.roomId}
+                    multiple
+                    value={editForm.roomsIds}
                     label={t('admin.reservations.form.assignedRoom')}
-                    onChange={(e) => setEditForm({ ...editForm, roomId: e.target.value })}
+                    onChange={(e) => setEditForm({ ...editForm, roomsIds: (e.target.value as string[]) })}
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {(selected as string[]).map((id) => {
+                          const rm = getAssignableRooms(editDialog.reservation!).find(r => r._id === id);
+                          return <Chip key={id} label={rm ? rm.name : id} size="small" />;
+                        })}
+                      </Box>
+                    )}
                     disabled={editImmutable}
                   >
-                    <MenuItem value="">{t('admin.reservations.none')}</MenuItem>
                     {editDialog.reservation && getAssignableRooms(editDialog.reservation).map((room) => (
                       <MenuItem key={room._id} value={room._id}>
                         <Box>

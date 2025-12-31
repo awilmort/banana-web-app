@@ -338,6 +338,7 @@ NODE_ENV=development
 ### Endpoints
 
 - `GET /api/rooms/available?start=YYYY-MM-DD&end=YYYY-MM-DD`
+
   - Returns all **active** rooms available in the given date range.
   - Date range is treated as `[start, end)` — the checkout day is excluded from occupancy.
 

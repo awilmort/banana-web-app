@@ -146,7 +146,15 @@ const Accommodations: React.FC = () => {
     if (room.status === 'inactive') return 'not_available';
     const dayStart = selectedDate.startOf('day');
     const match = reservations.find(r => {
-      const assigned = r.room && typeof r.room === 'object' ? (r.room as any)._id === room._id : String(r.room || '') === room._id;
+      // match if any assigned room (room or rooms[]) equals this room
+      let assigned = false;
+      if (r.room) {
+        assigned = (typeof r.room === 'object') ? (r.room as any)._id === room._id : String(r.room || '') === String(room._id);
+      }
+      const roomsArr = (r as any).rooms as any[] | undefined;
+      if (!assigned && Array.isArray(roomsArr)) {
+        assigned = roomsArr.some((rid: any) => String((rid && rid._id) ? rid._id : rid) === String(room._id));
+      }
       if (!assigned) return false;
       const ci = dayjs(r.checkInDate).startOf('day');
       const co = r.checkOutDate ? dayjs(r.checkOutDate).startOf('day') : ci.add(1, 'day');
@@ -243,7 +251,13 @@ const Accommodations: React.FC = () => {
                 const dateStr = r.type === 'room'
                   ? `${new Date(r.checkInDate).toLocaleDateString()} - ${r.checkOutDate ? new Date(r.checkOutDate).toLocaleDateString() : ''}`
                   : new Date(r.checkInDate).toLocaleDateString();
-                const roomName = r.room && typeof r.room === 'object' ? (r.room as any).name : t('admin.schedule.notAssigned');
+                const roomName = (() => {
+                  const rooms = (r as any).rooms as any[] | undefined;
+                  if (Array.isArray(rooms) && rooms.length > 0) {
+                    return rooms.map(rm => (typeof rm === 'object' ? rm.name : String(rm))).join(', ');
+                  }
+                  return r.room && typeof r.room === 'object' ? (r.room as any).name : t('admin.schedule.notAssigned');
+                })();
                 const opsStatus = renderReservationOpsBadge(getReservationOpsStatus(r));
                 return (
                   <TableRow key={r._id}>

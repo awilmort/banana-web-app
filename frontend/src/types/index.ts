@@ -60,6 +60,7 @@ export interface Reservation {
 
   // Room-specific fields (required for room reservations)
   room?: string | Room; // Specific room assigned by admin
+  rooms?: Array<string | Room>; // Multiple rooms assigned
   roomType?: 'standard' | 'deluxe' | 'suite' | 'villa'; // For compatibility during transition
 
   // Event-specific fields (required for event reservations)
