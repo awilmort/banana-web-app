@@ -390,7 +390,6 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
                 value={bookingData.adults}
                 onChange={(val) => setBookingData({ ...bookingData, adults: val == null ? 1 : val })}
                 min={1}
-                max={8}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -400,7 +399,6 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
                 value={bookingData.children}
                 onChange={(val) => setBookingData({ ...bookingData, children: val == null ? 0 : val })}
                 min={0}
-                max={4}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -410,7 +408,6 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
                 value={bookingData.infants}
                 onChange={(val) => setBookingData({ ...bookingData, infants: val == null ? 0 : val })}
                 min={0}
-                max={2}
               />
             </Grid>
 
