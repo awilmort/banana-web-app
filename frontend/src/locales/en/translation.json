@@ -182,10 +182,8 @@
         "actions": "Actions"
       },
       "statusLabels": {
-        "available": "Available",
-        "booked": "Booked",
-        "occupied": "Occupied",
-        "not_available": "Not Available"
+        "active": "Active",
+        "inactive": "Inactive"
       },
       "empty": {
         "title": "No rooms found",
@@ -417,22 +415,31 @@
       "loading": "Loading accommodations...",
       "filters": {
         "statusLabel": "Filter by Status",
-        "search": "Search name/type/status",
+        "search": "Search name/status",
         "clear": "Clear"
       },
       "table": {
         "name": "Name",
         "type": "Type",
         "status": "Status",
+        "availability": "Availability",
         "assigned": "Assigned",
         "actions": "Actions"
       },
       "statusLabels": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "availabilityLabels": {
         "available": "Available",
         "booked": "Booked",
         "occupied": "Occupied",
-        "not_available": "Not Available",
-        "pending_cleanup": "Pending Clean Up"
+        "not_available": "Not Available"
+      },
+      "reservationStatusLabels": {
+        "arriving": "Arriving",
+        "departing": "Departing",
+        "in_progress": "In Progress"
       },
       "empty": {
         "title": "No accommodations found",
@@ -634,13 +641,15 @@
       "none": "None",
       "tooltips": {
         "checkin": "Check in this reservation",
-        "assignBeforeCheckin": "Assign a room before check-in"
+        "assignBeforeCheckin": "Assign a room before check-in",
+        "checkinDateGuard": "Check-in allowed only on/after check-in and before check-out"
       },
       "messages": {
         "loadFailed": "Failed to load reservations. Please try again.",
         "removed": "Reservation removed",
         "removeFailed": "Failed to remove reservation",
         "assignBeforeCheckin": "Assign a room before checking in",
+        "checkinDateGuard": "Check-in is not available for the current date",
         "checkinSuccess": "Checked in successfully",
         "checkoutSuccess": "Checked out successfully",
         "operationFailed": "Operation failed"

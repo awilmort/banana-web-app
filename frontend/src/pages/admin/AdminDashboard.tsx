@@ -244,7 +244,6 @@ const AdminDashboard: React.FC = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>{t('admin.dashboard.roomsOverview.table.roomName')}</TableCell>
-                    <TableCell>{t('admin.dashboard.roomsOverview.table.type')}</TableCell>
                     <TableCell>{t('admin.dashboard.roomsOverview.table.status')}</TableCell>
                   </TableRow>
                 </TableHead>
@@ -254,19 +253,8 @@ const AdminDashboard: React.FC = () => {
                       <TableCell>{room.name}</TableCell>
                       <TableCell>
                         <Chip
-                          label={room.type}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={t(`admin.rooms.statusLabels.${room.status || 'not_available'}`)}
-                          color={
-                            room.status === 'available' ? 'success' :
-                            room.status === 'booked' ? 'warning' :
-                            room.status === 'occupied' ? 'error' : 'default'
-                          }
+                          label={t(`admin.rooms.statusLabels.${room.status || 'inactive'}`)}
+                          color={room.status === 'active' ? 'success' : 'default'}
                           size="small"
                         />
                       </TableCell>

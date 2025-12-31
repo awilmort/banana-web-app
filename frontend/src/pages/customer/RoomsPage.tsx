@@ -137,17 +137,7 @@ const RoomsPage: React.FC = () => {
                         objectFit: 'cover',
                       }}
                     />
-                    <Chip
-                      label={room.type || 'Room'}
-                      sx={{
-                        position: 'absolute',
-                        top: 12,
-                        right: 12,
-                        backgroundColor: 'rgba(46, 125, 79, 0.9)',
-                        color: 'white',
-                        textTransform: 'capitalize',
-                      }}
-                    />
+                    {/* Removed room type chip */}
                   </Box>
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>
                     <Typography variant="h5" component="h3" gutterBottom>

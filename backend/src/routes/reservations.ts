@@ -124,7 +124,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
       }
     }
 
-    // Basic text search across guest name, contact email, event description, event type, room type, reservation code
+    // Basic text search across guest name, contact email, event description, event type, reservation code
     if (search && typeof search === 'string' && search.trim()) {
       const s = search.trim();
       filter.$or = (filter.$or || []).concat([
@@ -133,7 +133,6 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
         { 'contactInfo.email': { $regex: s, $options: 'i' } },
         { eventDescription: { $regex: s, $options: 'i' } },
         { eventType: { $regex: s, $options: 'i' } },
-        { roomType: { $regex: s, $options: 'i' } },
         { reservationCode: { $regex: s, $options: 'i' } }
       ]);
     }
@@ -144,7 +143,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 
     const reservations = await Reservation.find(filter)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type')
+      .populate('room', 'name status')
       .sort(sortObject)
       .limit(limitNumber * 1)
       .skip((pageNumber - 1) * limitNumber)
@@ -179,7 +178,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const reservation = await Reservation.findById(req.params.id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type amenities');
+      .populate('room', 'name status amenities');
 
     if (!reservation) {
       return res.status(404).json({
@@ -372,15 +371,11 @@ router.post('/', async (req: Request, res: Response) => {
         const perNight = (guestDetails.adults * pricing.adultPrice) + (guestDetails.children * pricing.childrenPrice);
         totalPrice = nights * perNight;
       } else {
-        // Fallback to legacy room type prices
-        const roomTypePrices = {
-          standard: 150,
-          deluxe: 200,
-          suite: 300,
-          villa: 500
-        };
-        const basePrice = roomTypePrices[roomType as keyof typeof roomTypePrices] || 150;
-        totalPrice = nights * basePrice;
+        // Fallback to default per-guest pricing (no room types)
+        appliedAdultPrice = 150;
+        appliedChildrenPrice = 100;
+        const perNight = (guestDetails.adults * appliedAdultPrice) + (guestDetails.children * appliedChildrenPrice);
+        totalPrice = nights * perNight;
       }
     } else if (type === 'daypass' || type === 'PasaTarde') {
       // Day pass pricing via rules
@@ -490,7 +485,6 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Add type-specific fields
     if (type === 'room') {
-      reservationData.roomType = roomType;
       reservationData.checkOutDate = checkOut;
       reservationData.totalNights = nights;
     } else if (type === 'event') {
@@ -509,7 +503,7 @@ router.post('/', async (req: Request, res: Response) => {
     // Populate the reservation before sending response and email
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type price'); // room may be null
+      .populate('room', 'name status price'); // room may be null
 
     // Send confirmation email (don't wait for it to complete)
     sendReservationConfirmationEmail(populatedReservation)
@@ -909,11 +903,10 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
       // Do not change totalPrice or status here; admin may update separately
       await reservation.save();
 
-      // If there was a previously assigned room, mark it available
+      // If there was a previously assigned room, no status changes are needed (availability is derived)
       if (previousRoomId) {
         const prevRoom = await Room.findById(previousRoomId);
         if (prevRoom) {
-          prevRoom.status = 'available';
           await prevRoom.save();
         }
       }
@@ -941,18 +934,10 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
       });
     }
 
-    if (room.status !== 'available') {
+    if (room.status !== 'active') {
       return res.status(400).json({
         success: false,
-        message: 'Room is not available'
-      });
-    }
-
-    // Check if room type matches reservation preference
-    if (reservation.roomType && room.type !== reservation.roomType) {
-      return res.status(400).json({
-        success: false,
-        message: `Room type mismatch. Customer requIested ${reservation.roomType} but selected room is ${room.type}`
+        message: 'Room is inactive'
       });
     }
 
@@ -1011,15 +996,13 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
 
     await reservation.save();
 
-    // Update room ops: mark selected room as booked/unavailable
-    room.status = 'booked';
+    // Do not change room status; status only reflects active/inactive
     await room.save();
 
-    // If there was a previously assigned room different from selected, free it
+    // If there was a previously assigned room different from selected, save it (availability is derived)
     if (previousRoomId && previousRoomId.toString() !== roomId.toString()) {
       const prevRoom = await Room.findById(previousRoomId);
       if (prevRoom) {
-        prevRoom.status = 'available';
         await prevRoom.save();
       }
     }
@@ -1263,24 +1246,33 @@ router.patch('/:id/check-in', authenticate, authorize('admin', 'staff', 'mainten
       return res.status(400).json({ success: false, message: 'Reservation has no room assigned' });
     }
 
+    // Enforce check-in timing constraints
+    const now = new Date();
+    const checkInDate = new Date(reservation.checkInDate);
+    const checkOutDate = reservation.checkOutDate ? new Date(reservation.checkOutDate) : null;
+    if (now < checkInDate) {
+      return res.status(400).json({ success: false, message: 'Cannot check-in before the reservation check-in date' });
+    }
+    if (checkOutDate && now >= checkOutDate) {
+      return res.status(400).json({ success: false, message: 'Cannot check-in after the reservation check-out date has passed' });
+    }
+
     // Record operational fields
-    const when = checkInAt ? new Date(checkInAt) : new Date();
+    const when = checkInAt ? new Date(checkInAt) : now;
     reservation.actualCheckInAt = when;
     reservation.identificationDocument = String(identificationDocument).trim();
 
-    // Update room status to occupied
+    // Do not change room status; availability is computed from reservations
     const room = await Room.findById(reservation.room);
     if (!room) {
       return res.status(404).json({ success: false, message: 'Assigned room not found' });
     }
-    room.status = 'occupied';
-    await room.save();
 
     await reservation.save();
 
     const populatedReservation = await Reservation.findById(reservation._id)
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type status');
+      .populate('room', 'name status');
 
     res.status(200).json({ success: true, message: 'Check-in completed', data: populatedReservation });
   } catch (error: any) {
@@ -1315,12 +1307,11 @@ router.patch('/:id/check-out', authenticate, authorize('admin', 'staff', 'mainte
     // Mark reservation as completed
     reservation.status = 'completed';
 
-    // Update room status and condition
+    // Update room condition only; status remains active/inactive
     const room = await Room.findById(reservation.room);
     if (!room) {
       return res.status(404).json({ success: false, message: 'Assigned room not found' });
     }
-    room.status = 'available';
     room.condition = 'pending_cleanup';
     await room.save();
 

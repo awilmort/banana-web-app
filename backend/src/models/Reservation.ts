@@ -20,7 +20,6 @@ export interface IReservation extends Document {
 
   // Room-specific fields (required for room reservations)
   room?: mongoose.Types.ObjectId; // Specific room assigned by admin
-  roomType?: 'standard' | 'deluxe' | 'suite' | 'villa'; // For compatibility during transition
 
   // Event-specific fields (required for event reservations)
   eventType?: 'wedding' | 'conference' | 'birthday' | 'corporate' | 'other';
@@ -145,11 +144,6 @@ const reservationSchema = new Schema<IReservation>({
     type: Schema.Types.ObjectId,
     ref: 'Room',
     required: false // Optional - assigned by admin later for room reservations
-  },
-  roomType: {
-    type: String,
-    enum: ['standard', 'deluxe', 'suite', 'villa'],
-    required: false // Only required for room reservations (for compatibility)
   },
 
   // Event-specific fields

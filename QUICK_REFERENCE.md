@@ -330,3 +330,54 @@ NODE_ENV=development
 
 **Last Updated**: December 21, 2025  
 **Version**: 2.0.0
+
+---
+
+## Room Availability Logic
+
+### Endpoints
+
+- `GET /api/rooms/available?start=YYYY-MM-DD&end=YYYY-MM-DD`
+  - Returns all **active** rooms available in the given date range.
+  - Date range is treated as `[start, end)` — the checkout day is excluded from occupancy.
+
+- `GET /api/rooms/:id/availability?date=YYYY-MM-DD`
+  - Returns availability for a single room on a specific local day.
+
+### Overlap Rule
+
+A room is considered **unavailable** for a date window `[start, end)` if there exists any reservation where:
+
+```
+reservation.checkInDate < end AND reservation.checkOutDate > start
+```
+
+This excludes the checkout day from occupancy (guest leaves on checkout).
+
+### Timezone Handling
+
+- Use local calendar dates (`YYYY-MM-DD`) to avoid timezone drift.
+- Frontend normalizes comparisons with `dayjs(date).startOf('day')`.
+
+### Examples
+
+- Query available rooms for New Year's Eve:
+
+```bash
+curl \
+  "http://localhost:5001/api/rooms/available?start=2025-12-31&end=2026-01-01"
+```
+
+- Check if room `abc123` is occupied on Dec 30, 2025:
+
+```bash
+curl \
+  "http://localhost:5001/api/rooms/abc123/availability?date=2025-12-30"
+```
+
+### UI Notes
+
+- Admin Accommodations shows per-day reservation status:
+  - **Arriving**: selected date equals check-in day
+  - **Departing**: selected date equals check-out day
+  - **In Progress**: selected date strictly between check-in and check-out

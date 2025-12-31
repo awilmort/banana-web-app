@@ -25,7 +25,7 @@ export interface Room {
   amenities: string[];
   bedConfiguration: string;
   images: string[];
-  status: 'not_available' | 'available' | 'booked' | 'occupied';
+  status: 'active' | 'inactive';
   condition: 'pending_cleanup' | 'clean';
   comment?: string;
   features?: {

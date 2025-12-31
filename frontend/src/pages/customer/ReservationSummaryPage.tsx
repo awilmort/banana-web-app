@@ -229,13 +229,12 @@ const ReservationSummaryPage: React.FC = () => {
             </Grid>
 
             {/* Room Details (if applicable) */}
-            {reservation.type === 'room' && reservation.roomType && (
+            {reservation.type === 'room' && (
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom>
                   {t('pages.reservationSummary.roomDetails')}
                 </Typography>
                 <Box sx={{ pl: 4 }}>
-                  <Typography><strong>{t('pages.reservationSummary.roomType')}:</strong> {reservation.roomType.charAt(0).toUpperCase() + reservation.roomType.slice(1)}</Typography>
                   {reservation.room && typeof reservation.room === 'object' && (
                     <Typography><strong>Room Name:</strong> {reservation.room.name}</Typography>
                   )}

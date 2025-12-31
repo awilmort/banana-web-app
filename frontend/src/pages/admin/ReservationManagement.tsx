@@ -91,6 +91,7 @@ const ReservationManagement: React.FC = () => {
     status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed',
     roomId: ''
   });
+  const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
 
   // Check-in / Check-out modal state
   const [opsDialog, setOpsDialog] = useState<{ open: boolean; mode: 'checkin' | 'checkout'; reservation: Reservation | null }>({ open: false, mode: 'checkin', reservation: null });
@@ -156,12 +157,15 @@ const ReservationManagement: React.FC = () => {
     fetchReservations({ reset: true });
     fetchRooms();
     // Run once on mount to initialize data
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const t = setTimeout(() => fetchReservations({ reset: true }), 300);
     return () => clearTimeout(t);
-  }, [filterStatus, filterType, search, filterDateFrom, filterDateTo, fetchReservations]);
+    // Avoid re-running on page changes (fetchReservations identity); only react to filters
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus, filterType, search, filterDateFrom, filterDateTo]);
 
   // Debounce search input updates to actual filter to reduce re-fetches
   useEffect(() => {
@@ -189,15 +193,20 @@ const ReservationManagement: React.FC = () => {
     }
   };
 
-  const getAvailableRooms = (reservation: Reservation) => {
-    if (!reservation) return [];
-    // Availability based solely on room status; no roomType filtering
-    return rooms.filter(room => room.status === 'available');
-  };
+  const loadAvailableRoomsForDates = useCallback(async (checkIn: string, checkOut: string) => {
+    try {
+      const res = await roomsService.getAvailableRooms(checkIn, checkOut);
+      const list = (res.data.data || []) as any;
+      setAvailableRooms(Array.isArray(list) ? list : []);
+    } catch (e) {
+      console.error('Failed to load available rooms', e);
+      setAvailableRooms([]);
+    }
+  }, []);
 
   const getAssignableRooms = (reservation: Reservation) => {
     if (!reservation) return [];
-    const available = getAvailableRooms(reservation);
+    const available = availableRooms;
     // Include currently assigned room even if unavailable to allow viewing/keeping
     const currentId = (reservation.room && typeof reservation.room === 'object') ? reservation.room._id : (reservation.room as any);
     const currentRoom = rooms.find(r => r._id === currentId);
@@ -244,6 +253,33 @@ const ReservationManagement: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const addOneDay = (dateStr: string) => {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, (m - 1), d);
+    dt.setDate(dt.getDate() + 1);
+    const yy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+  };
+
+  const normalizeRange = (checkIn: string, checkOut?: string) => {
+    const ci = checkIn;
+    const co = (!checkOut || checkOut <= checkIn) ? addOneDay(checkIn) : checkOut;
+    return { ci, co };
+  };
+
+  // Refresh available rooms when dates in the edit form change
+  useEffect(() => {
+    if (!editDialog.open) return;
+    if (editForm.checkInDate) {
+      const { ci, co } = normalizeRange(editForm.checkInDate, editForm.checkOutDate);
+      const t = setTimeout(() => loadAvailableRoomsForDates(ci, co), 250);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editDialog.open, editForm.checkInDate, editForm.checkOutDate]);
+
   const isImmutableReservation = (res?: Reservation | null) => {
     if (!res) return false;
     return res.status === 'completed' || res.status === 'cancelled';
@@ -253,7 +289,7 @@ const ReservationManagement: React.FC = () => {
     setEditDialog({ open: true, reservation });
     setEditForm({
       checkInDate: toInputDate(reservation.checkInDate),
-      checkOutDate: reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : toInputDate(reservation.checkInDate),
+      checkOutDate: reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : addOneDay(toInputDate(reservation.checkInDate)),
       adults: reservation.guestDetails.adults,
       children: reservation.guestDetails.children,
       infants: reservation.guestDetails.infants,
@@ -267,6 +303,9 @@ const ReservationManagement: React.FC = () => {
       roomId: (reservation.room && typeof reservation.room === 'object') ? (reservation.room._id || '') : ((reservation.room as any) || '')
     });
     // Load date-based available rooms for this reservation
+    const ci = toInputDate(reservation.checkInDate);
+    const co = reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : addOneDay(toInputDate(reservation.checkInDate));
+    loadAvailableRoomsForDates(ci, co);
   };
 
   const handleSaveEdit = async () => {
@@ -600,16 +639,38 @@ const ReservationManagement: React.FC = () => {
                       {reservation.type === 'room' && (
                         <>
                           {!reservation.actualCheckInAt && (
-                            <Tooltip title={reservation.room ? t('admin.reservations.tooltips.checkin') : t('admin.reservations.tooltips.assignBeforeCheckin')}>
+                            <Tooltip title={(() => {
+                              if (!reservation.room) return t('admin.reservations.tooltips.assignBeforeCheckin');
+                              const now = new Date();
+                              const ci = new Date(reservation.checkInDate);
+                              const co = reservation.checkOutDate ? new Date(reservation.checkOutDate) : null;
+                              const dateAllowed = now >= ci && (!co || now < co);
+                              return dateAllowed ? t('admin.reservations.tooltips.checkin') : t('admin.reservations.tooltips.checkinDateGuard');
+                            })()}>
                               <span>
                                 <Button
                                   size="small"
                                   variant="contained"
-                                  disabled={!reservation.room}
+                                  disabled={(() => {
+                                    if (!reservation.room) return true;
+                                    const now = new Date();
+                                    const ci = new Date(reservation.checkInDate);
+                                    const co = reservation.checkOutDate ? new Date(reservation.checkOutDate) : null;
+                                    const dateAllowed = now >= ci && (!co || now < co);
+                                    return !dateAllowed;
+                                  })()}
                                   onClick={() => {
                                     // Guard: require assigned room before check-in to avoid backend 400
                                     if (!reservation.room) {
                                       setSnackbar({ open: true, message: t('admin.reservations.messages.assignBeforeCheckin'), severity: 'warning' });
+                                      return;
+                                    }
+                                    const now = new Date();
+                                    const ci = new Date(reservation.checkInDate);
+                                    const co = reservation.checkOutDate ? new Date(reservation.checkOutDate) : null;
+                                    const dateAllowed = now >= ci && (!co || now < co);
+                                    if (!dateAllowed) {
+                                      setSnackbar({ open: true, message: t('admin.reservations.messages.checkinDateGuard'), severity: 'warning' });
                                       return;
                                     }
                                     setOpsDialog({ open: true, mode: 'checkin', reservation });
@@ -730,9 +791,6 @@ const ReservationManagement: React.FC = () => {
                       <MenuItem key={room._id} value={room._id}>
                         <Box>
                           <Typography variant="body2">{room.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {room.type}
-                          </Typography>
                         </Box>
                       </MenuItem>
                     ))}

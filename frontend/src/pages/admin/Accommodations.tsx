@@ -37,10 +37,8 @@ const Accommodations: React.FC = () => {
   const { t } = useTranslation();
 
   const statusOptions = [
-    { value: 'not_available', label: t('admin.accommodations.statusLabels.not_available') },
-    { value: 'available', label: t('admin.accommodations.statusLabels.available') },
-    { value: 'booked', label: t('admin.accommodations.statusLabels.booked') },
-    { value: 'occupied', label: t('admin.accommodations.statusLabels.occupied') },
+    { value: 'active', label: t('admin.rooms.statusLabels.active') },
+    { value: 'inactive', label: t('admin.rooms.statusLabels.inactive') },
   ];
 
   const conditionOptions = [
@@ -139,14 +137,64 @@ const Accommodations: React.FC = () => {
   };
 
   const renderStatusBadge = (status: Room['status']) => {
-    const map: Record<Room['status'], { label: string; color: 'default' | 'success' | 'error' | 'warning' | 'info' }> = {
-      available: { label: t('admin.accommodations.statusLabels.available'), color: 'success' },
-      not_available: { label: t('admin.accommodations.statusLabels.not_available'), color: 'default' },
-      booked: { label: t('admin.accommodations.statusLabels.booked'), color: 'default' },
-      occupied: { label: t('admin.accommodations.statusLabels.occupied'), color: 'error' },
-    };
-    const entry = map[status];
-    return <Chip label={entry.label} color={entry.color} size="small" variant="outlined" />;
+    const label = status === 'active' ? t('admin.rooms.statusLabels.active') : t('admin.rooms.statusLabels.inactive');
+    const color = status === 'active' ? 'success' : 'default';
+    return <Chip label={label} color={color as any} size="small" variant="outlined" />;
+  };
+
+  const getAvailabilityState = (room: Room): 'available' | 'booked' | 'occupied' | 'not_available' => {
+    if (room.status === 'inactive') return 'not_available';
+    const dayStart = selectedDate.startOf('day');
+    const match = reservations.find(r => {
+      const assigned = r.room && typeof r.room === 'object' ? (r.room as any)._id === room._id : String(r.room || '') === room._id;
+      if (!assigned) return false;
+      const ci = dayjs(r.checkInDate).startOf('day');
+      const co = r.checkOutDate ? dayjs(r.checkOutDate).startOf('day') : ci.add(1, 'day');
+      // Occupancy condition: checkIn <= date AND checkOut > date (checkout excluded)
+      return (ci.isSame(dayStart) || ci.isBefore(dayStart)) && co.isAfter(dayStart);
+    });
+    if (!match) return 'available';
+    return match.actualCheckInAt ? 'occupied' : 'booked';
+  };
+
+  const renderAvailabilityBadge = (state: 'available' | 'booked' | 'occupied' | 'not_available') => {
+    const labelMap: Record<typeof state, string> = {
+      available: t('admin.accommodations.availabilityLabels.available'),
+      booked: t('admin.accommodations.availabilityLabels.booked'),
+      occupied: t('admin.accommodations.availabilityLabels.occupied'),
+      not_available: t('admin.accommodations.availabilityLabels.not_available'),
+    } as any;
+    const colorMap: Record<typeof state, 'default' | 'success' | 'error' | 'warning' | 'info'> = {
+      available: 'success',
+      booked: 'warning',
+      occupied: 'error',
+      not_available: 'default',
+    } as any;
+    return <Chip label={labelMap[state]} color={colorMap[state]} size="small" variant="outlined" />;
+  };
+
+  const getReservationOpsStatus = (r: Reservation): 'arriving' | 'departing' | 'in_progress' => {
+    const dayStart = selectedDate.startOf('day');
+    const ci = dayjs(r.checkInDate).startOf('day');
+    const co = r.checkOutDate ? dayjs(r.checkOutDate).startOf('day') : ci.add(1, 'day');
+    if (dayStart.isSame(ci)) return 'arriving';
+    if (r.checkOutDate && dayStart.isSame(co)) return 'departing';
+    if (dayStart.isAfter(ci) && dayStart.isBefore(co)) return 'in_progress';
+    return 'in_progress';
+  };
+
+  const renderReservationOpsBadge = (status: 'arriving' | 'departing' | 'in_progress') => {
+    const labelMap: Record<typeof status, string> = {
+      arriving: t('admin.accommodations.reservationStatusLabels.arriving'),
+      departing: t('admin.accommodations.reservationStatusLabels.departing'),
+      in_progress: t('admin.accommodations.reservationStatusLabels.in_progress'),
+    } as any;
+    const colorMap: Record<typeof status, 'info' | 'warning' | 'success'> = {
+      arriving: 'info',
+      departing: 'warning',
+      in_progress: 'success',
+    } as any;
+    return <Chip label={labelMap[status]} color={colorMap[status]} size="small" variant="outlined" />;
   };
 
   if (loading) {
@@ -181,7 +229,7 @@ const Accommodations: React.FC = () => {
               <TableRow>
                 <TableCell>{t('admin.schedule.table.guest')}</TableCell>
                 <TableCell>{t('admin.schedule.table.room')}</TableCell>
-                <TableCell>{t('admin.reservations.table.type')}</TableCell>
+                <TableCell sx={{ minWidth: 140 }}>{t('admin.reservations.table.status')}</TableCell>
                 <TableCell>{t('admin.reservations.table.dates')}</TableCell>
                 <TableCell align="right">{t('admin.schedule.table.totalGuests')}</TableCell>
               </TableRow>
@@ -196,11 +244,12 @@ const Accommodations: React.FC = () => {
                   ? `${new Date(r.checkInDate).toLocaleDateString()} - ${r.checkOutDate ? new Date(r.checkOutDate).toLocaleDateString() : ''}`
                   : new Date(r.checkInDate).toLocaleDateString();
                 const roomName = r.room && typeof r.room === 'object' ? (r.room as any).name : t('admin.schedule.notAssigned');
+                const opsStatus = renderReservationOpsBadge(getReservationOpsStatus(r));
                 return (
                   <TableRow key={r._id}>
                     <TableCell>{guest}</TableCell>
                     <TableCell>{roomName}</TableCell>
-                    <TableCell sx={{ textTransform: 'capitalize' }}>{r.type}</TableCell>
+                    <TableCell sx={{ minWidth: 140 }}>{opsStatus}</TableCell>
                     <TableCell>{dateStr}</TableCell>
                     <TableCell align="right">{totalGuests}</TableCell>
                   </TableRow>
@@ -224,6 +273,7 @@ const Accommodations: React.FC = () => {
                 <TableCell>{t('admin.schedule.table.room')}</TableCell>
                 {/* Removed Type column as requested */}
                 <TableCell>{t('admin.rooms.table.status')}</TableCell>
+                <TableCell>{t('admin.accommodations.table.availability')}</TableCell>
                 <TableCell>{t('admin.rooms.form.condition')}</TableCell>
                 <TableCell>{t('admin.rooms.form.comment')}</TableCell>
                 <TableCell>{t('admin.rooms.table.actions')}</TableCell>
@@ -234,6 +284,7 @@ const Accommodations: React.FC = () => {
                 <TableRow key={room._id}>
                   <TableCell>{room.name}</TableCell>
                   <TableCell>{renderStatusBadge((room as any).status)}</TableCell>
+                  <TableCell>{renderAvailabilityBadge(getAvailabilityState(room))}</TableCell>
                   <TableCell>{renderConditionBadge((room as any).condition)}</TableCell>
                   <TableCell sx={{ minWidth: 300 }}>{(room as any).comment}</TableCell>
                   <TableCell>
@@ -249,7 +300,7 @@ const Accommodations: React.FC = () => {
         <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="md" fullWidth>
           <DialogTitle>{t('admin.rooms.dialog.editTitle')}</DialogTitle>
           <DialogContent sx={{ pt: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 2 }}>{editingRoom?.name} ({editingRoom?.type})</Typography>
+            <Typography variant="subtitle2" sx={{ mb: 2 }}>{editingRoom?.name}</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 3 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>{t('admin.rooms.form.status')}</InputLabel>

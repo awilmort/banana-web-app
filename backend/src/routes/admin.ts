@@ -97,7 +97,7 @@ router.get('/dashboard', authenticate, authorizePermission('admin.dashboard', 'a
     // Get recent activities
     const recentReservations = await Reservation.find()
       .populate('user', 'firstName lastName email')
-      .populate('room', 'name type')
+      .populate('room', 'name status')
       .sort('-createdAt')
       .limit(5);
 
@@ -670,34 +670,7 @@ router.get('/analytics', authenticate, authorize('admin'), async (req, res) => {
       { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
     ]);
 
-    // Room type popularity
-    const roomTypeAnalytics = await Reservation.aggregate([
-      { $match: matchCondition },
-      {
-        $lookup: {
-          from: 'rooms',
-          localField: 'room',
-          foreignField: '_id',
-          as: 'roomDetails'
-        }
-      },
-      { $unwind: '$roomDetails' },
-      {
-        $group: {
-          _id: '$roomDetails.type',
-          bookings: { $sum: 1 },
-          revenue: {
-            $sum: {
-              $cond: [
-                { $eq: ['$paymentStatus', 'paid'] },
-                '$totalPrice',
-                0
-              ]
-            }
-          }
-        }
-      }
-    ]);
+    // Room type analytics removed
 
     // Customer analytics
     const customerAnalytics = await User.aggregate([
@@ -718,7 +691,7 @@ router.get('/analytics', authenticate, authorize('admin'), async (req, res) => {
       success: true,
       data: {
         revenue: revenueAnalytics,
-        roomTypes: roomTypeAnalytics,
+        roomTypes: [],
         customers: customerAnalytics
       }
     });

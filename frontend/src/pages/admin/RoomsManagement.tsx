@@ -56,7 +56,7 @@ interface RoomFormData {
   name: string;
   description: string;
   type: 'standard' | 'deluxe' | 'suite' | 'villa';
-  status: 'not_available' | 'available' | 'booked' | 'occupied';
+  status: 'active' | 'inactive';
   condition: 'pending_cleanup' | 'clean';
   comment: string;
   bedConfiguration: string;
@@ -77,7 +77,7 @@ const initialFormData: RoomFormData = {
   name: '',
   description: '',
   type: 'standard',
-  status: 'available',
+  status: 'active',
   condition: 'clean',
   comment: '',
   bedConfiguration: '',
@@ -406,12 +406,8 @@ const RoomsManagement: React.FC = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           {room.status && (
                             <Chip
-                              label={room.status}
-                              color={
-                                room.status === 'available' ? 'success' :
-                                room.status === 'booked' ? 'warning' :
-                                room.status === 'occupied' ? 'error' : 'default'
-                              }
+                              label={t(`admin.accommodations.statusLabels.${room.status}`)}
+                              color={room.status === 'active' ? 'success' : 'default'}
                               size="small"
                             />
                           )}
@@ -485,12 +481,8 @@ const RoomsManagement: React.FC = () => {
                           <TableCell>
                             {room.status && (
                               <Chip
-                                label={t(`admin.rooms.statusLabels.${room.status}`)}
-                                color={
-                                  room.status === 'available' ? 'success' :
-                                  room.status === 'booked' ? 'warning' :
-                                  room.status === 'occupied' ? 'error' : 'default'
-                                }
+                                label={t(`admin.accommodations.statusLabels.${room.status}`)}
+                                color={room.status === 'active' ? 'success' : 'default'}
                                 size="small"
                               />
                             )}
@@ -618,10 +610,8 @@ const RoomsManagement: React.FC = () => {
                       label={t('admin.rooms.form.status')}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                     >
-                      <MenuItem value="not_available">{t('admin.rooms.statusLabels.not_available')}</MenuItem>
-                      <MenuItem value="available">{t('admin.rooms.statusLabels.available')}</MenuItem>
-                      <MenuItem value="booked">{t('admin.rooms.statusLabels.booked')}</MenuItem>
-                      <MenuItem value="occupied">{t('admin.rooms.statusLabels.occupied')}</MenuItem>
+                      <MenuItem value="active">{t('admin.accommodations.statusLabels.active')}</MenuItem>
+                      <MenuItem value="inactive">{t('admin.accommodations.statusLabels.inactive')}</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>

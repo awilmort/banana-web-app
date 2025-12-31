@@ -111,7 +111,6 @@ const seedDatabase = async () => {
       {
         name: 'Ocean View Standard Room',
         description: 'A comfortable standard room with beautiful ocean views, perfect for couples or solo travelers.',
-        type: 'standard',
         capacity: 2,
         price: 120,
         amenities: ['WiFi', 'Air Conditioning', 'Private Bathroom', 'Ocean View'],
@@ -131,7 +130,6 @@ const seedDatabase = async () => {
       {
         name: 'Garden View Standard Room',
         description: 'Peaceful standard room with garden views and all essential amenities.',
-        type: 'standard',
         capacity: 2,
         price: 100,
         amenities: ['WiFi', 'Air Conditioning', 'Private Bathroom', 'Garden View'],
@@ -151,7 +149,6 @@ const seedDatabase = async () => {
       {
         name: 'Deluxe Garden Suite',
         description: 'Spacious deluxe room with garden views, mini bar, and premium amenities for a luxurious stay.',
-        type: 'deluxe',
         capacity: 3,
         price: 180,
         amenities: ['WiFi', 'Air Conditioning', 'Mini Bar', 'Garden View', 'Premium Bathroom'],
@@ -171,7 +168,6 @@ const seedDatabase = async () => {
       {
         name: 'Deluxe Ocean Suite',
         description: 'Luxurious deluxe room with stunning ocean views and premium amenities.',
-        type: 'deluxe',
         capacity: 3,
         price: 220,
         amenities: ['WiFi', 'Air Conditioning', 'Mini Bar', 'Ocean View', 'Premium Bathroom'],
@@ -191,7 +187,6 @@ const seedDatabase = async () => {
       {
         name: 'Premium Ocean Suite',
         description: 'Ultimate luxury with ocean views, jacuzzi, kitchenette, and spacious living area.',
-        type: 'suite',
         capacity: 4,
         price: 280,
         amenities: ['WiFi', 'Air Conditioning', 'Mini Bar', 'Ocean View', 'Jacuzzi', 'Kitchenette'],
@@ -211,7 +206,6 @@ const seedDatabase = async () => {
       {
         name: 'Penthouse Suite',
         description: 'Top-floor penthouse with panoramic ocean views, private terrace, and luxury amenities.',
-        type: 'suite',
         capacity: 4,
         price: 350,
         amenities: ['WiFi', 'Air Conditioning', 'Mini Bar', 'Ocean View', 'Jacuzzi', 'Kitchenette', 'Private Terrace'],
@@ -231,7 +225,6 @@ const seedDatabase = async () => {
       {
         name: 'Family Villa',
         description: 'Perfect for families, featuring multiple bedrooms, full kitchen, and private outdoor space.',
-        type: 'villa',
         capacity: 6,
         price: 450,
         amenities: ['WiFi', 'Air Conditioning', 'Full Kitchen', 'Private Pool', 'Multiple Bedrooms'],
@@ -251,7 +244,6 @@ const seedDatabase = async () => {
       {
         name: 'Luxury Beach Villa',
         description: 'Exclusive beachfront villa with direct beach access, private pool, and full amenities.',
-        type: 'villa',
         capacity: 8,
         price: 650,
         amenities: ['WiFi', 'Air Conditioning', 'Full Kitchen', 'Private Pool', 'Beach Access', 'Multiple Bedrooms'],

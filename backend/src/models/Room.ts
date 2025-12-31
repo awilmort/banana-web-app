@@ -3,10 +3,9 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IRoom extends Document {
   name: string;
   description: string;
-  type: 'standard' | 'deluxe' | 'suite' | 'villa';
   amenities: string[];
   images: string[];
-  status: 'not_available' | 'available' | 'booked' | 'occupied';
+  status: 'active' | 'inactive';
   condition: 'pending_cleanup' | 'clean';
   comment?: string;
   features: {
@@ -35,11 +34,6 @@ const roomSchema = new Schema<IRoom>({
     required: true,
     maxlength: 1000
   },
-  type: {
-    type: String,
-    enum: ['standard', 'deluxe', 'suite', 'villa'],
-    required: true
-  },
   amenities: [{
     type: String,
     trim: true
@@ -50,8 +44,8 @@ const roomSchema = new Schema<IRoom>({
   }],
   status: {
     type: String,
-    enum: ['not_available', 'available', 'booked', 'occupied'],
-    default: 'available'
+    enum: ['active', 'inactive'],
+    default: 'active'
   },
   condition: {
     type: String,
@@ -83,7 +77,6 @@ const roomSchema = new Schema<IRoom>({
 });
 
 // Index for searching
-roomSchema.index({ type: 1 });
 roomSchema.index({ status: 1 });
 roomSchema.index({ condition: 1 });
 

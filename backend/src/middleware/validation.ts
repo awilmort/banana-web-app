@@ -101,13 +101,9 @@ export const validateRoom = [
     .isLength({ min: 10, max: 1000 })
     .withMessage('Description must be between 10 and 1000 characters'),
 
-  body('type')
-    .isIn(['standard', 'deluxe', 'suite', 'villa'])
-    .withMessage('Invalid room type'),
-
   body('status')
     .optional()
-    .isIn(['not_available', 'available', 'booked', 'occupied'])
+    .isIn(['active', 'inactive'])
     .withMessage('Invalid status value'),
 
   body('condition')
@@ -136,10 +132,7 @@ export const validateReservation = [
     .withMessage('Reservation type must be one of: room, daypass, PasaTarde, event'),
 
   // Room-specific validations
-  body('roomType')
-    .if(body('type').equals('room'))
-    .isIn(['standard', 'deluxe', 'suite', 'villa'])
-    .withMessage('Room type must be one of: standard, deluxe, suite, villa'),
+  // Removed roomType validation; room type is no longer used
 
   body('checkOutDate')
     .if(body('type').equals('room'))

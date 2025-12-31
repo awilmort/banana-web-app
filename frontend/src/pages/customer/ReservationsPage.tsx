@@ -307,7 +307,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
                     </Typography>
                     <Chip
                       icon={<Hotel />}
-                      label={reservation.room && typeof reservation.room === 'object' ? reservation.room.type : 'Room'}
+                      label={reservation.room && typeof reservation.room === 'object' ? reservation.room.name : 'Room'}
                       size="small"
                       variant="outlined"
                     />

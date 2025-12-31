@@ -23,55 +23,6 @@
     "login": "Ingresar",
     "signup": "Registrarse"
   },
-  "daypass": {
-    "heroTitle": "Experiencia DayPass",
-    "heroSubtitle": "Disfruta de todas nuestras instalaciones durante el día",
-    "bookTitle": "Reserva tu DayPass",
-    "bookTitlePasaTarde": "Reserva tu PasaTarde",
-    "visitDate": "Fecha de visita",
-    "guestDistribution": "Distribución de invitados",
-    "adults": "Adultos",
-    "children": "Niños (2-12 años)",
-    "infants": "Infantes (menores de 2)",
-    "contactInfo": "Información de contacto",
-    "firstName": "Nombre",
-    "lastName": "Apellido",
-    "email": "Correo electrónico",
-    "phone": "Número de teléfono",
-    "country": "País",
-    "specialRequests": "Peticiones especiales",
-    "specialRequestsPlaceholder": "Requerimientos especiales, restricciones alimentarias, necesidades de accesibilidad, etc.",
-    "bookButton": "Reservar DayPass - ${{price}}",
-    "bookButtonPasaTarde": "Reservar PasaTarde - ${{price}}",
-    "successDaypassTitle": "¡DayPass reservado con éxito!",
-    "successPasaTardeTitle": "¡PasaTarde reservado con éxito!",
-    "successBody": "Tu {{product}} para {{date}} ha sido confirmado. ¡Esperamos darte la bienvenida en nuestro paraíso tropical!",
-    "productDayPass": "DayPass",
-    "productPasaTarde": "PasaTarde",
-    "viewReservations": "Ver mis reservas",
-    "bookAnotherDayPass": "Reservar otro DayPass",
-    "bookAnotherPasaTarde": "Reservar otro PasaTarde",
-    "includedTitle": "Qué incluye",
-    "includedPool": "🏊 Acceso a la piscina",
-    "includedParking": "🅿️ Parqueo gratis",
-    "includedWifi": "📶 WiFi gratis",
-    "includedChangingRooms": "🚿 Vestidores",
-    "includedLounge": "🛏️ Áreas de descanso",
-    "includedAquaPark": "🏄 Acceso al Aqua Park",
-    "validityDayPass": "El DayPass es válido de 9:00 AM a 5:00 PM en la fecha seleccionada.",
-    "validityPasaTarde": "El PasaTarde es válido de 1:30 PM a 5:00 PM en la fecha seleccionada.",
-    "foodNotIncluded": "Comida no incluida",
-    "currentRate": "Tarifa actual: ${{adult}} por adulto • ${{child}} por niño",
-    "errors": {
-      "selectDate": "Por favor selecciona una fecha de visita",
-      "nameRequired": "Por favor ingresa tu nombre y apellido",
-      "emailRequired": "Por favor ingresa tu correo electrónico",
-        "emailInvalid": "Por favor ingresa un correo electrónico válido",
-        "phoneRequired": "Por favor ingresa tu número de teléfono",
-      "adultsRequired": "Se requiere al menos un adulto",
-      "bookingFailed": "Error al reservar el DayPass"
-    }
-  },
   "switcher": {
     "daypass": "DayPass",
     "pasatarde": "PasaTarde"
@@ -182,10 +133,8 @@
         "actions": "Acciones"
       },
       "statusLabels": {
-        "available": "Disponible",
-        "booked": "Reservada",
-        "occupied": "Ocupada",
-        "not_available": "No disponible"
+        "active": "Activa",
+        "inactive": "Inactiva"
       },
       "empty": {
         "title": "No se encontraron habitaciones",
@@ -296,23 +245,7 @@
         "salesman": "Vendedor"
       }
     },
-    "commissions": {
-          "title": "Comisiones",
-          "filters": {
-            "from": "Desde",
-            "to": "Hasta",
-            "name": "Nombre",
-            "email": "Email",
-            "apply": "Aplicar"
-          },
-          "table": {
-            "name": "Nombre",
-            "email": "Email",
-            "totalGuests": "Total de huéspedes",
-            "bookings": "Reservas"
-          }
-        }
-    ,
+    
     "eventTypes": {
       "title": "Tipos de eventos",
       "actions": {
@@ -413,26 +346,35 @@
     ,
     "accommodations": {
       "title": "Gestión de alojamientos",
-      "subtitle": "Administra el inventario de alojamientos y asignaciones",
+      "subtitle": "Gestiona el inventario y las asignaciones de alojamientos",
       "loading": "Cargando alojamientos...",
       "filters": {
         "statusLabel": "Filtrar por estado",
-        "search": "Buscar nombre/tipo/estado",
+        "search": "Buscar nombre/estado",
         "clear": "Limpiar"
       },
       "table": {
         "name": "Nombre",
         "type": "Tipo",
         "status": "Estado",
+        "availability": "Disponibilidad",
         "assigned": "Asignado",
         "actions": "Acciones"
       },
       "statusLabels": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "availabilityLabels": {
         "available": "Disponible",
-        "booked": "Reservada",
-        "occupied": "Ocupada",
-        "not_available": "No disponible",
-        "pending_cleanup": "Pendiente de limpieza"
+        "booked": "Reservado",
+        "occupied": "Ocupado",
+        "not_available": "No disponible"
+      },
+      "reservationStatusLabels": {
+        "arriving": "Llegadas",
+        "departing": "Salidas",
+        "in_progress": "En curso"
       },
       "empty": {
         "title": "No se encontraron alojamientos",
@@ -634,13 +576,15 @@
       "none": "Ninguna",
       "tooltips": {
         "checkin": "Registrar check-in de esta reserva",
-        "assignBeforeCheckin": "Asigna una habitación antes del check-in"
+        "assignBeforeCheckin": "Asigna una habitación antes del check-in",
+        "checkinDateGuard": "El check-in solo está permitido en/tras la fecha de check-in y antes del check-out"
       },
       "messages": {
         "loadFailed": "No se pudieron cargar las reservas. Inténtalo nuevamente.",
         "removed": "Reserva eliminada",
         "removeFailed": "No se pudo eliminar la reserva",
         "assignBeforeCheckin": "Asigna una habitación antes del check-in",
+        "checkinDateGuard": "El check-in no está disponible para la fecha actual",
         "checkinSuccess": "Check-In realizado exitosamente",
         "checkoutSuccess": "Check-Out realizado exitosamente",
         "operationFailed": "La operación falló"

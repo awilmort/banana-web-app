@@ -156,7 +156,10 @@ export const roomsService = {
     apiClient.get(`/rooms/${id}`),
 
   checkAvailability: (roomId: string, checkIn: string, checkOut: string): Promise<AxiosResponse<ApiResponse<{ available: boolean }>>> =>
-    apiClient.post('/rooms/check-availability', { roomId, checkIn, checkOut }),
+    apiClient.get(`/rooms/${roomId}/availability`, { params: { checkIn, checkOut } }),
+
+  getAvailableRooms: (checkIn: string, checkOut: string): Promise<AxiosResponse<ApiResponse<Room[]>>> =>
+    apiClient.get('/rooms/available', { params: { checkIn, checkOut } }),
 
 };
 
