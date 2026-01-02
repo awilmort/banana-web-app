@@ -246,6 +246,23 @@
       }
     },
     
+    "commissions": {
+      "title": "Comisiones",
+      "filters": {
+        "from": "Desde",
+        "to": "Hasta",
+        "name": "Nombre",
+        "email": "Correo",
+        "apply": "Aplicar"
+      },
+      "table": {
+        "name": "Nombre",
+        "email": "Correo",
+        "totalGuests": "Total de huéspedes",
+        "bookings": "Reservas"
+      }
+    }
+    ,
     "eventTypes": {
       "title": "Tipos de eventos",
       "actions": {

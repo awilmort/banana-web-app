@@ -809,33 +809,6 @@
           "total": "Total"
         }
       }
-    }
-    ,
-    "schedule": {
-      "title": "Schedule Summary",
-      "today": "Today",
-      "tomorrow": "Tomorrow",
-      "cards": {
-        "totalPeople": "Total People",
-        "adults": "Adults",
-        "children": "Children"
-      },
-      "sections": {
-        "daypass": "DayPass ({{count}})",
-        "accommodations": "Accommodations ({{count}})",
-        "events": "Events ({{count}})"
-      },
-      "table": {
-        "guest": "Guest",
-        "room": "Room",
-        "totalGuests": "Total Guests"
-      },
-      "empty": {
-        "daypass": "No daypass reservations",
-        "rooms": "No room reservations",
-        "events": "No event reservations"
-      },
-      "notAssigned": "Not assigned"
     },
     "pricing": {
     "title": "Price Management",
