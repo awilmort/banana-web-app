@@ -243,6 +243,8 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
     // Pending payments: reservations that ended today or before and have balance due
     const pendingFilter: any = {
       $and: [
+        // Exclude cancelled reservations from pending payments
+        { status: { $ne: 'cancelled' } },
         {
           $or: [
             {
@@ -277,12 +279,13 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
         pending: pendingReservations.map(r => ({
           id: r._id,
           type: r.type,
+          // Prefer the actual reservation guest; fallback to user only if guest name is unavailable
           guest:
-            r.user && typeof r.user === 'object'
-              ? `${(r.user as any).firstName} ${(r.user as any).lastName}`
-              : r.guestName?.firstName
-                ? `${r.guestName.firstName} ${r.guestName.lastName || ''}`.trim()
-                : 'Guest',
+            r.guestName?.firstName
+              ? `${r.guestName.firstName} ${r.guestName.lastName || ''}`.trim()
+              : (r.user && typeof r.user === 'object'
+                ? `${(r.user as any).firstName} ${(r.user as any).lastName}`
+                : 'Guest'),
           endedOn:
             r.type === 'room' || r.type === 'event'
               ? (r.actualCheckOutAt || r.checkOutDate)

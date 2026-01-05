@@ -211,21 +211,21 @@ const ReservationManagement: React.FC = () => {
 
   const getAssignableRooms = (reservation: Reservation) => {
     if (!reservation) return [];
-    const available = availableRooms;
-    // Include currently assigned room(s) even if unavailable to allow viewing/keeping
-    const merged: Room[] = [...available];
-    const addIfMissing = (rm?: Room) => {
-      if (!rm) return;
-      if (!merged.find(r => r._id === rm._id)) merged.unshift(rm);
+    const merged: Room[] = [...availableRooms];
+    const ensureWithName = (ridOrObj: any) => {
+      const id = typeof ridOrObj === 'object' ? ridOrObj._id : String(ridOrObj || '');
+      if (!id) return;
+      if (merged.find(r => r._id === id)) return;
+      const nameFromObj = typeof ridOrObj === 'object' ? (ridOrObj.name || '') : '';
+      const nameFromRooms = rooms.find(r => r._id === id)?.name || '';
+      const name = nameFromObj || nameFromRooms || id;
+      merged.unshift({ _id: id, name } as any);
     };
-    const currentSingleId = (reservation.room && typeof reservation.room === 'object') ? reservation.room._id : (reservation.room as any);
-    const currentSingle = rooms.find(r => r._id === currentSingleId);
-    addIfMissing(currentSingle);
+    // Include single room if present
+    if (reservation.room) ensureWithName(reservation.room as any);
+    // Include multi rooms if present
     const currentArray = Array.isArray((reservation as any).rooms) ? (reservation as any).rooms : [];
-    currentArray.forEach((rid: any) => {
-      const id = typeof rid === 'object' ? rid._id : rid;
-      addIfMissing(rooms.find(r => r._id === id));
-    });
+    currentArray.forEach(ensureWithName);
     return merged;
   };
 

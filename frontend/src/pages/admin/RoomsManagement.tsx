@@ -55,7 +55,6 @@ import { useTranslation } from 'react-i18next';
 interface RoomFormData {
   name: string;
   description: string;
-  type: 'standard' | 'deluxe' | 'suite' | 'villa';
   status: 'active' | 'inactive';
   condition: 'pending_cleanup' | 'clean';
   comment: string;
@@ -76,7 +75,6 @@ interface RoomFormData {
 const initialFormData: RoomFormData = {
   name: '',
   description: '',
-  type: 'standard',
   status: 'active',
   condition: 'clean',
   comment: '',
@@ -159,7 +157,6 @@ const RoomsManagement: React.FC = () => {
     setFormData({
       name: room.name,
       description: room.description,
-      type: room.type,
       status: room.status as any,
       condition: room.condition as any,
       comment: room.comment as any,
@@ -190,7 +187,6 @@ const RoomsManagement: React.FC = () => {
       const roomData = {
         name: formData.name,
         description: formData.description,
-        type: formData.type,
         status: formData.status,
         condition: formData.condition,
         comment: formData.comment,
@@ -263,7 +259,7 @@ const RoomsManagement: React.FC = () => {
   };
 
   const filteredRooms = rooms.filter(room => {
-    const matchesType = filterType === 'all' || room.type === filterType;
+    const matchesType = true; // Room type filtering removed
     const matchesSearch = room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesType && matchesSearch;
@@ -271,25 +267,7 @@ const RoomsManagement: React.FC = () => {
 
   const paginatedRooms = filteredRooms.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const getRoomTypeLabel = (type: string) => {
-    switch (type) {
-      case 'villa': return t('admin.rooms.types.villa');
-      case 'suite': return t('admin.rooms.types.suite');
-      case 'deluxe': return t('admin.rooms.types.deluxe');
-      case 'standard': return t('admin.rooms.types.standard');
-      default: return type;
-    }
-  };
-
-  const getRoomTypeColor = (type: string) => {
-    switch (type) {
-      case 'villa': return 'secondary';
-      case 'suite': return 'primary';
-      case 'deluxe': return 'info';
-      case 'standard': return 'success';
-      default: return 'default';
-    }
-  };
+  // Room type fields removed
 
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return '/api/placeholder/400/300';
@@ -349,22 +327,6 @@ const RoomsManagement: React.FC = () => {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>{t('admin.rooms.roomType')}</InputLabel>
-                <Select
-                  value={filterType}
-                  label={t('admin.rooms.roomType')}
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
-                  <MenuItem value="all">{t('admin.rooms.allTypes')}</MenuItem>
-                  <MenuItem value="standard">{t('admin.rooms.types.standard')}</MenuItem>
-                  <MenuItem value="deluxe">{t('admin.rooms.types.deluxe')}</MenuItem>
-                  <MenuItem value="suite">{t('admin.rooms.types.suite')}</MenuItem>
-                  <MenuItem value="villa">{t('admin.rooms.types.villa')}</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={3}>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
                   variant={viewMode === 'cards' ? 'contained' : 'outlined'}
@@ -411,11 +373,7 @@ const RoomsManagement: React.FC = () => {
                           <Typography variant="h6" component="h3">
                             {room.name}
                           </Typography>
-                          <Chip
-                            label={getRoomTypeLabel(room.type)}
-                            color={getRoomTypeColor(room.type) as any}
-                            size="small"
-                          />
+                          {/* Room type chip removed */}
                         </Box>
 
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -471,7 +429,6 @@ const RoomsManagement: React.FC = () => {
                     <TableHead>
                       <TableRow>
                         <TableCell>{t('admin.rooms.table.name')}</TableCell>
-                        <TableCell>{t('admin.rooms.table.type')}</TableCell>
                         {/* Capacity/Price/Size columns removed */}
                         <TableCell>{t('admin.rooms.table.status')}</TableCell>
                         <TableCell>{t('admin.rooms.table.actions')}</TableCell>
@@ -495,13 +452,7 @@ const RoomsManagement: React.FC = () => {
                               </Box>
                             </Box>
                           </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={getRoomTypeLabel(room.type)}
-                              color={getRoomTypeColor(room.type) as any}
-                              size="small"
-                            />
-                          </TableCell>
+                          {/* Room type cell removed */}
                           {/* Capacity/Price/Size cells removed */}
                           <TableCell>
                             {room.status && (
@@ -555,7 +506,7 @@ const RoomsManagement: React.FC = () => {
                   {t('admin.rooms.empty.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {searchTerm || filterType !== 'all'
+                  {searchTerm
                     ? t('admin.rooms.empty.adjustFilters')
                     : t('admin.rooms.empty.getStarted')}
                 </Typography>
@@ -595,21 +546,7 @@ const RoomsManagement: React.FC = () => {
                       />
                     </Grid>
 
-                    <Grid item xs={12} md={6}>
-                      <FormControl fullWidth required>
-                        <InputLabel>{t('admin.rooms.roomType')}</InputLabel>
-                        <Select
-                          value={formData.type}
-                          label={t('admin.rooms.roomType')}
-                          onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                        >
-                          <MenuItem value="standard">{t('admin.rooms.types.standard')}</MenuItem>
-                          <MenuItem value="deluxe">{t('admin.rooms.types.deluxe')}</MenuItem>
-                          <MenuItem value="suite">{t('admin.rooms.types.suite')}</MenuItem>
-                          <MenuItem value="villa">{t('admin.rooms.types.villa')}</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
+                    {/* Room type selection removed */}
 
                     <Grid item xs={12}>
                       <TextField
