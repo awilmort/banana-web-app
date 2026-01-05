@@ -638,15 +638,28 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
       };
 
       const checkIn = checkInDate ? parseLocalDate(checkInDate) : new Date(reservation.checkInDate);
-      const checkOut = checkOutDate
-        ? parseLocalDate(checkOutDate)
-        : (reservation.checkOutDate ? new Date(reservation.checkOutDate) : new Date(checkIn.getTime() + 24 * 60 * 60 * 1000));
-
-      if (checkIn >= checkOut) {
-        return res.status(400).json({
-          success: false,
-          message: 'Check-out date must be after check-in date'
-        });
+      // For room reservations, checkOut is required; for events optional; for daypass/PasaTarde there is no checkOut
+      let checkOut: Date | null = null;
+      if (reservation.type === 'room') {
+        checkOut = checkOutDate
+          ? parseLocalDate(checkOutDate)
+          : (reservation.checkOutDate ? new Date(reservation.checkOutDate) : null);
+        if (!checkOut) {
+          return res.status(400).json({ success: false, message: 'Check-out date is required for room reservations' });
+        }
+        if (checkIn >= checkOut) {
+          return res.status(400).json({ success: false, message: 'Check-out date must be after check-in date' });
+        }
+      } else if (reservation.type === 'event') {
+        checkOut = checkOutDate
+          ? parseLocalDate(checkOutDate)
+          : (reservation.checkOutDate ? new Date(reservation.checkOutDate) : null);
+        if (checkOut && checkIn >= checkOut) {
+          return res.status(400).json({ success: false, message: 'Check-out date must be after check-in date' });
+        }
+      } else {
+        // daypass or PasaTarde: ensure checkOut is not set/used
+        checkOut = null;
       }
 
       const now = new Date();
@@ -658,40 +671,51 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
         });
       }
 
-      // Check for overlapping reservations (excluding current reservation)
-      const overlappingReservation = await Reservation.findOne({
-        _id: { $ne: reservation._id },
-        room: reservation.room,
-        status: { $in: ['confirmed'] },
-        $or: [
-          {
-            checkInDate: { $lte: checkIn },
-            checkOutDate: { $gt: checkIn }
-          },
-          {
-            checkInDate: { $lt: checkOut },
-            checkOutDate: { $gte: checkOut }
-          },
-          {
-            checkInDate: { $gte: checkIn },
-            checkOutDate: { $lte: checkOut }
-          }
-        ]
-      });
-
-      if (overlappingReservation) {
-        return res.status(400).json({
-          success: false,
-          message: 'Room is not available for the selected dates'
+      // Check for overlapping reservations only for room type (excluding current reservation)
+      if (reservation.type === 'room' && checkOut) {
+        const overlappingReservation = await Reservation.findOne({
+          _id: { $ne: reservation._id },
+          room: reservation.room,
+          status: { $in: ['confirmed'] },
+          $or: [
+            { checkInDate: { $lte: checkIn }, checkOutDate: { $gt: checkIn } },
+            { checkInDate: { $lt: checkOut }, checkOutDate: { $gte: checkOut } },
+            { checkInDate: { $gte: checkIn }, checkOutDate: { $lte: checkOut } }
+          ]
         });
+        if (overlappingReservation) {
+          return res.status(400).json({ success: false, message: 'Room is not available for the selected dates' });
+        }
       }
 
       // Update dates and recalculate price
       reservation.checkInDate = checkIn;
-      reservation.checkOutDate = checkOut;
+      if (reservation.type === 'room') {
+        reservation.checkOutDate = checkOut!;
+      } else if (reservation.type === 'event') {
+        // allow null or provided value
+        reservation.checkOutDate = checkOut || undefined;
+      } else {
+        // daypass/PasaTarde: ensure checkOutDate is cleared
+        reservation.checkOutDate = undefined;
+      }
 
-      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-      reservation.totalNights = nights;
+      if (reservation.type === 'room' && checkOut) {
+        const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+        reservation.totalNights = nights;
+      } else if (reservation.type === 'event') {
+        // handled by schema pre-save, but keep consistent if provided
+        if (checkOut) {
+          const days = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          reservation.totalDays = days;
+        } else {
+          reservation.totalDays = 1;
+        }
+      } else {
+        // daypass/PasaTarde
+        reservation.totalNights = 0;
+        reservation.totalDays = 1;
+      }
 
       // Flag for recalculation based on new nights
       // Recalculation will use adult/children prices and services
@@ -838,7 +862,7 @@ router.delete('/:id', authenticate, authorize('admin'), async (req: AuthRequest,
 // @route   PATCH /api/reservations/:id/status
 // @desc    Update reservation status (Admin only)
 // @access  Private (Admin)
-router.patch('/:id/status', authenticate, authorize('admin'), async (req: AuthRequest, res: Response) => {
+router.patch('/:id/status', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { status } = req.body;
 
@@ -857,6 +881,24 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req: AuthRe
         success: false,
         message: 'Reservation not found'
       });
+    }
+
+    // Allow non-admins to cancel only if they have the cancel permission
+    if (String(req.user?.role).toLowerCase() !== 'admin') {
+      if (status === 'cancelled') {
+        try {
+          const roleDoc = await Role.findOne({ name: String(req.user?.role).toLowerCase() });
+          const perms = roleDoc?.permissions || [];
+          if (!perms.includes('admin.reservations.cancel')) {
+            return res.status(403).json({ success: false, message: 'Access denied. Missing cancel permission.' });
+          }
+        } catch (permErr) {
+          console.error('Cancel permission check failed:', permErr);
+          return res.status(500).json({ success: false, message: 'Authorization failure.' });
+        }
+      } else {
+        return res.status(403).json({ success: false, message: 'Access denied. Admin required for this status change.' });
+      }
     }
 
     reservation.status = status;
@@ -1289,7 +1331,8 @@ router.put('/public/code/:reservationCode/cancel', async (req: Request, res: Res
 // Utility: Generate reservation code (B + YY + 4 alphanumeric uppercase)
 const generateReservationCode = (): string => {
   const prefix = 'B';
-  const year = '25'; // Fixed per requirement; adjust annually if needed
+  const now = new Date();
+  const year = String(now.getFullYear()).slice(-2); // Last two digits of current year
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let rand = '';
   for (let i = 0; i < 4; i++) {
@@ -1301,8 +1344,8 @@ const generateReservationCode = (): string => {
 // Operational actions: Check-In / Check-Out
 // @route   PATCH /api/reservations/:id/check-in
 // @desc    Perform check-in for a room reservation; requires identification document; marks room as occupied
-// @access  Private (Admin, Staff, Maintenance)
-router.patch('/:id/check-in', authenticate, authorize('admin', 'staff', 'maintenance'), async (req: AuthRequest, res: Response) => {
+// @access  Private (Permission-based)
+router.patch('/:id/check-in', authenticate, authorizePermission('admin.reservations.checkin'), async (req: AuthRequest, res: Response) => {
   try {
     const { identificationDocument, checkInAt } = req.body as { identificationDocument?: string; checkInAt?: string | Date };
 
@@ -1321,6 +1364,11 @@ router.patch('/:id/check-in', authenticate, authorize('admin', 'staff', 'mainten
 
     if (!reservation.room && (!reservation.rooms || reservation.rooms.length === 0)) {
       return res.status(400).json({ success: false, message: 'Reservation has no room assigned' });
+    }
+
+    // Disallow check-in for cancelled reservations
+    if (reservation.status === 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Cannot check-in a cancelled reservation' });
     }
 
     // Enforce check-in timing constraints
@@ -1362,10 +1410,28 @@ router.patch('/:id/check-in', authenticate, authorize('admin', 'staff', 'mainten
 
 // @route   PATCH /api/reservations/:id/check-out
 // @desc    Perform check-out for a room reservation; marks room as available & pending clean up; sets reservation completed
-// @access  Private (Admin, Staff, Maintenance)
-router.patch('/:id/check-out', authenticate, authorize('admin', 'staff', 'maintenance'), async (req: AuthRequest, res: Response) => {
+// @access  Private (Admin, Staff, Maintenance, or roles with check-in permission)
+router.patch('/:id/check-out', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { checkOutAt } = req.body as { checkOutAt?: string | Date };
+
+    // Authorization: allow admin/staff/maintenance OR anyone with 'admin.reservations.checkin' permission
+    let allowed = false;
+    const roleName = String(req.user?.role || '').toLowerCase();
+    if (['admin', 'staff', 'maintenance'].includes(roleName)) {
+      allowed = true;
+    } else {
+      try {
+        const roleDoc = await Role.findOne({ name: roleName });
+        const perms = roleDoc?.permissions || [];
+        allowed = perms.includes('admin.reservations.checkin');
+      } catch (permErr) {
+        console.error('Checkout permission check failed:', permErr);
+      }
+    }
+    if (!allowed) {
+      return res.status(403).json({ success: false, message: 'Access denied. Missing permission to check-out.' });
+    }
 
     const reservation = await Reservation.findById(req.params.id);
     if (!reservation) {
@@ -1378,6 +1444,22 @@ router.patch('/:id/check-out', authenticate, authorize('admin', 'staff', 'mainte
 
     if (!reservation.room && (!reservation.rooms || reservation.rooms.length === 0)) {
       return res.status(400).json({ success: false, message: 'Reservation has no room assigned' });
+    }
+
+    // Disallow check-out for cancelled reservations
+    if (reservation.status === 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Cannot check-out a cancelled reservation' });
+    }
+
+    // Enforce check-out timing constraints
+    const now = new Date();
+    const checkInDate = new Date(reservation.checkInDate);
+    if (now < checkInDate) {
+      return res.status(400).json({ success: false, message: 'Cannot check-out before the reservation check-in date' });
+    }
+    // Require that check-in has been performed before allowing check-out
+    if (!reservation.actualCheckInAt) {
+      return res.status(400).json({ success: false, message: 'Cannot check-out before check-in has been completed' });
     }
 
     // Record operational fields

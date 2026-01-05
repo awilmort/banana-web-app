@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import Room from '../models/Room';
-import { authenticate, authorize, optionalAuth } from '../middleware/auth';
+import { authenticate, authorize, optionalAuth, authorizePermission } from '../middleware/auth';
 import Reservation from '../models/Reservation';
 import { validateRoom } from '../middleware/validation';
 
@@ -196,7 +196,7 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/rooms
 // @desc    Create a new room
 // @access  Private (Admin only)
-router.post('/', authenticate, authorize('admin'), validateRoom, async (req: Request, res: Response) => {
+router.post('/', authenticate, authorizePermission('admin.rooms'), validateRoom, async (req: Request, res: Response) => {
   try {
     const room = new Room(req.body);
     await room.save();
@@ -218,7 +218,7 @@ router.post('/', authenticate, authorize('admin'), validateRoom, async (req: Req
 // @route   PUT /api/rooms/:id
 // @desc    Update a room
 // @access  Private (Admin only)
-router.put('/:id', authenticate, authorize('admin'), validateRoom, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, authorizePermission('admin.rooms'), validateRoom, async (req: Request, res: Response) => {
   try {
     const room = await Room.findByIdAndUpdate(
       req.params.id,
@@ -258,7 +258,7 @@ router.put('/:id', authenticate, authorize('admin'), validateRoom, async (req: R
 // @route   PATCH /api/rooms/:id/ops
 // @desc    Update status, condition, and comment only
 // @access  Private (Admin or Maintenance)
-router.patch('/:id/ops', authenticate, authorize('admin', 'maintenance'), async (req: Request, res: Response) => {
+router.patch('/:id/ops', authenticate, authorizePermission('admin.accommodations', 'accommodations.manage', 'admin.rooms'), async (req: Request, res: Response) => {
   try {
     const { status, condition, comment } = req.body as {
       status?: 'active' | 'inactive';

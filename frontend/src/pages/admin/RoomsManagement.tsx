@@ -95,7 +95,7 @@ const initialFormData: RoomFormData = {
 };
 
 const RoomsManagement: React.FC = () => {
-  const { user } = useAuth();
+  const { user, permissions } = useAuth();
   const { t } = useTranslation();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,10 +113,15 @@ const RoomsManagement: React.FC = () => {
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
 
   useEffect(() => {
-    if (user?.role === 'admin') {
-      loadRooms();
+    if (user) {
+      const isAdmin = String(user.role).toLowerCase() === 'admin';
+      const canFullEdit = isAdmin || (permissions || []).includes('admin.rooms');
+      const canOpsOnly = !canFullEdit && (permissions || []).includes('admin.accommodations');
+      if (canFullEdit || canOpsOnly) {
+        loadRooms();
+      }
     }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, permissions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadRooms = async () => {
     try {
@@ -196,11 +201,24 @@ const RoomsManagement: React.FC = () => {
       };
 
       if (formDialog.mode === 'create') {
+        // Only full-edit users can create rooms
         await adminService.createRoom(roomData);
         showSnackbar(t('admin.rooms.messages.roomCreated'), 'success');
       } else if (formDialog.room) {
-        await adminService.updateRoom(formDialog.room._id, roomData);
-        showSnackbar(t('admin.rooms.messages.roomUpdated'), 'success');
+        // Ops-only users update status/condition/comment; full-edit users perform full update
+        const isAdminLocal = String(user?.role || '').toLowerCase() === 'admin';
+        const canFullEditLocal = isAdminLocal || (permissions || []).includes('admin.rooms');
+        if (canFullEditLocal) {
+          await adminService.updateRoom(formDialog.room._id, roomData);
+          showSnackbar(t('admin.rooms.messages.roomUpdated'), 'success');
+        } else {
+          await adminService.updateRoomOps(formDialog.room._id, {
+            status: formData.status as any,
+            condition: formData.condition as any,
+            comment: formData.comment,
+          });
+          showSnackbar(t('admin.rooms.messages.roomUpdated'), 'success');
+        }
       }
 
       setFormDialog({ open: false, mode: 'create', room: null });
@@ -278,7 +296,10 @@ const RoomsManagement: React.FC = () => {
     return resolveMediaUrl(imagePath);
   };
 
-  if (!user || user.role !== 'admin') {
+  const isAdmin = String(user?.role || '').toLowerCase() === 'admin';
+  const canFullEdit = isAdmin || (permissions || []).includes('admin.rooms');
+  const canOpsOnly = !canFullEdit && (permissions || []).includes('admin.accommodations');
+  if (!user || (!canFullEdit && !canOpsOnly)) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Alert severity="error">
@@ -301,6 +322,7 @@ const RoomsManagement: React.FC = () => {
               {t('admin.rooms.subtitle')}
             </Typography>
           </Box>
+          {canFullEdit && (
           <Button
             variant="contained"
             startIcon={<Add />}
@@ -309,6 +331,7 @@ const RoomsManagement: React.FC = () => {
           >
             {t('admin.rooms.actions.addNewRoom')}
           </Button>
+          )}
         </Box>
 
         {/* Filters and Search */}
@@ -422,6 +445,7 @@ const RoomsManagement: React.FC = () => {
                           >
                             {t('admin.rooms.actions.edit')}
                           </Button>
+                          {canFullEdit && (
                           <Button
                             size="small"
                             color="error"
@@ -430,6 +454,7 @@ const RoomsManagement: React.FC = () => {
                           >
                             {t('admin.rooms.actions.delete')}
                           </Button>
+                          )}
                         </Box>
                       </CardActions>
                     </Card>
@@ -494,11 +519,13 @@ const RoomsManagement: React.FC = () => {
                                   <Edit />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title={t('admin.rooms.actions.delete')}>
-                                <IconButton size="small" color="error" onClick={() => handleDeleteRoom(room)}>
-                                  <Delete />
-                                </IconButton>
-                              </Tooltip>
+                              {canFullEdit && (
+                                <Tooltip title={t('admin.rooms.actions.delete')}>
+                                  <IconButton size="small" color="error" onClick={() => handleDeleteRoom(room)}>
+                                    <Delete />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </Box>
                           </TableCell>
                         </TableRow>
@@ -550,49 +577,53 @@ const RoomsManagement: React.FC = () => {
           <DialogContent>
             <Box sx={{ mt: 2 }}>
               <Grid container spacing={3}>
-                {/* Basic Information */}
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>{t('admin.rooms.sections.basicInfo')}</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
+                {canFullEdit && (
+                  <>
+                    {/* Basic Information */}
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom>{t('admin.rooms.sections.basicInfo')}</Typography>
+                      <Divider sx={{ mb: 2 }} />
+                    </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label={t('admin.rooms.form.roomName')}
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label={t('admin.rooms.form.roomName')}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                      />
+                    </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required>
-                    <InputLabel>{t('admin.rooms.roomType')}</InputLabel>
-                    <Select
-                      value={formData.type}
-                      label={t('admin.rooms.roomType')}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                    >
-                      <MenuItem value="standard">{t('admin.rooms.types.standard')}</MenuItem>
-                      <MenuItem value="deluxe">{t('admin.rooms.types.deluxe')}</MenuItem>
-                      <MenuItem value="suite">{t('admin.rooms.types.suite')}</MenuItem>
-                      <MenuItem value="villa">{t('admin.rooms.types.villa')}</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth required>
+                        <InputLabel>{t('admin.rooms.roomType')}</InputLabel>
+                        <Select
+                          value={formData.type}
+                          label={t('admin.rooms.roomType')}
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                        >
+                          <MenuItem value="standard">{t('admin.rooms.types.standard')}</MenuItem>
+                          <MenuItem value="deluxe">{t('admin.rooms.types.deluxe')}</MenuItem>
+                          <MenuItem value="suite">{t('admin.rooms.types.suite')}</MenuItem>
+                          <MenuItem value="villa">{t('admin.rooms.types.villa')}</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label={t('admin.rooms.form.description')}
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    multiline
-                    rows={3}
-                    required
-                  />
-                </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label={t('admin.rooms.form.description')}
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        multiline
+                        rows={3}
+                        required
+                      />
+                    </Grid>
+                  </>
+                )}
 
                 {/* Capacity, Price per Night, and Size fields removed */}
 
@@ -651,103 +682,115 @@ const RoomsManagement: React.FC = () => {
                   />
                 </Grid>
 
-                {/* Features */}
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>{t('admin.rooms.sections.features')}</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <FormGroup row>
-                    {Object.entries(formData.features).map(([feature, enabled]) => (
-                      <FormControlLabel
-                        key={feature}
-                        control={
-                          <Checkbox
-                            checked={enabled}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              features: { ...formData.features, [feature]: e.target.checked }
-                            })}
-                          />
-                        }
-                        label={t(`admin.rooms.features.${feature}`)}
-                      />
-                    ))}
-                  </FormGroup>
-                </Grid>
-
-                {/* Amenities */}
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>{t('admin.rooms.sections.amenities')}</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                    <TextField
-                      label={t('admin.rooms.form.addAmenity')}
-                      value={newAmenity}
-                      onChange={(e) => setNewAmenity(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddAmenity()}
-                      size="small"
-                    />
-                    <Button
-                      variant="outlined"
-                      onClick={handleAddAmenity}
-                      disabled={!newAmenity.trim()}
-                    >
-                      {t('admin.rooms.actions.add')}
-                    </Button>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {formData.amenities.map((amenity, index) => (
-                      <Chip
-                        key={index}
-                        label={amenity}
-                        onDelete={() => handleRemoveAmenity(amenity)}
-                        size="small"
-                      />
-                    ))}                </Box>
-                </Grid>
-
-                {/* Images */}
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>{t('admin.rooms.sections.images')}</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                    <Button variant="outlined" onClick={() => setMediaPickerOpen(true)}>{t('admin.rooms.actions.selectFromMedia')}</Button>
-                  </Box>
-                  {/* Selected Images Preview (no upload) */}
-                  {formData.images.length === 0 ? (
-                    <Alert severity="info">{t('admin.rooms.images.noneSelected')} {t('admin.rooms.images.useSelectFromMedia')}</Alert>
-                  ) : (
-                    <Grid container spacing={2}>
-                      {formData.images.map((img, idx) => (
-                        <Grid item xs={12} sm={6} md={4} key={idx}>
-                          <Card>
-                            <CardMedia
-                              component="img"
-                              height="160"
-                              image={getImageUrl(img)}
-                              alt={`Room image ${idx + 1}`}
-                            />
-                            <CardActions>
-                              <Button color="error" onClick={() => {
-                                const next = [...formData.images];
-                                next.splice(idx, 1);
-                                setFormData({ ...formData, images: next });
-                              }}>{t('admin.rooms.actions.remove')}</Button>
-                            </CardActions>
-                          </Card>
-                        </Grid>
-                      ))}
+                {canFullEdit && (
+                  <>
+                    {/* Features */}
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>{t('admin.rooms.sections.features')}</Typography>
+                      <Divider sx={{ mb: 2 }} />
                     </Grid>
-                  )}
-                </Grid>
+
+                    <Grid item xs={12}>
+                      <FormGroup row>
+                        {Object.entries(formData.features).map(([feature, enabled]) => (
+                          <FormControlLabel
+                            key={feature}
+                            control={
+                              <Checkbox
+                                checked={enabled}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  features: { ...formData.features, [feature]: e.target.checked }
+                                })}
+                              />
+                            }
+                            label={t(`admin.rooms.features.${feature}`)}
+                          />
+                        ))}
+                      </FormGroup>
+                    </Grid>
+                  </>
+                )}
+
+                {canFullEdit && (
+                  <>
+                    {/* Amenities */}
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>{t('admin.rooms.sections.amenities')}</Typography>
+                      <Divider sx={{ mb: 2 }} />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                        <TextField
+                          label={t('admin.rooms.form.addAmenity')}
+                          value={newAmenity}
+                          onChange={(e) => setNewAmenity(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleAddAmenity()}
+                          size="small"
+                        />
+                        <Button
+                          variant="outlined"
+                          onClick={handleAddAmenity}
+                          disabled={!newAmenity.trim()}
+                        >
+                          {t('admin.rooms.actions.add')}
+                        </Button>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        {formData.amenities.map((amenity, index) => (
+                          <Chip
+                            key={index}
+                            label={amenity}
+                            onDelete={() => handleRemoveAmenity(amenity)}
+                            size="small"
+                          />
+                        ))}                </Box>
+                    </Grid>
+                  </>
+                )}
+
+                {canFullEdit && (
+                  <>
+                    {/* Images */}
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>{t('admin.rooms.sections.images')}</Typography>
+                      <Divider sx={{ mb: 2 }} />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                        <Button variant="outlined" onClick={() => setMediaPickerOpen(true)}>{t('admin.rooms.actions.selectFromMedia')}</Button>
+                      </Box>
+                      {/* Selected Images Preview (no upload) */}
+                      {formData.images.length === 0 ? (
+                        <Alert severity="info">{t('admin.rooms.images.noneSelected')} {t('admin.rooms.images.useSelectFromMedia')}</Alert>
+                      ) : (
+                        <Grid container spacing={2}>
+                          {formData.images.map((img, idx) => (
+                            <Grid item xs={12} sm={6} md={4} key={idx}>
+                              <Card>
+                                <CardMedia
+                                  component="img"
+                                  height="160"
+                                  image={getImageUrl(img)}
+                                  alt={`Room image ${idx + 1}`}
+                                />
+                                <CardActions>
+                                  <Button color="error" onClick={() => {
+                                    const next = [...formData.images];
+                                    next.splice(idx, 1);
+                                    setFormData({ ...formData, images: next });
+                                  }}>{t('admin.rooms.actions.remove')}</Button>
+                                </CardActions>
+                              </Card>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      )}
+                    </Grid>
+                  </>
+                )}
 
                 {/* Availability toggle removed; status managed via Room Ops */}
               </Grid>
@@ -765,8 +808,11 @@ const RoomsManagement: React.FC = () => {
               onClick={handleFormSubmit}
               disabled={formLoading || !formData.name || !formData.description}
             >
-              {formLoading ? <CircularProgress size={20} /> :
-                (formDialog.mode === 'create' ? t('admin.rooms.actions.createRoom') : t('admin.rooms.actions.updateRoom'))}
+              {formLoading ? <CircularProgress size={20} /> : (
+                formDialog.mode === 'create'
+                  ? t('admin.rooms.actions.createRoom')
+                  : (canFullEdit ? t('admin.rooms.actions.updateRoom') : t('admin.rooms.actions.updateRoom'))
+              )}
             </Button>
           </DialogActions>
         </Dialog>

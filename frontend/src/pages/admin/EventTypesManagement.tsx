@@ -6,6 +6,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import { eventTypesService } from '../../services/api';
 import { EventType } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { formatMoney } from '../../utils/currency';
 
 const EventTypesManagement: React.FC = () => {
   const { t } = useTranslation();
@@ -127,7 +128,7 @@ const EventTypesManagement: React.FC = () => {
                 <TableRow key={et._id} hover>
                   <TableCell>{et.type}</TableCell>
                   <TableCell>{et.title}</TableCell>
-                  <TableCell>${et.priceFrom}</TableCell>
+                  <TableCell>{formatMoney(et.priceFrom)}</TableCell>
                   <TableCell>{et.maxGuests}</TableCell>
                   <TableCell>
                     {(et.features || []).slice(0, 3).map((f, i) => (

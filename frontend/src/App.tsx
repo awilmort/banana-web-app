@@ -88,7 +88,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/admin/rooms" element={
-              <ProtectedRoute requiredPermission="admin.rooms">
+              <ProtectedRoute requiredPermission={["admin.rooms", "admin.accommodations"]}>
                 <RoomsManagement />
               </ProtectedRoute>
             } />

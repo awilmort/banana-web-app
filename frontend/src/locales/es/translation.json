@@ -242,6 +242,8 @@
         "reservationsManagePayments": "Reservas: Gestionar pagos",
         "reservationsPriceUpdate": "Reservas: Actualización de precios",
         "reservationsAmountUpdate": "Reservas: Actualización de precio total",
+        "reservationsCheckIn": "Reservas: Check-in",
+        "reservationsCancel": "Reservas: Cancelar",
         "salesman": "Vendedor"
       }
     },
@@ -682,7 +684,8 @@
           "pendingBalance": "Saldo pendiente: {{amount}}",
           "afterPayment": "Después del pago: {{amount}}",
           "recorded": "Pago registrado",
-          "failed": "No se pudo registrar el pago"
+          "failed": "No se pudo registrar el pago",
+          "blockedForCancelled": "Los pagos están bloqueados para reservas canceladas"
         },
         "errors": {
           "deletePaymentConfirm": "¿Eliminar este pago?",
@@ -693,6 +696,7 @@
           "pending": "Pendiente",
           "confirmed": "Confirmada",
           "cancelled": "Cancelada",
+          "completed": "Completada",
           "checked-in": "Check-In",
           "checked-out": "Check-Out"
         }
@@ -705,7 +709,8 @@
       "cards": {
         "totalPeople": "Total de personas",
         "adults": "Adultos",
-        "children": "Niños"
+        "children": "Niños",
+        "infants": "Infantes"
       },
       "sections": {
         "daypass": "DayPass ({{count}})",
@@ -769,7 +774,8 @@
       "cards": {
         "totalPeople": "Total de personas",
         "adults": "Adultos",
-        "children": "Niños"
+        "children": "Niños",
+        "infants": "Infantes"
       },
       "sections": {
         "daypass": "DayPass ({{count}})",
@@ -1082,6 +1088,9 @@
       "goHome": "Ir al inicio",
       "cancelSuccess": "Tu reserva ha sido cancelada con éxito.",
       "headerTitle": "Confirmación de reserva",
+      "labels": {
+        "guest": "Huésped"
+      },
       "typeLabels": {
         "room": "Reserva de habitación",
         "daypass": "DayPass",
@@ -1120,8 +1129,7 @@
         "cancelButton": "Cancelar reserva",
         "cancelling": "Cancelando..."
       }
-    }
-    ,
+    },
     "registrationSuccess": {
       "title": "¡Registro exitoso!",
       "checkEmail": "Por favor revisa tu correo para verificar tu cuenta",
@@ -1147,7 +1155,7 @@
       },
       "selectStayDates": "Selecciona las fechas de tu estadía",
       "bookingFor": "Reservando: {{roomName}} (habitación {{roomType}})",
-      "currentRatePerNight": "Tarifa por noche: ${{adult}} por adulto, ${{child}} por niño",
+      "currentRatePerNight": "Tarifa por noche: {{adult}} por adulto, {{child}} por niño",
       "checkInDate": "Fecha de check-in",
       "checkOutDate": "Fecha de check-out",
       "checkingAvailability": "Verificando disponibilidad...",

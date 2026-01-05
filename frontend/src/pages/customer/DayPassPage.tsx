@@ -26,6 +26,7 @@ import { getCountriesForDisplay } from '../../utils/countries';
 import { pricingService, reservationsService } from '../../services/api';
 import NumberField from '../../components/common/NumberField';
 import { findApplicablePricing, PricingRule } from '../../utils/pricing';
+import { formatMoney } from '../../utils/currency';
 
 interface DayPassData {
   visitDate: Date | null;
@@ -482,7 +483,7 @@ const DayPassPage: React.FC = () => {
                         Booking...
                       </>
                     ) : (
-                      `${passType === 'pasatarde' ? t('daypass.bookButtonPasaTarde', { price: calculateTotalPrice() }) : t('daypass.bookButton', { price: calculateTotalPrice() })}`
+                      `${passType === 'pasatarde' ? t('daypass.bookButtonPasaTarde', { price: formatMoney(calculateTotalPrice()) }) : t('daypass.bookButton', { price: formatMoney(calculateTotalPrice()) })}`
                     )}
                   </Button>
                 </Box>
@@ -515,7 +516,7 @@ const DayPassPage: React.FC = () => {
                   </Typography>
                 )}
                 <Typography variant="body2" sx={{ mt: 1 }}>
-                  {t('daypass.currentRate', { adult: adultRate, child: childrenRate })}
+                  {t('daypass.currentRate', { adult: formatMoney(adultRate), child: formatMoney(childrenRate) })}
                 </Typography>
               </CardContent>
             </Card>

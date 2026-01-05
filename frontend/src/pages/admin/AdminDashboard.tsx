@@ -30,6 +30,7 @@ import { useNavigate } from 'react-router-dom';
 import { roomsService, reservationsService } from '../../services/api';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useTranslation } from 'react-i18next';
+import { formatMoney } from '../../utils/currency';
 
 interface DashboardStats {
   totalRooms: number;
@@ -173,7 +174,7 @@ const AdminDashboard: React.FC = () => {
         <Grid item xs={12} sm={6} md={2.4}>
           <StatCard
             title={t('admin.dashboard.stats.monthlyRevenue')}
-            value={`$${stats.monthlyRevenue.toLocaleString()}`}
+            value={formatMoney(stats.monthlyRevenue)}
             icon={<AttachMoney fontSize="large" />}
             color="success.main"
           />
@@ -305,7 +306,7 @@ const AdminDashboard: React.FC = () => {
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>${reservation.totalPrice || 0}</TableCell>
+                      <TableCell>{formatMoney(reservation.totalPrice || 0)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

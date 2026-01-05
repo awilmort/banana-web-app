@@ -43,10 +43,15 @@ import ReservationDetails from '../../components/admin/ReservationDetails';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import NumberField from '../../components/common/NumberField';
+import { formatMoney } from '../../utils/currency';
 
 const ReservationManagement: React.FC = () => {
   const { t } = useTranslation();
   const { user, permissions } = useAuth();
+  const isAdmin = String(user?.role).toLowerCase() === 'admin';
+  const canCheckIn = isAdmin || (permissions || []).includes('admin.reservations.checkin');
+  const canCancel = isAdmin || (permissions || []).includes('admin.reservations.cancel');
+  const canCheckOut = canCheckIn || ['staff', 'maintenance'].includes(String(user?.role).toLowerCase());
   // Using unified admin.schedule.* keys
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -280,7 +285,8 @@ const ReservationManagement: React.FC = () => {
   // Refresh available rooms when dates in the edit form change
   useEffect(() => {
     if (!editDialog.open) return;
-    if (editForm.checkInDate) {
+    // Only load availability for room reservations
+    if (editForm.checkInDate && editDialog.reservation?.type === 'room') {
       const { ci, co } = normalizeRange(editForm.checkInDate, editForm.checkOutDate);
       const t = setTimeout(() => loadAvailableRoomsForDates(ci, co), 250);
       return () => clearTimeout(t);
@@ -297,7 +303,14 @@ const ReservationManagement: React.FC = () => {
     setEditDialog({ open: true, reservation });
     setEditForm({
       checkInDate: toInputDate(reservation.checkInDate),
-      checkOutDate: reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : addOneDay(toInputDate(reservation.checkInDate)),
+      // For room reservations, default checkout to next day if missing; for others, do not auto-set
+      checkOutDate: (() => {
+        const ci = toInputDate(reservation.checkInDate);
+        if (reservation.type === 'room') {
+          return reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : addOneDay(ci);
+        }
+        return reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : '';
+      })(),
       adults: reservation.guestDetails.adults,
       children: reservation.guestDetails.children,
       infants: reservation.guestDetails.infants,
@@ -322,9 +335,11 @@ const ReservationManagement: React.FC = () => {
       })()
     });
     // Load date-based available rooms for this reservation
-    const ci = toInputDate(reservation.checkInDate);
-    const co = reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : addOneDay(toInputDate(reservation.checkInDate));
-    loadAvailableRoomsForDates(ci, co);
+    if (reservation.type === 'room') {
+      const ci = toInputDate(reservation.checkInDate);
+      const co = reservation.checkOutDate ? toInputDate(reservation.checkOutDate) : addOneDay(toInputDate(reservation.checkInDate));
+      loadAvailableRoomsForDates(ci, co);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -350,13 +365,22 @@ const ReservationManagement: React.FC = () => {
 
       // Include dates only if changed to avoid unnecessary validation
       const originalCheckIn = toInputDate(editDialog.reservation.checkInDate);
-      const originalCheckOut = editDialog.reservation.checkOutDate
-        ? toInputDate(editDialog.reservation.checkOutDate)
-        : toInputDate(editDialog.reservation.checkInDate);
+      // For room reservations, treat missing original checkout as next day; for others, as empty
+      const originalCheckOut = (() => {
+        if (editDialog.reservation.type === 'room') {
+          return editDialog.reservation.checkOutDate
+            ? toInputDate(editDialog.reservation.checkOutDate)
+            : addOneDay(toInputDate(editDialog.reservation.checkInDate));
+        }
+        return editDialog.reservation.checkOutDate
+          ? toInputDate(editDialog.reservation.checkOutDate)
+          : '';
+      })();
       if (editForm.checkInDate !== originalCheckIn) {
         payload.checkInDate = editForm.checkInDate;
       }
-      if (editForm.checkOutDate !== originalCheckOut) {
+      // Only include checkout updates for room or event types; skip for daypass/PasaTarde
+      if ((editDialog.reservation.type === 'room' || editDialog.reservation.type === 'event') && (editForm.checkOutDate !== originalCheckOut)) {
         payload.checkOutDate = editForm.checkOutDate;
       }
       const isAdmin = String(user?.role).toLowerCase() === 'admin';
@@ -624,7 +648,7 @@ const ReservationManagement: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
-                      ${reservation.totalPrice}
+                      {formatMoney(reservation.totalPrice || 0)}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -680,7 +704,7 @@ const ReservationManagement: React.FC = () => {
                       )}
                       {reservation.type === 'room' && (
                         <>
-                          {!reservation.actualCheckInAt && (
+                          {!reservation.actualCheckInAt && canCheckIn && reservation.status !== 'cancelled' && (
                             <Tooltip title={(() => {
                               if (!reservation.room) return t('admin.reservations.tooltips.assignBeforeCheckin');
                               const now = new Date();
@@ -726,7 +750,7 @@ const ReservationManagement: React.FC = () => {
                               </span>
                             </Tooltip>
                           )}
-                          {reservation.actualCheckInAt && !reservation.actualCheckOutAt && (
+                          {canCheckOut && reservation.actualCheckInAt && !reservation.actualCheckOutAt && (
                             <Button size="small" variant="outlined" onClick={() => setOpsDialog({ open: true, mode: 'checkout', reservation })}>{t('admin.reservations.actions.checkout')}</Button>
                           )}
                         </>
@@ -797,14 +821,16 @@ const ReservationManagement: React.FC = () => {
                 InputLabelProps={{ shrink: true }}
                 disabled={editImmutable}
               />
-              <TextField
-                label={t('admin.reservations.form.checkoutDate')}
-                type="date"
-                value={editForm.checkOutDate}
-                onChange={(e) => setEditForm({ ...editForm, checkOutDate: e.target.value })}
-                InputLabelProps={{ shrink: true }}
-                disabled={editImmutable}
-              />
+              {(editDialog.reservation?.type === 'room' || editDialog.reservation?.type === 'event') && (
+                <TextField
+                  label={t('admin.reservations.form.checkoutDate')}
+                  type="date"
+                  value={editForm.checkOutDate}
+                  onChange={(e) => setEditForm({ ...editForm, checkOutDate: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                  disabled={editImmutable}
+                />
+              )}
               {editDialog.reservation?.type === 'room' && (
                 <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(2, 1fr)' }}>
                   <TextField
@@ -858,7 +884,7 @@ const ReservationManagement: React.FC = () => {
                 >
                   <MenuItem value="pending">{t('admin.reservations.statusLabels.pending')}</MenuItem>
                   <MenuItem value="confirmed">{t('admin.reservations.statusLabels.confirmed')}</MenuItem>
-                  <MenuItem value="cancelled">{t('admin.reservations.statusLabels.cancelled')}</MenuItem>
+                  <MenuItem value="cancelled" disabled={!canCancel}>{t('admin.reservations.statusLabels.cancelled')}</MenuItem>
                   <MenuItem value="completed">{t('admin.reservations.statusLabels.completed')}</MenuItem>
                 </Select>
               </FormControl>

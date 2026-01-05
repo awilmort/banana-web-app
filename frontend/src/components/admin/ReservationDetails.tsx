@@ -20,6 +20,7 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
   const isAdmin = String(user?.role).toLowerCase() === 'admin';
   const canManagePayments = isAdmin || (permissions || []).includes('admin.reservations.managePayments');
   const { t } = useTranslation();
+  const paymentsDisabled = current.status === 'cancelled';
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -42,9 +43,10 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
   const formatCurrency = (value?: number) => {
     if (value == null) return t('admin.reservations.na');
     try {
-      return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(value);
+      const { formatMoney } = require('../../utils/currency');
+      return formatMoney(value);
     } catch {
-      return `$${(value || 0).toFixed(2)}`;
+      return `RD$${(value || 0).toFixed(0)}`;
     }
   };
 
@@ -119,7 +121,7 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
             <Box sx={{ pl: 1 }}>
               <Typography variant="body2"><strong>{t('admin.reservations.details.labels.type')}:</strong> {current.type}</Typography>
               <Typography variant="body2"><strong>{t('admin.reservations.details.labels.dates')}:</strong> {formatDate(current.checkInDate)} {current.checkOutDate ? `- ${formatDate(current.checkOutDate)}` : ''}</Typography>
-              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.guests')}:</strong> {current.guestDetails.adults} {t('schedule.cards.adults')}, {current.guestDetails.children} {t('schedule.cards.children')}, {current.guestDetails.infants} {t('reservationSummary.labels.guest')}</Typography>
+              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.guests')}:</strong> {current.guestDetails.adults} {t('schedule.cards.adults')}, {current.guestDetails.children} {t('schedule.cards.children')}, {current.guestDetails.infants} {t('schedule.cards.infants')}</Typography>
               {current.reservationCode && (
                 <Typography variant="body2"><strong>{t('admin.reservations.details.labels.reservationCode')}:</strong> {current.reservationCode}</Typography>
               )}
@@ -132,6 +134,9 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
               <Typography variant="body2"><strong>{t('admin.reservations.details.labels.total')}:</strong> {formatCurrency(current.totalPrice)}</Typography>
               <Typography variant="body2"><strong>{t('admin.reservations.details.labels.totalPayments')}:</strong> {formatCurrency(current.totalPayments ?? 0)}</Typography>
               <Typography variant="body2"><strong>{t('admin.reservations.details.labels.pendingBalance')}:</strong> {formatCurrency(pendingBalance)}</Typography>
+              {paymentsDisabled && (
+                <Typography variant="caption" color="error">{t('admin.reservations.details.paymentDialog.blockedForCancelled')}</Typography>
+              )}
             </Box>
           </Grid>
           {current.type === 'room' && (
@@ -154,13 +159,20 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
               </Box>
             </Grid>
           )}
-          {current.type === 'room' && current.room && typeof current.room === 'object' && (
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.room')}</Typography>
-              <Box sx={{ pl: 1 }}>
-                <Typography variant="body2"><strong>{t('admin.reservations.details.labels.assignedRoom')}:</strong> {current.room.name}</Typography>
-              </Box>
-            </Grid>
+          {current.type === 'room' && (
+            (() => {
+              const names = Array.isArray(current.rooms)
+                ? current.rooms.map((r: any) => (typeof r === 'object' && r?.name) ? r.name : String(r))
+                : (current.room ? [(typeof current.room === 'object' && (current.room as any)?.name) ? (current.room as any).name : String(current.room)] : []);
+              return (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.room')}</Typography>
+                  <Box sx={{ pl: 1 }}>
+                    <Typography variant="body2"><strong>{t('admin.reservations.details.labels.assignedRoom')}:</strong> {names.length > 0 ? names.join(', ') : t('admin.reservations.none')}</Typography>
+                  </Box>
+                </Grid>
+              );
+            })()
           )}
           {current.specialRequests && (
             <Grid item xs={12}>
@@ -178,7 +190,7 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
               <Typography variant="subtitle2">{t('admin.reservations.details.section.payments')}</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="body2">{t('admin.reservations.details.paymentDialog.pendingBalance', { amount: formatCurrency(pendingBalance) })}</Typography>
-                {canManagePayments && (
+                  {canManagePayments && !paymentsDisabled && (
                   <Button variant="contained" onClick={() => { setSubmitError(null); setSubmitSuccess(null); setAmount(0); setMethod(''); setNote(''); setPaymentDialogOpen(true); }}>{t('admin.reservations.details.actions.addPayment')}</Button>
                 )}
               </Box>
@@ -208,19 +220,29 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
                         <TableCell>{p.note || '-'}</TableCell>
                         {canManagePayments && (
                           <TableCell align="right">
-                            <Tooltip title={t('admin.reservations.details.actions.edit')}>
-                              <IconButton size="small" onClick={() => {
-                                setEditingPayment({ _id: (p as any)._id, amount: p.amount, method: p.method, note: p.note });
-                                setAmount(p.amount);
-                                setMethod(p.method);
-                                setNote(p.note || '');
-                                setSubmitError(null);
-                                setSubmitSuccess(null);
-                                setPaymentDialogOpen(true);
-                              }}>
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
+                                {paymentsDisabled ? (
+                                  <Tooltip title={t('admin.reservations.details.paymentDialog.blockedForCancelled')}>
+                                    <span>
+                                      <IconButton size="small" disabled>
+                                        <EditIcon fontSize="small" />
+                                      </IconButton>
+                                    </span>
+                                  </Tooltip>
+                                ) : (
+                                  <Tooltip title={t('admin.reservations.details.actions.edit')}>
+                                    <IconButton size="small" onClick={() => {
+                                      setEditingPayment({ _id: (p as any)._id, amount: p.amount, method: p.method, note: p.note });
+                                      setAmount(p.amount);
+                                      setMethod(p.method);
+                                      setNote(p.note || '');
+                                      setSubmitError(null);
+                                      setSubmitSuccess(null);
+                                      setPaymentDialogOpen(true);
+                                    }}>
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
                             <Tooltip title={t('admin.reservations.details.actions.delete')}>
                               <IconButton size="small" color="error" onClick={async () => {
                                 const ok = window.confirm(t('admin.reservations.details.errors.deletePaymentConfirm'));
@@ -286,9 +308,17 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
         <Box sx={{ mt: 2 }}>
           <Typography variant="body2">{t('admin.reservations.details.paymentDialog.pendingBalance', { amount: formatCurrency(pendingBalance) })}</Typography>
           {amount > 0 && (
-            <Typography variant="caption" color={amount > pendingBalance ? 'error' : 'text.secondary'}>
-              {t('admin.reservations.details.paymentDialog.afterPayment', { amount: formatCurrency(Math.max(0, pendingBalance - amount)) })}
-            </Typography>
+            (() => {
+              const original = editingPayment?.amount || 0;
+              const delta = amount - original;
+              const willExceed = delta > pendingBalance;
+              const after = Math.max(0, pendingBalance - delta);
+              return (
+                <Typography variant="caption" color={willExceed ? 'error' : 'text.secondary'}>
+                  {t('admin.reservations.details.paymentDialog.afterPayment', { amount: formatCurrency(after) })}
+                </Typography>
+              );
+            })()
           )}
           {submitError && (
             <Typography variant="body2" color="error" sx={{ mt: 1 }}>{submitError}</Typography>
@@ -302,7 +332,12 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
         <Button onClick={() => setPaymentDialogOpen(false)} disabled={submitting}>{t('admin.reservations.details.actions.cancel')}</Button>
         <Button
           variant="contained"
-          disabled={submitting || amount <= 0 || amount > pendingBalance || !method}
+          disabled={(() => {
+            if (submitting || amount <= 0 || !method) return true;
+            const original = editingPayment?.amount || 0;
+            const delta = amount - original;
+            return delta > pendingBalance; // prevents exceeding total price on increase
+          })()}
           onClick={async () => {
             try {
               setSubmitting(true);

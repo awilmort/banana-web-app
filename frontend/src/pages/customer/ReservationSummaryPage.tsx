@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { reservationsService } from '../../services/api';
 import { useTranslation } from 'react-i18next';
+import { formatMoney } from '../../utils/currency';
 import { Reservation } from '../../types';
 
 const ReservationSummaryPage: React.FC = () => {
@@ -284,7 +285,7 @@ const ReservationSummaryPage: React.FC = () => {
               </Typography>
               <Box sx={{ pl: 4 }}>
                 <Typography variant="h5" color="primary">
-                  <strong>{t('pages.reservationSummary.total')}: ${reservation.totalPrice.toFixed(2)}</strong>
+                  <strong>{t('pages.reservationSummary.total')}: {formatMoney(reservation.totalPrice || 0)}</strong>
                 </Typography>
               </Box>
             </Grid>

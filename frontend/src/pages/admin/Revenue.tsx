@@ -3,6 +3,7 @@ import { Container, Typography, Grid, Card, CardContent, Box, Paper, TextField, 
 import { AttachMoney, Group, Payments } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { formatMoney } from '../../utils/currency';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { adminService } from '../../services/api';
 
@@ -30,7 +31,7 @@ const CombinedStatCard = ({ title, adults, children, revenue, color }: { title: 
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AttachMoney sx={{ color: 'success.main' }} />
-          <Typography variant="h6">${revenue.toLocaleString()}</Typography>
+          <Typography variant="h6">{formatMoney(revenue)}</Typography>
         </Box>
       </Box>
     </CardContent>
@@ -50,7 +51,7 @@ const StatCard = ({ title, guests, revenue, color }: { title: string; guests: nu
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AttachMoney sx={{ color: 'success.main' }} />
-          <Typography variant="h6">${revenue.toLocaleString()}</Typography>
+          <Typography variant="h6">{formatMoney(revenue)}</Typography>
         </Box>
       </Box>
     </CardContent>
@@ -65,7 +66,7 @@ const IncomeCard = ({ title, amount, highlight }: { title: string; amount: numbe
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Payments color={highlight ? 'success' : 'primary'} />
-        <Typography variant="h4">${amount.toLocaleString()}</Typography>
+        <Typography variant="h4">{formatMoney(amount)}</Typography>
       </Box>
     </CardContent>
   </Card>
@@ -191,7 +192,7 @@ const Revenue: React.FC = () => {
                       <Chip label={t(`admin.revenue.typeLabels.${r.type === 'PasaTarde' ? 'pasatarde' : r.type}`)} size="small" />
                     </TableCell>
                     <TableCell>{r.endedOn ? dayjs(r.endedOn).format('YYYY-MM-DD') : '-'}</TableCell>
-                    <TableCell>${(r.balanceDue || 0).toLocaleString()}</TableCell>
+                    <TableCell>{formatMoney(r.balanceDue || 0)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

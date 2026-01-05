@@ -31,6 +31,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { reservationsService } from '../../services/api';
 import { Reservation } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { formatMoney } from '../../utils/currency';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -384,7 +385,7 @@ const ReservationList: React.FC<ReservationListProps> = ({
                           Total Amount
                         </Typography>
                         <Typography variant="h6" color="primary">
-                          ${reservation.totalPrice}
+                          {formatMoney(reservation.totalPrice || 0)}
                         </Typography>
                       </Box>
                     </Box>

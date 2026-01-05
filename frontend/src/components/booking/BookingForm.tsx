@@ -29,6 +29,7 @@ import { Room, Reservation } from '../../types';
 import { reservationsService, roomsService, pricingService } from '../../services/api';
 import { getCountriesForDisplay } from '../../utils/countries';
 import { findApplicablePricing, PricingRule } from '../../utils/pricing';
+import { formatMoney } from '../../utils/currency';
 import { useTranslation } from 'react-i18next';
 
 interface BookingFormProps {
@@ -282,7 +283,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
               <Grid item xs={12}>
                 <Alert severity="info">
                   {t('pages.roomBooking.bookingFor', { roomName: room.name, roomType: t(`admin.rooms.types.${room.type}`) })}
-                  {' '}• {t('pages.roomBooking.currentRatePerNight', { adult: adultRate, child: childrenRate })}
+                  {' '}• {t('pages.roomBooking.currentRatePerNight', { adult: formatMoney(adultRate), child: formatMoney(childrenRate) })}
                 </Alert>
               </Grid>
             )}

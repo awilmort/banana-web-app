@@ -8,6 +8,7 @@
   },
   "nav": {
     "home": "Home",
+        "checkinCancelledGuard": "Cannot check-in a cancelled reservation",
     "rooms": "Rooms",
     "daypass": "Day Pass",
     "events": "Events",
@@ -41,8 +42,8 @@
     "country": "Country",
     "specialRequests": "Special Requests",
     "specialRequestsPlaceholder": "Any special requirements, dietary restrictions, accessibility needs, etc.",
-    "bookButton": "Book Day Pass - ${{price}}",
-    "bookButtonPasaTarde": "Book PasaTarde - ${{price}}",
+    "bookButton": "Book Day Pass - {{price}}",
+    "bookButtonPasaTarde": "Book PasaTarde - {{price}}",
     "successDaypassTitle": "Day Pass Booked Successfully!",
     "successPasaTardeTitle": "PasaTarde Booked Successfully!",
     "successBody": "Your {{product}} for {{date}} has been confirmed. We look forward to welcoming you to our tropical paradise!",
@@ -61,7 +62,7 @@
     "validityDayPass": "DayPass is valid from 9:00 AM to 5:00 PM on your selected date.",
     "validityPasaTarde": "PasaTarde is valid from 1:30 PM to 5:00 PM on your selected date.",
     "foodNotIncluded": "Food not included",
-    "currentRate": "Current rate: ${{adult}} per adult • ${{child}} per child",
+    "currentRate": "Current rate: {{adult}} per adult • {{child}} per child",
     "errors": {
       "selectDate": "Please select a visit date",
       "nameRequired": "Please enter your first and last name",
@@ -291,6 +292,8 @@
         "reservationsManagePayments": "Reservations: Manage Payments",
         "reservationsPriceUpdate": "Reservations: Price Update",
         "reservationsAmountUpdate": "Reservations: Total Price Update",
+        "reservationsCheckIn": "Reservations: Check-in",
+        "reservationsCancel": "Reservations: Cancel",
         "salesman": "Salesman"
       }
     },
@@ -730,7 +733,8 @@
           "pendingBalance": "Pending Balance: {{amount}}",
           "afterPayment": "After payment: {{amount}}",
           "recorded": "Payment recorded",
-          "failed": "Failed to record payment"
+          "failed": "Failed to record payment",
+          "blockedForCancelled": "Payments are blocked for cancelled reservations"
         },
         "errors": {
           "deletePaymentConfirm": "Delete this payment?",
@@ -741,6 +745,7 @@
           "pending": "Pending",
           "confirmed": "Confirmed",
           "cancelled": "Cancelled",
+          "completed": "Completed",
           "checked-in": "Checked-in",
           "checked-out": "Checked-out"
         }
@@ -753,7 +758,8 @@
       "cards": {
         "totalPeople": "Total People",
         "adults": "Adults",
-        "children": "Children"
+        "children": "Children",
+        "infants": "Infants"
       },
       "sections": {
         "daypass": "DayPass ({{count}})",
@@ -1104,6 +1110,9 @@
       "goHome": "Go to Home",
       "cancelSuccess": "Your reservation has been cancelled successfully.",
       "headerTitle": "Reservation Confirmation",
+      "labels": {
+        "guest": "Guest"
+      },
       "typeLabels": {
         "room": "Room Reservation",
         "daypass": "Day Pass",
@@ -1169,7 +1178,7 @@
       },
       "selectStayDates": "Select Your Stay Dates",
       "bookingFor": "Booking for: {{roomName}} ({{roomType}} room)",
-      "currentRatePerNight": "Current rate per night: ${{adult}} per adult, ${{child}} per child",
+      "currentRatePerNight": "Current rate per night: {{adult}} per adult, {{child}} per child",
       "checkInDate": "Check-in Date",
       "checkOutDate": "Check-out Date",
       "checkingAvailability": "Checking availability...",
