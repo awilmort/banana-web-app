@@ -449,32 +449,9 @@ router.post('/', async (req: Request, res: Response) => {
       reservationData.guestName = nameFromRequest;
     }
 
-    // Set user if authenticated, with Salesman-specific rules
+    // Set user if authenticated (always attribute to the authenticated user)
     if (authenticatedUser) {
-      let isSalesman = false;
-      try {
-        const roleDoc = await Role.findOne({ name: String(authenticatedUser.role).toLowerCase() });
-        const perms = roleDoc?.permissions || [];
-        isSalesman = perms.includes('salesman');
-      } catch (permErr) {
-        console.error('Salesman permission check failed:', permErr);
-      }
-
-      // Determine if check-in is today (local)
-      const nowLocal = new Date();
-      const startOfToday = new Date(nowLocal.getFullYear(), nowLocal.getMonth(), nowLocal.getDate(), 0, 0, 0, 0);
-      const endOfToday = new Date(nowLocal.getFullYear(), nowLocal.getMonth(), nowLocal.getDate(), 23, 59, 59, 999);
-
-      const isToday = reservationData.checkInDate >= startOfToday && reservationData.checkInDate <= endOfToday;
-
-      if (isSalesman) {
-        // If starts today, do NOT attribute to salesman; otherwise, attribute
-        if (!isToday) {
-          reservationData.user = authenticatedUser.id;
-        }
-      } else {
-        reservationData.user = authenticatedUser.id;
-      }
+      reservationData.user = authenticatedUser.id;
     }
 
     // Always generate a confirmation token for deep-link viewing (guest or authenticated)

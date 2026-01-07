@@ -327,7 +327,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
 
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                {t('pages.eventBooking.guestDistribution')}
+                {t('common.guestDistribution')}
               </Typography>
             </Grid>
 
