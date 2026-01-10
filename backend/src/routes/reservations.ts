@@ -240,6 +240,13 @@ router.post('/', async (req: Request, res: Response) => {
       specialRequests
     } = req.body;
 
+    // Normalize and basic validation
+    const normalizedType = typeof type === 'string' ? String(type).trim() : '';
+    const allowedTypes = ['room', 'daypass', 'PasaTarde', 'event'];
+    if (!normalizedType || !allowedTypes.includes(normalizedType)) {
+      return res.status(400).json({ success: false, message: 'Invalid or missing reservation type' });
+    }
+
     let authenticatedUser: any = null;
 
     // Check if user is authenticated (optional for all reservation types)
@@ -279,11 +286,31 @@ router.post('/', async (req: Request, res: Response) => {
       }
     }
 
-    const checkIn = new Date(checkInDate);
-    const checkOut = checkOutDate ? new Date(checkOutDate) : null;
+    // Parse local date strings (YYYY-MM-DD) to avoid timezone drift
+    const parseLocalDate = (s: string | Date | null | undefined) => {
+      if (!s) return null;
+      if (s instanceof Date) return s;
+      const str = String(s);
+      const parts = str.split('-');
+      if (parts.length === 3) {
+        const y = Number(parts[0]);
+        const m = Number(parts[1]);
+        const d = Number(parts[2]);
+        return new Date(y, m - 1, d, 0, 0, 0, 0);
+      }
+      const d2 = new Date(str);
+      return isNaN(d2.getTime()) ? null : d2;
+    };
+
+    const checkIn = parseLocalDate(checkInDate);
+    const checkOut = parseLocalDate(checkOutDate);
+
+    if (!checkIn) {
+      return res.status(400).json({ success: false, message: 'Invalid or missing check-in date' });
+    }
 
     // Validation based on reservation type
-    if (type === 'room') {
+    if (normalizedType === 'room') {
       if (!checkOut) {
         return res.status(400).json({
           success: false,
@@ -299,7 +326,7 @@ router.post('/', async (req: Request, res: Response) => {
       }
     }
 
-    if (type === 'event') {
+    if (normalizedType === 'event') {
       if (!eventType || !eventDescription || !expectedAttendees) {
         return res.status(400).json({
           success: false,
@@ -308,38 +335,51 @@ router.post('/', async (req: Request, res: Response) => {
       }
 
       // Validate against EventType configuration
-      const eventConfig = await EventType.findOne({ type: String(eventType).toLowerCase() });
+      const eventTypeKey = String(eventType).toLowerCase().trim();
+      const eventConfig = await EventType.findOne({ type: eventTypeKey });
       if (!eventConfig) {
         return res.status(400).json({ success: false, message: 'Selected event type is not available' });
       }
-      if (expectedAttendees > eventConfig.maxGuests) {
+      if (eventConfig.isActive === false) {
+        return res.status(400).json({ success: false, message: 'Selected event type is inactive' });
+      }
+
+      const attendeesNum = Number(expectedAttendees);
+      if (!Number.isFinite(attendeesNum) || attendeesNum <= 0) {
+        return res.status(400).json({ success: false, message: 'Expected attendees must be a positive number' });
+      }
+      if (attendeesNum > eventConfig.maxGuests) {
         return res.status(400).json({ success: false, message: `Expected attendees exceed maximum allowed (${eventConfig.maxGuests})` });
       }
       // Enforce children limit only if configured on the event type
-      if (
-        guestDetails &&
-        typeof guestDetails.children === 'number' &&
-        eventConfig.maxChildren !== undefined &&
-        eventConfig.maxChildren !== null &&
-        guestDetails.children > eventConfig.maxChildren
-      ) {
-        return res.status(400).json({ success: false, message: `Children exceed maximum allowed (${eventConfig.maxChildren}) for this event type` });
+      if (guestDetails) {
+        const childrenNum = Number(guestDetails.children ?? 0);
+        if (
+          Number.isFinite(childrenNum) &&
+          eventConfig.maxChildren !== undefined &&
+          eventConfig.maxChildren !== null &&
+          childrenNum > eventConfig.maxChildren
+        ) {
+          return res.status(400).json({ success: false, message: `Children exceed maximum allowed (${eventConfig.maxChildren}) for this event type` });
+        }
       }
 
       // Enforce adults limit only if configured on the event type
-      if (
-        guestDetails &&
-        typeof guestDetails.adults === 'number' &&
-        eventConfig.maxAdults !== undefined &&
-        eventConfig.maxAdults !== null &&
-        guestDetails.adults > (eventConfig as any).maxAdults
-      ) {
-        return res.status(400).json({ success: false, message: `Adults exceed maximum allowed (${(eventConfig as any).maxAdults}) for this event type` });
+      if (guestDetails) {
+        const adultsNum = Number(guestDetails.adults ?? 0);
+        if (
+          Number.isFinite(adultsNum) &&
+          eventConfig.maxAdults !== undefined &&
+          eventConfig.maxAdults !== null &&
+          adultsNum > (eventConfig as any).maxAdults
+        ) {
+          return res.status(400).json({ success: false, message: `Adults exceed maximum allowed (${(eventConfig as any).maxAdults}) for this event type` });
+        }
       }
       // Optional: ensure breakdown does not exceed total
       if (guestDetails) {
-        const totalBreakdown = (guestDetails.adults || 0) + (guestDetails.children || 0) + (guestDetails.infants || 0);
-        if (totalBreakdown > expectedAttendees) {
+        const totalBreakdown = Number(guestDetails.adults || 0) + Number(guestDetails.children || 0) + Number(guestDetails.infants || 0);
+        if (totalBreakdown > attendeesNum) {
           return res.status(400).json({ success: false, message: 'Attendee breakdown exceeds expected attendees' });
         }
       }
@@ -362,7 +402,7 @@ router.post('/', async (req: Request, res: Response) => {
     let appliedAdultPrice: number | undefined;
     let appliedChildrenPrice: number | undefined;
 
-    if (type === 'room') {
+    if (normalizedType === 'room') {
       // Room reservation pricing
       nights = Math.ceil((checkOut!.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
       // Try pricing rules for hospedaje
@@ -379,7 +419,7 @@ router.post('/', async (req: Request, res: Response) => {
         const perNight = (guestDetails.adults * appliedAdultPrice) + (guestDetails.children * appliedChildrenPrice);
         totalPrice = nights * perNight;
       }
-    } else if (type === 'daypass' || type === 'PasaTarde') {
+    } else if (normalizedType === 'daypass' || normalizedType === 'PasaTarde') {
       // Day pass pricing via rules
       const pricing = await findApplicablePricing(type === 'PasaTarde' ? 'pasatarde' : 'daypass', checkIn);
       const adultP = pricing?.adultPrice ?? 30;
@@ -387,7 +427,7 @@ router.post('/', async (req: Request, res: Response) => {
       appliedAdultPrice = adultP;
       appliedChildrenPrice = childP;
       totalPrice = (guestDetails.adults * adultP) + (guestDetails.children * childP);
-    } else if (type === 'event') {
+    } else if (normalizedType === 'event') {
       // Event pricing based on type
       const eventTypePrices = {
         wedding: 2500,
@@ -406,23 +446,23 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Calculate total guests
-    const totalGuests = guestDetails.adults + guestDetails.children + guestDetails.infants;
+    const totalGuests = (guestDetails?.adults || 0) + (guestDetails?.children || 0) + (guestDetails?.infants || 0);
 
     // Do not include addon/service charges in totalPrice
 
     // Create reservation data
     const reservationData: any = {
-      type,
+      type: normalizedType,
       checkInDate: checkIn,
-      guests: expectedAttendees || totalGuests,
+      guests: (typeof expectedAttendees !== 'undefined' ? Number(expectedAttendees) : totalGuests) || totalGuests,
       guestDetails,
       contactInfo,
       services: services || {},
       totalPrice,
       totalPayments: 0,
       specialRequests: specialRequests || '',
-      status: (type === 'daypass' || type === 'PasaTarde') ? 'confirmed' : 'pending', // Auto-confirm day passes
-      paymentStatus: (type === 'daypass' || type === 'PasaTarde') ? 'paid' : 'pending' // Auto-mark day passes as paid for now
+      status: (normalizedType === 'daypass' || normalizedType === 'PasaTarde') ? 'confirmed' : 'pending', // Auto-confirm day passes
+      paymentStatus: (normalizedType === 'daypass' || normalizedType === 'PasaTarde') ? 'paid' : 'pending' // Auto-mark day passes as paid for now
     };
 
     if (appliedAdultPrice !== undefined) reservationData.adultPrice = appliedAdultPrice;
@@ -453,16 +493,16 @@ router.post('/', async (req: Request, res: Response) => {
     reservationData.reservationCode = generateReservationCode();
 
     // Add type-specific fields
-    if (type === 'room') {
+    if (normalizedType === 'room') {
       reservationData.checkOutDate = checkOut;
       reservationData.totalNights = nights;
-    } else if (type === 'event') {
-      reservationData.eventType = eventType;
+    } else if (normalizedType === 'event') {
+      reservationData.eventType = String(eventType).toLowerCase().trim();
       reservationData.eventDescription = eventDescription;
       reservationData.expectedAttendees = expectedAttendees;
       reservationData.totalDays = days;
       if (checkOut) reservationData.checkOutDate = checkOut;
-    } else if (type === 'daypass' || type === 'PasaTarde') {
+    } else if (normalizedType === 'daypass' || normalizedType === 'PasaTarde') {
       reservationData.totalDays = 1;
     }
 

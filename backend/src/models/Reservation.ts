@@ -23,7 +23,8 @@ export interface IReservation extends Document {
   rooms?: mongoose.Types.ObjectId[]; // Multiple rooms assigned (optional)
 
   // Event-specific fields (required for event reservations)
-  eventType?: 'wedding' | 'conference' | 'birthday' | 'corporate' | 'other';
+  // Accept any identifier matching EventType.type (e.g., 'boda')
+  eventType?: string;
   eventDescription?: string;
   expectedAttendees?: number;
 
@@ -155,7 +156,6 @@ const reservationSchema = new Schema<IReservation>({
   // Event-specific fields
   eventType: {
     type: String,
-    enum: ['wedding', 'conference', 'birthday', 'corporate', 'other'],
     required: false // Only required for event reservations
   },
   eventDescription: {
