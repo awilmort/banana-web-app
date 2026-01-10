@@ -64,7 +64,7 @@ export interface Reservation {
   roomType?: 'standard' | 'deluxe' | 'suite' | 'villa'; // For compatibility during transition
 
   // Event-specific fields (required for event reservations)
-  eventType?: 'wedding' | 'conference' | 'birthday' | 'corporate' | 'other';
+  eventType?: string;
   eventDescription?: string;
   expectedAttendees?: number;
 

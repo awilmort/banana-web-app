@@ -171,7 +171,7 @@ export const reservationsService = {
     roomType?: string;
     checkOutDate?: string | Date;
     // Event-specific fields
-    eventType?: 'wedding' | 'conference' | 'birthday' | 'corporate' | 'other';
+    eventType?: string;
     eventDescription?: string;
     expectedAttendees?: number;
     // Guest information (required for non-authenticated bookings)

@@ -14,7 +14,6 @@ import {
   FormControlLabel,
   Checkbox,
   Alert,
-  Divider,
   Chip,
   Paper,
   Select,
@@ -31,7 +30,7 @@ import { getCountriesForDisplay } from '../../utils/countries';
 import { useTranslation } from 'react-i18next';
 
 interface EventBookingFormProps {
-  eventType: 'wedding' | 'conference' | 'birthday' | 'corporate' | 'other';
+  eventType: string;
   eventData?: {
     title: string;
     priceFrom: number;
@@ -45,7 +44,7 @@ interface EventBookingFormProps {
 
 interface BookingData {
   // Event details
-  eventType: 'wedding' | 'conference' | 'birthday' | 'corporate' | 'other';
+  eventType: string;
   eventDescription: string;
   expectedAttendees: number;
 
