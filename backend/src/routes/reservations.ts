@@ -286,16 +286,17 @@ router.post('/', async (req: Request, res: Response) => {
       }
     }
 
-    // Parse local date strings (YYYY-MM-DD) to avoid timezone drift
+    // Parse dates safely. Prefer strict YYYY-MM-DD; otherwise fallback to native parsing.
     const parseLocalDate = (s: string | Date | null | undefined) => {
       if (!s) return null;
       if (s instanceof Date) return s;
       const str = String(s);
-      const parts = str.split('-');
-      if (parts.length === 3) {
-        const y = Number(parts[0]);
-        const m = Number(parts[1]);
-        const d = Number(parts[2]);
+      const strictMatch = /^\d{4}-\d{2}-\d{2}$/.test(str);
+      if (strictMatch) {
+        const [yStr, mStr, dStr] = str.split('-');
+        const y = Number(yStr);
+        const m = Number(mStr);
+        const d = Number(dStr);
         return new Date(y, m - 1, d, 0, 0, 0, 0);
       }
       const d2 = new Date(str);
@@ -305,13 +306,13 @@ router.post('/', async (req: Request, res: Response) => {
     const checkIn = parseLocalDate(checkInDate);
     const checkOut = parseLocalDate(checkOutDate);
 
-    if (!checkIn) {
+    if (!checkIn || isNaN(checkIn.getTime())) {
       return res.status(400).json({ success: false, message: 'Invalid or missing check-in date' });
     }
 
     // Validation based on reservation type
     if (normalizedType === 'room') {
-      if (!checkOut) {
+      if (!checkOut || isNaN(checkOut.getTime())) {
         return res.status(400).json({
           success: false,
           message: 'Check-out date is required for room reservations'
@@ -526,6 +527,15 @@ router.post('/', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Create reservation error:', error);
+    // Return actionable 4xx for validation and duplicate errors
+    if (error?.name === 'ValidationError') {
+      const messages = Object.values(error.errors || {}).map((e: any) => e?.message || 'Validation error');
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: messages });
+    }
+    if (error?.code === 11000) {
+      // Handle unique index violations (e.g., reservationCode, confirmationToken)
+      return res.status(400).json({ success: false, message: 'Duplicate value detected', details: error.keyValue });
+    }
     res.status(500).json({
       success: false,
       message: 'Server error while creating reservation'
