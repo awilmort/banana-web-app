@@ -50,12 +50,6 @@ interface DayPassData {
   specialRequests: string;
 }
 
-const ADDON_PRICES = {
-  breakfast: 25, // per person
-  spa: 100, // per adult
-  aquaPark: 30, // per person (adults & children)
-};
-
 const DayPassPage: React.FC = () => {
   const { t } = useTranslation();
   const [passType, setPassType] = useState<'daypass' | 'pasatarde'>('daypass');
@@ -110,12 +104,9 @@ const DayPassPage: React.FC = () => {
   }, [bookingData.visitDate, pricingRules, passType]);
 
   const calculateTotalPrice = () => {
+    // Only base pricing; no addon/service charges are included in totals
     const base = adultRate * bookingData.guestDetails.adults + childrenRate * bookingData.guestDetails.children;
-    const addons =
-      (bookingData.services.breakfast ? ADDON_PRICES.breakfast * (bookingData.guestDetails.adults + bookingData.guestDetails.children + bookingData.guestDetails.infants) : 0) +
-      (bookingData.services.spa ? ADDON_PRICES.spa * bookingData.guestDetails.adults : 0) +
-      (bookingData.services.aquaPark ? ADDON_PRICES.aquaPark * (bookingData.guestDetails.adults + bookingData.guestDetails.children) : 0);
-    return Math.round((base + addons) * 100) / 100;
+    return Math.round(base * 100) / 100;
   };
 
   const handleSubmit = async () => {

@@ -532,14 +532,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                       }))}
                     />
                   }
-                  label={
-                    <Box>
-                      <Typography variant="body2">{t('pages.eventBooking.services.catering')}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('pages.eventBooking.services.cateringPrice')}
-                      </Typography>
-                    </Box>
-                  }
+                  label={<Typography variant="body2">{t('pages.eventBooking.services.catering')}</Typography>}
                 />
 
                 <FormControlLabel
@@ -552,14 +545,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                       }))}
                     />
                   }
-                  label={
-                    <Box>
-                      <Typography variant="body2">{t('pages.eventBooking.services.decoration')}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('pages.eventBooking.services.decorationPrice')}
-                      </Typography>
-                    </Box>
-                  }
+                  label={<Typography variant="body2">{t('pages.eventBooking.services.decoration')}</Typography>}
                 />
 
                 <FormControlLabel
@@ -572,14 +558,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                       }))}
                     />
                   }
-                  label={
-                    <Box>
-                      <Typography variant="body2">{t('pages.eventBooking.services.photography')}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('pages.eventBooking.services.photographyPrice')}
-                      </Typography>
-                    </Box>
-                  }
+                  label={<Typography variant="body2">{t('pages.eventBooking.services.photography')}</Typography>}
                 />
 
                 <FormControlLabel
@@ -592,14 +571,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                       }))}
                     />
                   }
-                  label={
-                    <Box>
-                      <Typography variant="body2">{t('pages.eventBooking.services.musicSystem')}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('pages.eventBooking.services.musicSystemPrice')}
-                      </Typography>
-                    </Box>
-                  }
+                  label={<Typography variant="body2">{t('pages.eventBooking.services.musicSystem')}</Typography>}
                 />
               </Paper>
             </Grid>
@@ -620,14 +592,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                       }))}
                     />
                   }
-                  label={
-                    <Box>
-                      <Typography variant="body2">{t('pages.eventBooking.services.breakfast')}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('pages.eventBooking.services.breakfastPrice')}
-                      </Typography>
-                    </Box>
-                  }
+                  label={<Typography variant="body2">{t('pages.eventBooking.services.breakfast')}</Typography>}
                 />
 
                 <FormControlLabel
@@ -640,14 +605,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                       }))}
                     />
                   }
-                  label={
-                    <Box>
-                      <Typography variant="body2">{t('pages.eventBooking.services.spa')}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('pages.eventBooking.services.spaPrice')}
-                      </Typography>
-                    </Box>
-                  }
+                  label={<Typography variant="body2">{t('pages.eventBooking.services.spa')}</Typography>}
                 />
 
                 <FormControlLabel
@@ -660,14 +618,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({
                       }))}
                     />
                   }
-                  label={
-                    <Box>
-                      <Typography variant="body2">{t('pages.eventBooking.services.aquaPark')}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('pages.eventBooking.services.aquaParkPrice')}
-                      </Typography>
-                    </Box>
-                  }
+                  label={<Typography variant="body2">{t('pages.eventBooking.services.aquaPark')}</Typography>}
                 />
               </Paper>
             </Grid>

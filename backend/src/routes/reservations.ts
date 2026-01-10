@@ -408,17 +408,7 @@ router.post('/', async (req: Request, res: Response) => {
     // Calculate total guests
     const totalGuests = guestDetails.adults + guestDetails.children + guestDetails.infants;
 
-    // Add service costs (common for all types)
-    if (services?.breakfast) totalPrice += 25 * (nights || days) * totalGuests;
-    if (services?.airportTransfer) totalPrice += 50;
-    if (services?.spa) totalPrice += 100 * guestDetails.adults;
-    if (services?.aquaPark) totalPrice += 30 * (guestDetails.adults + guestDetails.children);
-
-    // Event-specific services
-    if (services?.catering) totalPrice += 50 * (expectedAttendees || totalGuests);
-    if (services?.decoration) totalPrice += 300;
-    if (services?.photography) totalPrice += 500;
-    if (services?.musicSystem) totalPrice += 200;
+    // Do not include addon/service charges in totalPrice
 
     // Create reservation data
     const reservationData: any = {
@@ -774,19 +764,11 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
           const perNight = (reservation.guestDetails?.adults || 0) * (reservation.adultPrice || 0)
             + (reservation.guestDetails?.children || 0) * (reservation.childrenPrice || 0);
           newTotal = nights * perNight;
-          // Add service costs similar to creation logic
-          if (reservation.services?.breakfast) newTotal += 25 * nights * totalGuests;
-          if (reservation.services?.airportTransfer) newTotal += 50;
-          if (reservation.services?.spa) newTotal += 100 * (reservation.guestDetails?.adults || 0);
-          if (reservation.services?.aquaPark) newTotal += 30 * ((reservation.guestDetails?.adults || 0) + (reservation.guestDetails?.children || 0));
+          // No addon/service charges should affect totals
         } else if (reservation.type === 'daypass') {
           newTotal = (reservation.guestDetails?.adults || 0) * (reservation.adultPrice || 0)
             + (reservation.guestDetails?.children || 0) * (reservation.childrenPrice || 0);
-          // Include service extras (1 day)
-          if (reservation.services?.airportTransfer) newTotal += 50;
-          if (reservation.services?.spa) newTotal += 100 * (reservation.guestDetails?.adults || 0);
-          if (reservation.services?.aquaPark) newTotal += 30 * ((reservation.guestDetails?.adults || 0) + (reservation.guestDetails?.children || 0));
-          if (reservation.services?.breakfast) newTotal += 25 * 1 * totalGuests;
+          // No addon/service charges should affect totals
         }
         // For events, keep existing total unless manually overridden
         reservation.totalPrice = newTotal;
