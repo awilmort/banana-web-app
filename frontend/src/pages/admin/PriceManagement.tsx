@@ -5,6 +5,7 @@ import {
   Switch, FormControlLabel, Alert
 } from '@mui/material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import SectionTitle from '../../components/admin/SectionTitle';
 import NumberField from '../../components/common/NumberField';
 import { pricingService } from '../../services/api';
 import { useTranslation } from 'react-i18next';
@@ -147,10 +148,10 @@ const PriceManagement: React.FC = () => {
   return (
     <AdminLayout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h4">{tr('admin.pricing.title', 'pricing.title')}</Typography>
-          <Button variant="contained" onClick={openNew}>{tr('admin.pricing.actions.newRule', 'pricing.actions.newRule')}</Button>
-        </Box>
+        <SectionTitle
+          title={tr('admin.pricing.title', 'pricing.title')}
+          right={<Button variant="contained" onClick={openNew}>{tr('admin.pricing.actions.newRule', 'pricing.actions.newRule')}</Button>}
+        />
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         <TableContainer component={Paper}>
           <Table>

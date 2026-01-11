@@ -39,6 +39,7 @@ import {
 import { Reservation, Room } from '../../types';
 import { reservationsService, roomsService } from '../../services/api';
 import AdminLayout from '../../components/admin/AdminLayout';
+import SectionTitle from '../../components/admin/SectionTitle';
 import ReservationDetails from '../../components/admin/ReservationDetails';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -462,12 +463,10 @@ const ReservationManagement: React.FC = () => {
 
   return (
     <AdminLayout>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            {t('admin.reservations.title')}
-              </Typography>
+        <Box sx={{ mb: 2 }}>
+          <SectionTitle title={t('admin.reservations.title')} />
           <Typography variant="body1" color="text.secondary">
             {t('admin.reservations.subtitle')}
           </Typography>

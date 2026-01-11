@@ -110,6 +110,7 @@
       "rooms": "Habitaciones",
       "amenities": "Amenidades",
       "eventTypes": "Tipos de eventos",
+      "wristbands": "Brazaletes",
       "pricing": "Precios",
       "reservations": "Reservas",
       "users": "Usuarios",
@@ -293,6 +294,8 @@
         "reservationsAmountUpdate": "Reservas: Actualización de precio total",
         "reservationsCheckIn": "Reservas: Check-in",
         "reservationsCancel": "Reservas: Cancelar",
+        "wristbandsView": "Pulseras: Ver",
+        "wristbandsManage": "Pulseras: Gestionar",
         "salesman": "Vendedor"
       }
     },
@@ -353,6 +356,38 @@
         "loadFailed": "No se pudieron cargar los tipos de eventos",
         "saveFailed": "No se pudo guardar el tipo de evento",
         "deleteFailed": "No se pudo eliminar el tipo de evento"
+      }
+    }
+    ,
+    "wristbands": {
+      "title": "Control de brazaletes",
+      "deliveryDate": "Fecha de entrega",
+      "recipient": "Recibido por",
+      "categoriesTitle": "Categorías",
+      "categories": {
+        "daypassAdults": "DayPass Adultos",
+        "daypassChildren": "DayPass Niños",
+        "accommodations": "Hospedaje",
+        "pasatarde": "PasaTarde"
+      },
+      "summary": {
+        "available": "Disponibles",
+        "used": "Usadas",
+        "total": "Total"
+      },
+      "notes": "Notas",
+      "actions": {
+        "registerDelivery": "Registrar entrega",
+        "addDelivery": "Añadir entrega"
+      },
+      "messages": {
+        "createSuccess": "Entrega de brazaletes registrada exitosamente",
+        "createFailed": "No se pudo registrar la entrega de brazaletes",
+        "updateSuccess": "Entrega de brazaletes actualizada exitosamente",
+        "updateFailed": "No se pudo actualizar la entrega de brazaletes",
+        "deleteSuccess": "Entrega de brazaletes eliminada",
+        "deleteFailed": "No se pudo eliminar la entrega de brazaletes",
+        "confirmDelete": "¿Eliminar esta entrega de brazaletes?"
       }
     }
     ,

@@ -197,6 +197,22 @@ export interface EventType {
   updatedAt: string;
 }
 
+export interface WristbandDelivery {
+  _id: string;
+  date: string;
+  deliveredBy?: string | User;
+  recipient?: string;
+  counts: {
+    daypassAdults: number;
+    daypassChildren: number;
+    accommodations: number;
+    pasatarde: number;
+  };
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;

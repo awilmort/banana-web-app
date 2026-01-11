@@ -112,6 +112,7 @@
       "rooms": "Rooms",
       "amenities": "Amenities",
       "eventTypes": "Event Types",
+      "wristbands": "Wristbands",
       "pricing": "Pricing",
       "reservations": "Reservations",
       "users": "Users",
@@ -295,6 +296,8 @@
         "reservationsAmountUpdate": "Reservations: Total Price Update",
         "reservationsCheckIn": "Reservations: Check-in",
         "reservationsCancel": "Reservations: Cancel",
+        "wristbandsView": "Wristbands: View",
+        "wristbandsManage": "Wristbands: Manage",
         "salesman": "Salesman"
       }
     },
@@ -354,6 +357,38 @@
         "loadFailed": "Failed to load event types",
         "saveFailed": "Failed to save event type",
         "deleteFailed": "Failed to delete event type"
+      }
+    }
+    ,
+    "wristbands": {
+      "title": "Wristband Control",
+      "deliveryDate": "Delivery Date",
+      "recipient": "Recipient",
+      "categoriesTitle": "Categories",
+      "categories": {
+        "daypassAdults": "DayPass Adults",
+        "daypassChildren": "DayPass Children",
+        "accommodations": "Accommodations",
+        "pasatarde": "PasaTarde"
+      },
+      "summary": {
+        "available": "Available",
+        "used": "Used",
+        "total": "Total"
+      },
+      "notes": "Notes",
+      "actions": {
+        "registerDelivery": "Register Delivery",
+        "addDelivery": "Add Delivery"
+      },
+      "messages": {
+        "createSuccess": "Wristband delivery recorded successfully",
+        "createFailed": "Failed to record wristband delivery",
+        "updateSuccess": "Wristband delivery updated successfully",
+        "updateFailed": "Failed to update wristband delivery",
+        "deleteSuccess": "Wristband delivery deleted",
+        "deleteFailed": "Failed to delete wristband delivery",
+        "confirmDelete": "Delete this wristband delivery?"
       }
     }
     ,

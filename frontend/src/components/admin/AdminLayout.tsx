@@ -29,6 +29,7 @@ import {
   Celebration,
   AttachMoney,
 } from '@mui/icons-material';
+import { ConfirmationNumber } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../layout/Header';
@@ -78,6 +79,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       { text: t('admin.nav.rooms'), icon: <Hotel />, path: '/admin/rooms', key: 'rooms', perm: 'admin.rooms' },
       { text: t('admin.nav.amenities'), icon: <Star />, path: '/admin/amenities', key: 'amenities', perm: 'admin.amenities' },
       { text: t('admin.nav.eventTypes'), icon: <Celebration />, path: '/admin/event-types', key: 'event-types', perm: 'admin.eventTypes' },
+      { text: t('admin.nav.wristbands'), icon: <ConfirmationNumber />, path: '/admin/wristbands', key: 'wristbands', perm: 'admin.wristbands' },
       { text: t('admin.nav.pricing'), icon: <Settings />, path: '/admin/pricing', key: 'pricing', perm: 'admin.pricing' },
       { text: t('admin.nav.reservations'), icon: <BookOnline />, path: '/admin/reservations', key: 'reservations', perm: 'admin.reservations' },
       { text: t('admin.nav.users'), icon: <People />, path: '/admin/users', key: 'users', perm: 'admin.users' },
@@ -91,7 +93,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     if (role === 'admin') return items;
     const perms: string[] = (user as any)?.permissions || [];
     if (!perms || perms.length === 0) return [];
-    return items.filter(i => perms.includes(i.perm) || perms.includes('admin.access'));
+    return items.filter(i => {
+      // For wristbands, allow access if user has either view or manage permission
+      if (i.perm === 'admin.wristbands') {
+        return perms.includes('admin.wristbands.view') || perms.includes('admin.wristbands.manage') || perms.includes('admin.access');
+      }
+      return perms.includes(i.perm) || perms.includes('admin.access');
+    });
   }, [user, t]);
 
   const drawer = (

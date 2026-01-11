@@ -38,6 +38,7 @@ import MediaManagement from './pages/admin/MediaManagement';
 import RolesManagement from './pages/admin/RolesManagement';
 import Revenue from './pages/admin/Revenue';
 import Commissions from './pages/admin/Commissions';
+import WristbandControl from './pages/admin/WristbandControl';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 const globalStyles = (
@@ -122,6 +123,7 @@ function App() {
                 <Revenue />
               </ProtectedRoute>
             } />
+              <Route path="/admin/wristbands" element={<WristbandControl />} />
             <Route path="/admin/commissions" element={
               <ProtectedRoute requiredPermission="admin.commissions">
                 <Commissions />

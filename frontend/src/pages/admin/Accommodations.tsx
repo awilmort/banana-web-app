@@ -28,6 +28,7 @@ import {
   Chip,
 } from '@mui/material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import SectionTitle from '../../components/admin/SectionTitle';
 import { reservationsService, roomsService, adminService } from '../../services/api';
 import { Reservation, Room } from '../../types';
 import dayjs from 'dayjs';
@@ -219,13 +220,15 @@ const Accommodations: React.FC = () => {
   return (
     <AdminLayout>
       <Container maxWidth="xl" sx={{ py: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h4">{t('admin.accommodations.title')}</Typography>
-          <ToggleButtonGroup value={period} exclusive onChange={(_, val) => val && setPeriod(val)}>
-            <ToggleButton value="today">{t('admin.schedule.today')}</ToggleButton>
-            <ToggleButton value="tomorrow">{t('admin.schedule.tomorrow')}</ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
+        <SectionTitle
+          title={t('admin.accommodations.title')}
+          right={
+            <ToggleButtonGroup value={period} exclusive onChange={(_, val) => val && setPeriod(val)}>
+              <ToggleButton value="today">{t('admin.schedule.today')}</ToggleButton>
+              <ToggleButton value="tomorrow">{t('admin.schedule.tomorrow')}</ToggleButton>
+            </ToggleButtonGroup>
+          }
+        />
         <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>{dateLabel}</Typography>
 
         {/* Reservations for selected day (room type) */}

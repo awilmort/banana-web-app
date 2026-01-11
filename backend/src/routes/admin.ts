@@ -5,10 +5,50 @@ import Room from '../models/Room';
 import Reservation from '../models/Reservation';
 import Contact from '../models/Contact';
 import Media from '../models/Media';
+import WristbandDelivery from '../models/WristbandDelivery';
 import { authenticate, authorize, authorizePermission } from '../middleware/auth';
 import { getSortObject } from '../utils/helpers';
 
 const router = express.Router();
+
+// Permission catalog to support role management UIs
+// Exposes all known permission keys used across the backend
+// @route   GET /api/admin/permissions
+// @desc    List known permissions (admin only)
+// @access  Private (Admin or roles with admin.access)
+router.get('/permissions', authenticate, authorizePermission('admin.access'), async (req: Request, res: Response) => {
+  try {
+    const permissions = [
+      // Core admin
+      'admin.access',
+      'admin.dashboard',
+      'admin.analytics',
+      'admin.backup',
+      // Users and roles
+      'admin.users',
+      'admin.roles',
+      // Reservations
+      'admin.reservations',
+      'admin.reservations.assignRoom',
+      'admin.reservations.managePayments',
+      'admin.reservations.priceUpdate',
+      'admin.reservations.amountUpdate',
+      'admin.reservations.cancel',
+      // Revenue/Commissions
+      'admin.revenue',
+      'admin.commissions',
+      // Wristbands (view/manage split)
+      'admin.wristbands.view',
+      'admin.wristbands.manage',
+      // Salesman (used in commissions)
+      'salesman'
+    ];
+    res.status(200).json({ success: true, data: permissions });
+  } catch (error: any) {
+    console.error('List permissions error:', error);
+    res.status(500).json({ success: false, message: 'Server error while listing permissions' });
+  }
+});
 
 // @route   GET /api/admin/dashboard
 // @desc    Get admin dashboard statistics
@@ -240,7 +280,7 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
       income.total += amount;
     }
 
-    // Pending payments: reservations that ended today or before and have balance due
+    // Pending payments: all past reservations with balance due, up to the selected end date (no future reservations)
     const pendingFilter: any = {
       $and: [
         // Exclude cancelled reservations from pending payments
@@ -250,13 +290,13 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
             {
               type: { $in: ['room', 'event'] },
               $or: [
-                { checkOutDate: { $lte: todayEnd } },
-                { actualCheckOutAt: { $lte: todayEnd } }
+                { checkOutDate: { $lte: toDate } },
+                { actualCheckOutAt: { $lte: toDate } }
               ]
             },
             {
               type: { $in: ['daypass', 'PasaTarde'] },
-              checkInDate: { $lte: todayEnd }
+              checkInDate: { $lte: toDate }
             }
           ]
         },
@@ -421,6 +461,230 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
 // @route   GET /api/admin/users
 // @desc    Get all users with pagination
 // @access  Private (Admin only)
+
+    // Wristband Control
+    // @route   POST /api/admin/wristbands/deliveries
+    // @desc    Register a wristband delivery for a given date with counts per category
+    // @access  Private (permission: admin.wristbands.manage or admin.access)
+    router.post('/wristbands/deliveries', authenticate, authorizePermission('admin.wristbands.manage', 'admin.access'), async (req: Request, res: Response) => {
+      try {
+        const { date, recipient, counts, notes } = req.body as {
+          date?: string | Date;
+          recipient?: string;
+          counts?: { daypassAdults?: number; daypassChildren?: number; accommodations?: number; pasatarde?: number };
+          notes?: string;
+        };
+
+        const parseLocalDate = (s?: string | Date) => {
+          if (!s) return null;
+          if (s instanceof Date) return s;
+          const str = String(s);
+          const strict = /^\d{4}-\d{2}-\d{2}$/.test(str);
+          if (strict) {
+            const [y, m, d] = str.split('-').map(Number);
+            return new Date(y, m - 1, d, 0, 0, 0, 0);
+          }
+          const d2 = new Date(str);
+          return isNaN(d2.getTime()) ? null : d2;
+        };
+
+        const deliveryDate = parseLocalDate(date) || new Date();
+        if (!deliveryDate || isNaN(deliveryDate.getTime())) {
+          return res.status(400).json({ success: false, message: 'Invalid or missing delivery date' });
+        }
+
+        const payload = {
+          date: deliveryDate,
+          deliveredBy: (req as any).user?._id,
+          recipient: recipient ? String(recipient).trim() : undefined,
+          counts: {
+            daypassAdults: Number(counts?.daypassAdults ?? 0),
+            daypassChildren: Number(counts?.daypassChildren ?? 0),
+            accommodations: Number(counts?.accommodations ?? 0),
+            pasatarde: Number(counts?.pasatarde ?? 0),
+          },
+          notes: notes ? String(notes).trim() : undefined,
+        };
+
+        const created = await WristbandDelivery.create(payload as any);
+        res.status(201).json({ success: true, message: 'Wristband delivery registered', data: created });
+      } catch (error: any) {
+        console.error('Create wristband delivery error:', error);
+        if (error?.name === 'ValidationError') {
+          const messages = Object.values(error.errors || {}).map((e: any) => e?.message || 'Validation error');
+          return res.status(400).json({ success: false, message: 'Validation failed', errors: messages });
+        }
+        res.status(500).json({ success: false, message: 'Server error while creating wristband delivery' });
+      }
+    });
+
+    // @route   GET /api/admin/wristbands/deliveries
+    // @desc    List wristband deliveries within date range
+    // @access  Private (permission: admin.wristbands.view or admin.access)
+    router.get('/wristbands/deliveries', authenticate, authorizePermission('admin.wristbands.view', 'admin.access'), async (req: Request, res: Response) => {
+      try {
+        const { from, to } = req.query as { from?: string; to?: string };
+        const parseLocalDate = (s?: string) => {
+          if (!s) return undefined;
+          const strict = /^\d{4}-\d{2}-\d{2}$/.test(s);
+          if (strict) {
+            const [y, m, d] = s.split('-').map(Number);
+            return new Date(y, m - 1, d, 0, 0, 0, 0);
+          }
+          return new Date(s);
+        };
+        const now = new Date();
+        const fromDate = (parseLocalDate(from) || new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0));
+        const toDate = (parseLocalDate(to) || new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0));
+        // Use half-open interval [from, toNext) to include the entire 'to' day without timezone edge cases
+        const toNextDay = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate() + 1, 0, 0, 0, 0);
+
+        const deliveries = await WristbandDelivery.find({ date: { $gte: fromDate, $lt: toNextDay } }).sort({ date: -1 }).exec();
+        res.status(200).json({ success: true, count: deliveries.length, data: deliveries });
+      } catch (error: any) {
+        console.error('List wristband deliveries error:', error);
+        res.status(500).json({ success: false, message: 'Server error while retrieving wristband deliveries' });
+      }
+    });
+
+    // @route   PUT /api/admin/wristbands/deliveries/:id
+    // @desc    Update a wristband delivery
+    // @access  Private (permission: admin.wristbands.manage or admin.access)
+    router.put('/wristbands/deliveries/:id', authenticate, authorizePermission('admin.wristbands.manage', 'admin.access'), async (req: Request, res: Response) => {
+      try {
+        const { date, recipient, counts, notes } = req.body as {
+          date?: string | Date;
+          recipient?: string;
+          counts?: { daypassAdults?: number; daypassChildren?: number; accommodations?: number; pasatarde?: number };
+          notes?: string;
+        };
+
+        const parseLocalDate = (s?: string | Date) => {
+          if (!s) return null;
+          if (s instanceof Date) return s;
+          const str = String(s);
+          const strict = /^\d{4}-\d{2}-\d{2}$/.test(str);
+          if (strict) {
+            const [y, m, d] = str.split('-').map(Number);
+            return new Date(y, m - 1, d, 0, 0, 0, 0);
+          }
+          const d2 = new Date(str);
+          return isNaN(d2.getTime()) ? null : d2;
+        };
+
+        const update: any = {};
+        if (date) {
+          const deliveryDate = parseLocalDate(date);
+          if (!deliveryDate || isNaN(deliveryDate.getTime())) {
+            return res.status(400).json({ success: false, message: 'Invalid delivery date' });
+          }
+          update.date = deliveryDate;
+        }
+        if (recipient !== undefined) update.recipient = recipient ? String(recipient).trim() : undefined;
+        if (notes !== undefined) update.notes = notes ? String(notes).trim() : undefined;
+        if (counts) {
+          update.counts = {
+            daypassAdults: Number(counts.daypassAdults ?? 0),
+            daypassChildren: Number(counts.daypassChildren ?? 0),
+            accommodations: Number(counts.accommodations ?? 0),
+            pasatarde: Number(counts.pasatarde ?? 0),
+          };
+        }
+
+        const updated = await WristbandDelivery.findByIdAndUpdate(
+          req.params.id,
+          { $set: update },
+          { new: true, runValidators: true }
+        );
+
+        if (!updated) {
+          return res.status(404).json({ success: false, message: 'Wristband delivery not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Wristband delivery updated', data: updated });
+      } catch (error: any) {
+        console.error('Update wristband delivery error:', error);
+        if (error?.name === 'ValidationError') {
+          const messages = Object.values(error.errors || {}).map((e: any) => e?.message || 'Validation error');
+          return res.status(400).json({ success: false, message: 'Validation failed', errors: messages });
+        }
+        if (error?.name === 'CastError') {
+          return res.status(400).json({ success: false, message: 'Invalid delivery ID' });
+        }
+        res.status(500).json({ success: false, message: 'Server error while updating wristband delivery' });
+      }
+    });
+
+    // @route   GET /api/admin/wristbands/usage
+    // @desc    Get wristband usage counts by category for a date range
+    //          - accommodations: room reservations with actualCheckInAt in range (arrived)
+    //          - daypass: fully paid daypass reservations in range
+    //          - pasatarde: fully paid PasaTarde reservations in range
+    // @access  Private (permission: admin.wristbands.view or admin.access)
+    router.get('/wristbands/usage', authenticate, authorizePermission('admin.wristbands.view', 'admin.access'), async (req: Request, res: Response) => {
+      try {
+        const { from, to } = req.query as { from?: string; to?: string };
+        const parseLocalDate = (s?: string) => {
+          if (!s) return null;
+          const [y, m, d] = s.split('-').map(Number);
+          if (!y || !m || !d) return null;
+          // Normalize to start of day UTC to avoid TZ drift
+          return new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
+        };
+        // Use half-open [from, toNext) interval to include full days reliably
+        const today = new Date();
+        const utcStart = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0));
+        const fromDate = parseLocalDate(from) || utcStart;
+        const toBase = parseLocalDate(to) || utcStart; // end bound is computed as next day
+        const toNextDay = new Date(toBase.getTime() + 24 * 60 * 60 * 1000);
+
+        // Rooms: count guests for reservations that have checked in
+        const roomsAgg = await Reservation.aggregate([
+          { $match: { type: 'room', actualCheckInAt: { $gte: fromDate, $lt: toNextDay } } },
+          { $group: { _id: null, guests: { $sum: '$guests' } } }
+        ]);
+        const accommodations = roomsAgg[0]?.guests || 0;
+
+        // DayPass: fully paid reservations within range (by check-in date)
+        const daypassResAgg = await Reservation.aggregate([
+          { $match: { type: 'daypass', paymentStatus: 'paid', checkInDate: { $gte: fromDate, $lt: toNextDay } } },
+          { $group: { _id: null, adults: { $sum: '$guestDetails.adults' }, children: { $sum: '$guestDetails.children' } } }
+        ]);
+        const daypassAdults = daypassResAgg[0]?.adults || 0;
+        const daypassChildren = daypassResAgg[0]?.children || 0;
+
+        // PasaTarde: fully paid within range
+        const pasatardeAgg = await Reservation.aggregate([
+          { $match: { type: 'PasaTarde', paymentStatus: 'paid', checkInDate: { $gte: fromDate, $lt: toNextDay } } },
+          { $group: { _id: null, guests: { $sum: '$guests' } } }
+        ]);
+        const pasatarde = pasatardeAgg[0]?.guests || 0;
+
+        res.status(200).json({ success: true, data: { accommodations, daypassAdults, daypassChildren, pasatarde } });
+      } catch (error) {
+        console.error('Get wristband usage error:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching wristband usage' });
+      }
+    });
+
+    // @route   DELETE /api/admin/wristbands/deliveries/:id
+    // @desc    Delete a wristband delivery
+    // @access  Private (permission: admin.wristbands.manage or admin.access)
+    router.delete('/wristbands/deliveries/:id', authenticate, authorizePermission('admin.wristbands.manage', 'admin.access'), async (req: Request, res: Response) => {
+      try {
+        const deleted = await WristbandDelivery.findByIdAndDelete(req.params.id);
+        if (!deleted) {
+          return res.status(404).json({ success: false, message: 'Wristband delivery not found' });
+        }
+        res.status(200).json({ success: true, message: 'Wristband delivery deleted' });
+      } catch (error: any) {
+        console.error('Delete wristband delivery error:', error);
+        if (error?.name === 'CastError') {
+          return res.status(400).json({ success: false, message: 'Invalid delivery ID' });
+        }
+        res.status(500).json({ success: false, message: 'Server error while deleting wristband delivery' });
+      }
+    });
 router.get('/users', authenticate, authorizePermission('admin.users'), async (req, res) => {
   try {
     const {

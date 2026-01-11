@@ -3,6 +3,7 @@ import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTit
 import NumberField from '../../components/common/NumberField';
 import { Edit, Delete, Add } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import SectionTitle from '../../components/admin/SectionTitle';
 import { eventTypesService } from '../../services/api';
 import { EventType } from '../../types';
 import { useTranslation } from 'react-i18next';
@@ -103,10 +104,10 @@ const EventTypesManagement: React.FC = () => {
   return (
     <AdminLayout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h4">{t('admin.eventTypes.title')}</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={openCreate}>{t('admin.eventTypes.actions.newEventType')}</Button>
-        </Box>
+        <SectionTitle
+          title={t('admin.eventTypes.title')}
+          right={<Button variant="contained" startIcon={<Add />} onClick={openCreate}>{t('admin.eventTypes.actions.newEventType')}</Button>}
+        />
         {error && (
           <Paper sx={{ p: 2, mb: 2, color: 'error.main' }}>{error}</Paper>
         )}

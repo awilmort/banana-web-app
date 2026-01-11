@@ -23,6 +23,7 @@ import {
   Checkbox,
 } from '@mui/material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import SectionTitle from '../../components/admin/SectionTitle';
 import { rolesService } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 
@@ -46,6 +47,8 @@ const buildAvailablePermissions = (t: (key: string) => string) => ([
   { key: 'admin.roles', label: t('admin.nav.roles') },
   { key: 'admin.contacts', label: t('admin.nav.contacts') },
   { key: 'admin.media', label: t('admin.nav.media') },
+  { key: 'admin.wristbands.view', label: t('admin.roles.permissionLabels.wristbandsView') },
+  { key: 'admin.wristbands.manage', label: t('admin.roles.permissionLabels.wristbandsManage') },
   { key: 'admin.analytics', label: t('admin.nav.analytics') },
   { key: 'admin.settings', label: t('admin.nav.settings') },
   { key: 'admin.revenue', label: t('admin.nav.revenue') },
@@ -123,12 +126,12 @@ const RolesManagement: React.FC = () => {
   return (
     <AdminLayout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h4" component="h1" gutterBottom>{t('admin.roles.title')}</Typography>
-            <Typography variant="body1" color="text.secondary">{t('admin.roles.subtitle')}</Typography>
-          </Box>
-          <Button variant="contained" onClick={() => setCreateDialog({ open: true })}>{t('admin.roles.actions.createRole')}</Button>
+        <Box sx={{ mb: 3 }}>
+          <SectionTitle
+            title={t('admin.roles.title')}
+            right={<Button variant="contained" onClick={() => setCreateDialog({ open: true })}>{t('admin.roles.actions.createRole')}</Button>}
+          />
+          <Typography variant="body1" color="text.secondary">{t('admin.roles.subtitle')}</Typography>
         </Box>
 
         {error && (

@@ -500,6 +500,34 @@ export const adminService = {
   updateMessageStatus: (id: string, status: string): Promise<AxiosResponse<ApiResponse<ContactMessage>>> =>
     apiClient.patch(`/admin/contact/${id}/status`, { status }),
 };
+
+// Wristbands Service
+export const wristbandsService = {
+  createDelivery: (data: {
+    date: string | Date;
+    recipient?: string;
+    counts: { daypassAdults: number; daypassChildren: number; accommodations: number; pasatarde: number };
+    notes?: string;
+  }): Promise<AxiosResponse<ApiResponse>> =>
+    apiClient.post('/admin/wristbands/deliveries', data),
+
+  getDeliveries: (params?: { from?: string; to?: string }): Promise<AxiosResponse<ApiResponse>> =>
+    apiClient.get('/admin/wristbands/deliveries', { params }),
+
+  getUsage: (params?: { from?: string; to?: string }): Promise<AxiosResponse<ApiResponse<{ accommodations: number; daypassAdults: number; daypassChildren: number; pasatarde: number }>>> =>
+    apiClient.get('/admin/wristbands/usage', { params }),
+
+  updateDelivery: (id: string, data: Partial<{
+    date: string | Date;
+    recipient: string;
+    counts: { daypassAdults: number; daypassChildren: number; accommodations: number; pasatarde: number };
+    notes: string;
+  }>): Promise<AxiosResponse<ApiResponse>> =>
+    apiClient.put(`/admin/wristbands/deliveries/${id}`, data),
+
+  deleteDelivery: (id: string): Promise<AxiosResponse<ApiResponse>> =>
+    apiClient.delete(`/admin/wristbands/deliveries/${id}`),
+};
 // Roles Service
 export const rolesService = {
   getRoles: (): Promise<AxiosResponse<ApiResponse<any[]>>> =>

@@ -26,6 +26,7 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import SectionTitle from '../../components/admin/SectionTitle';
 import { mediaService, resolveMediaUrl } from '../../services/api';
 import { MediaItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -157,24 +158,26 @@ const MediaManagement: React.FC = () => {
   return (
     <AdminLayout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4">{t('admin.media.title')}</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button startIcon={<Add />} variant="contained" onClick={() => setUploadOpen(true)}>{t('admin.media.buttons.upload')}</Button>
-            <Button variant="outlined" onClick={async () => {
-              try {
-                setLoading(true);
-                const res = await mediaService.syncUploads();
-                setSnackbar({ open: true, message: res.data.message || t('admin.media.messages.syncComplete'), severity: 'success' });
-                await loadMedia();
-              } catch (e: any) {
-                setSnackbar({ open: true, message: e.response?.data?.message || t('admin.media.messages.syncFailed'), severity: 'error' });
-              } finally {
-                setLoading(false);
-              }
-            }}>{t('admin.media.buttons.syncUploads')}</Button>
-          </Box>
-        </Box>
+        <SectionTitle
+          title={t('admin.media.title')}
+          right={
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button startIcon={<Add />} variant="contained" onClick={() => setUploadOpen(true)}>{t('admin.media.buttons.upload')}</Button>
+              <Button variant="outlined" onClick={async () => {
+                try {
+                  setLoading(true);
+                  const res = await mediaService.syncUploads();
+                  setSnackbar({ open: true, message: res.data.message || t('admin.media.messages.syncComplete'), severity: 'success' });
+                  await loadMedia();
+                } catch (e: any) {
+                  setSnackbar({ open: true, message: e.response?.data?.message || t('admin.media.messages.syncFailed'), severity: 'error' });
+                } finally {
+                  setLoading(false);
+                }
+              }}>{t('admin.media.buttons.syncUploads')}</Button>
+            </Box>
+          }
+        />
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>

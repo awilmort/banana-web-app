@@ -59,7 +59,8 @@ router.post('/book', async (req: Request, res: Response) => {
       totalPrice,
       contactInfo,
       specialRequests: specialRequests || '',
-      status: 'confirmed'
+      // Default to pending; booking gets confirmed once fully paid via admin flow
+      status: 'pending'
     });
 
     await booking.save();

@@ -41,6 +41,7 @@ import { Amenity } from '../../types';
 import NumberField from '../../components/common/NumberField';
 import { amenitiesService } from '../../services/api';
 import AdminLayout from '../../components/admin/AdminLayout';
+import SectionTitle from '../../components/admin/SectionTitle';
 import MediaPicker from '../../components/admin/MediaPicker';
 import { resolveMediaUrl } from '../../services/api';
 import { useTranslation } from 'react-i18next';
@@ -217,7 +218,7 @@ const AmenitiesManagement: React.FC = () => {
 
   return (
     <AdminLayout>
-      <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         {loading ? (
           <Box sx={{ py: 8, textAlign: 'center' }}>
             <CircularProgress size={60} />
@@ -228,23 +229,14 @@ const AmenitiesManagement: React.FC = () => {
         ) : (
           <>
             {/* Header */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-              <Box>
-                <Typography variant="h2" component="h1" gutterBottom>
-                  {t('admin.amenities.title')}
-                </Typography>
-                <Typography variant="h6" color="text.secondary">
-                  {t('admin.amenities.subtitle')}
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={handleCreateAmenity}
-                size="large"
-              >
-                {t('admin.amenities.actions.addNewAmenity')}
-              </Button>
+            <Box sx={{ mb: 2 }}>
+              <SectionTitle
+                title={t('admin.amenities.title')}
+                right={<Button variant="contained" startIcon={<Add />} onClick={handleCreateAmenity} size="large">{t('admin.amenities.actions.addNewAmenity')}</Button>}
+              />
+              <Typography variant="body1" color="text.secondary">
+                {t('admin.amenities.subtitle')}
+              </Typography>
             </Box>
 
             {error && (
