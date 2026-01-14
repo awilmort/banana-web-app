@@ -391,8 +391,8 @@ const ReservationList: React.FC<ReservationListProps> = ({
                     </Box>
 
                     <Chip
-                      label={`Payment: ${reservation.paymentStatus}`}
-                      color={reservation.paymentStatus === 'paid' ? 'success' : 'warning'}
+                      label={`Payment: ${(reservation.totalPayments ?? 0) >= reservation.totalPrice ? 'paid' : 'pending'}`}
+                      color={(reservation.totalPayments ?? 0) >= reservation.totalPrice ? 'success' : 'warning'}
                       size="small"
                       sx={{ mb: 2 }}
                     />

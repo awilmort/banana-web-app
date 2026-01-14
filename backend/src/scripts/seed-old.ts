@@ -529,7 +529,6 @@ const seedDatabase = async () => {
         totalPrice: 900, // 5 nights × $180
         totalNights: 5,
         status: 'confirmed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         guestDetails: {
           adults: 2,
@@ -557,7 +556,6 @@ const seedDatabase = async () => {
         totalPrice: 2700, // 6 nights × $450
         totalNights: 6,
         status: 'confirmed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         guestDetails: {
           adults: 2,
@@ -585,7 +583,6 @@ const seedDatabase = async () => {
         totalPrice: 240, // 2 nights × $120
         totalNights: 2,
         status: 'completed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         guestDetails: {
           adults: 2,
@@ -612,7 +609,6 @@ const seedDatabase = async () => {
         totalPrice: 1400, // 5 nights × $280
         totalNights: 5,
         status: 'pending',
-        paymentStatus: 'pending',
         guestDetails: {
           adults: 2,
           children: 0,

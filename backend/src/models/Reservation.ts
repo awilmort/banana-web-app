@@ -53,7 +53,6 @@ export interface IReservation extends Document {
   totalPrice: number;
   totalPayments: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
   paymentMethod?: 'card' | 'cash' | 'transfer';
 
   // Payment records
@@ -233,11 +232,6 @@ const reservationSchema = new Schema<IReservation>({
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'cancelled', 'completed'],
-    default: 'pending'
-  },
-  paymentStatus: {
-    type: String,
-    enum: ['pending', 'paid', 'refunded', 'failed'],
     default: 'pending'
   },
   paymentMethod: {

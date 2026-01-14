@@ -11,7 +11,7 @@ type RevenueData = {
   filters: { from: string; to: string };
   categories: Record<'room' | 'daypass' | 'event' | 'pasatarde', { adults: number; children: number; guests: number; revenue: number }>;
   income: { total: number; cash: number; transfer: number; card: number };
-  pending: Array<{ id: string; type: 'room' | 'daypass' | 'PasaTarde' | 'event'; guest: string; endedOn: string; balanceDue: number; totalPrice: number; totalPayments: number; paymentStatus: string }>;
+  pending: Array<{ id: string; type: 'room' | 'daypass' | 'PasaTarde' | 'event'; guest: string; endedOn: string; balanceDue: number; totalPrice: number; totalPayments: number }>;
 };
 
 const CombinedStatCard = ({ title, adults, children, revenue, color }: { title: string; adults: number; children: number; revenue: number; color: string }) => (

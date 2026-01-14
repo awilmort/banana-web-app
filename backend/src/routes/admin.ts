@@ -65,8 +65,12 @@ router.get('/dashboard', authenticate, authorizePermission('admin.dashboard', 'a
     const revenueData = await Reservation.aggregate([
       {
         $match: {
-          paymentStatus: 'paid',
           createdAt: { $gte: new Date(new Date().getFullYear(), 0, 1) } // This year
+        }
+      },
+      {
+        $match: {
+          $expr: { $gte: ['$totalPayments', '$totalPrice'] }
         }
       },
       {
@@ -95,7 +99,7 @@ router.get('/dashboard', authenticate, authorizePermission('admin.dashboard', 'a
           revenue: {
             $sum: {
               $cond: [
-                { $eq: ['$paymentStatus', 'paid'] },
+                { $gte: ['$totalPayments', '$totalPrice'] },
                 '$totalPrice',
                 0
               ]
@@ -305,7 +309,7 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
     };
 
     const pendingReservations = await Reservation.find(pendingFilter)
-      .select('guestName user type checkInDate checkOutDate actualCheckOutAt totalPrice totalPayments paymentStatus')
+      .select('guestName user type checkInDate checkOutDate actualCheckOutAt totalPrice totalPayments')
       .sort({ checkOutDate: -1, checkInDate: -1 })
       .limit(100)
       .populate('user', 'firstName lastName email');
@@ -332,8 +336,7 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
               : r.checkInDate,
           balanceDue: Math.max((r.totalPrice || 0) - (r.totalPayments || 0), 0),
           totalPrice: r.totalPrice,
-          totalPayments: r.totalPayments,
-          paymentStatus: r.paymentStatus,
+          totalPayments: r.totalPayments
         }))
       }
     });
@@ -647,7 +650,7 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
 
         // DayPass: fully paid reservations within range (by check-in date)
         const daypassResAgg = await Reservation.aggregate([
-          { $match: { type: 'daypass', paymentStatus: 'paid', checkInDate: { $gte: fromDate, $lt: toNextDay } } },
+          { $match: { type: 'daypass', checkInDate: { $gte: fromDate, $lt: toNextDay }, $expr: { $gte: ['$totalPayments', '$totalPrice'] } } },
           { $group: { _id: null, adults: { $sum: '$guestDetails.adults' }, children: { $sum: '$guestDetails.children' } } }
         ]);
         const daypassAdults = daypassResAgg[0]?.adults || 0;
@@ -655,7 +658,7 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
 
         // PasaTarde: fully paid within range
         const pasatardeAgg = await Reservation.aggregate([
-          { $match: { type: 'PasaTarde', paymentStatus: 'paid', checkInDate: { $gte: fromDate, $lt: toNextDay } } },
+          { $match: { type: 'PasaTarde', checkInDate: { $gte: fromDate, $lt: toNextDay }, $expr: { $gte: ['$totalPayments', '$totalPrice'] } } },
           { $group: { _id: null, guests: { $sum: '$guests' } } }
         ]);
         const pasatarde = pasatardeAgg[0]?.guests || 0;
@@ -921,7 +924,8 @@ router.get('/analytics', authenticate, authorize('admin'), async (req, res) => {
 
     // Revenue analytics
     const revenueAnalytics = await Reservation.aggregate([
-      { $match: { ...matchCondition, paymentStatus: 'paid' } },
+      { $match: matchCondition },
+      { $match: { $expr: { $gte: ['$totalPayments', '$totalPrice'] } } },
       {
         $group: {
           _id: {

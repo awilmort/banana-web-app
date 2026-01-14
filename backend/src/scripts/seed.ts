@@ -591,7 +591,6 @@ const seedDatabase = async () => {
         totalPrice: 1000, // 5 nights × $200 (deluxe rate)
         totalNights: 5,
         status: 'confirmed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         assignedBy: adminUser._id,
         assignedAt: new Date(),
@@ -622,7 +621,6 @@ const seedDatabase = async () => {
         totalPrice: 3000, // 6 nights × $500 (villa rate)
         totalNights: 6,
         status: 'confirmed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         assignedBy: adminUser._id,
         assignedAt: new Date(),
@@ -653,7 +651,6 @@ const seedDatabase = async () => {
         totalPrice: 300, // 2 nights × $150 (standard rate)
         totalNights: 2,
         status: 'completed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         assignedBy: adminUser._id,
         assignedAt: new Date(),
@@ -682,7 +679,6 @@ const seedDatabase = async () => {
         totalPrice: 1500, // 5 nights × $300 (suite rate)
         totalNights: 5,
         status: 'pending',
-        paymentStatus: 'pending',
         guestDetails: {
           adults: 2,
           children: 0,
@@ -710,7 +706,6 @@ const seedDatabase = async () => {
         totalPrice: 450, // 3 nights × $150
         totalNights: 3,
         status: 'pending',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         guestDetails: {
           adults: 2,
@@ -738,7 +733,6 @@ const seedDatabase = async () => {
         totalPrice: 1000, // 5 nights × $200
         totalNights: 5,
         status: 'pending',
-        paymentStatus: 'pending',
         guestDetails: {
           adults: 2,
           children: 2,
@@ -775,7 +769,6 @@ const seedDatabase = async () => {
         totalPrice: 100, // Updated pricing: 2 adults × $30 + 1 child × $20 + aqua park access
         totalDays: 1,
         status: 'confirmed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         guestDetails: {
           adults: 2,
@@ -802,7 +795,6 @@ const seedDatabase = async () => {
         totalPrice: 180, // 4 adults × $30 + 2 children × $20 + aqua park access
         totalDays: 1,
         status: 'confirmed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         guestDetails: {
           adults: 4,
@@ -829,7 +821,6 @@ const seedDatabase = async () => {
         totalPrice: 60, // 2 adults × $30
         totalDays: 1,
         status: 'confirmed',
-        paymentStatus: 'paid',
         paymentMethod: 'card',
         guestDetails: {
           adults: 2,

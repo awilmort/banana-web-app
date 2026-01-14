@@ -463,8 +463,7 @@ router.post('/', async (req: Request, res: Response) => {
       totalPayments: 0,
       specialRequests: specialRequests || '',
       // Default to pending for all types; confirmation occurs upon full payment
-      status: 'pending',
-      paymentStatus: 'pending'
+      status: 'pending'
     };
 
     if (appliedAdultPrice !== undefined) reservationData.adultPrice = appliedAdultPrice;
@@ -833,12 +832,10 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
       }
     }
 
-    // After recalculation or manual update, re-evaluate payment status
-    // Payment status is 'paid' only when totalPayments >= totalPrice
-    // For daypass/PasaTarde, also toggle reservation status based on payment status
-    reservation.paymentStatus = reservation.totalPayments >= reservation.totalPrice ? 'paid' : 'pending';
+    // After recalculation or manual update, re-evaluate reservation status
+    // For daypass/PasaTarde, toggle reservation status based on payment completion
     if (reservation.type === 'daypass' || reservation.type === 'PasaTarde') {
-      reservation.status = (reservation.paymentStatus === 'paid') ? 'confirmed' : 'pending';
+      reservation.status = (reservation.totalPayments >= reservation.totalPrice) ? 'confirmed' : 'pending';
     }
 
     await reservation.save();
@@ -1556,11 +1553,9 @@ router.post('/:id/payments', authenticate, authorizePermission('admin.reservatio
 
     // Update totals by recalculating from records
     reservation.totalPayments = currentSum + amt;
-    // Update payment status when fully paid
-    reservation.paymentStatus = reservation.totalPayments >= reservation.totalPrice ? 'paid' : 'pending';
     // For daypass/PasaTarde, auto-confirm when fully paid; otherwise keep pending
     if (reservation.type === 'daypass' || reservation.type === 'PasaTarde') {
-      reservation.status = (reservation.paymentStatus === 'paid') ? 'confirmed' : 'pending';
+      reservation.status = (reservation.totalPayments >= reservation.totalPrice) ? 'confirmed' : 'pending';
     }
 
     // Optionally record latest payment method (simple tracking)
@@ -1626,12 +1621,11 @@ router.patch('/:id/payments/:paymentId', authenticate, authorizePermission('admi
     if (method) payment.method = method;
     if (note !== undefined) payment.note = note || undefined;
 
-    // Recalculate totals from records and update payment status
+    // Recalculate totals from records
     const newSum = (reservation.payments || []).reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0);
     reservation.totalPayments = newSum;
-    reservation.paymentStatus = reservation.totalPayments >= reservation.totalPrice ? 'paid' : 'pending';
     if (reservation.type === 'daypass' || reservation.type === 'PasaTarde') {
-      reservation.status = (reservation.paymentStatus === 'paid') ? 'confirmed' : 'pending';
+      reservation.status = (reservation.totalPayments >= reservation.totalPrice) ? 'confirmed' : 'pending';
     }
 
     await reservation.save();
@@ -1661,9 +1655,8 @@ router.delete('/:id/payments/:paymentId', authenticate, authorizePermission('adm
     reservation.payments!.splice(idx, 1);
     const newSum = (reservation.payments || []).reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0);
     reservation.totalPayments = newSum;
-    reservation.paymentStatus = reservation.totalPayments >= reservation.totalPrice ? 'paid' : 'pending';
     if (reservation.type === 'daypass' || reservation.type === 'PasaTarde') {
-      reservation.status = (reservation.paymentStatus === 'paid') ? 'confirmed' : 'pending';
+      reservation.status = (reservation.totalPayments >= reservation.totalPrice) ? 'confirmed' : 'pending';
     }
 
     await reservation.save();
