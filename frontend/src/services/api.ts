@@ -505,6 +505,7 @@ export const adminService = {
 export const wristbandsService = {
   createDelivery: (data: {
     date: string | Date;
+    type: 'delivery' | 'collection';
     recipient?: string;
     counts: { daypassAdults: number; daypassChildren: number; accommodations: number; pasatarde: number };
     notes?: string;
@@ -519,6 +520,7 @@ export const wristbandsService = {
 
   updateDelivery: (id: string, data: Partial<{
     date: string | Date;
+    type: 'delivery' | 'collection';
     recipient: string;
     counts: { daypassAdults: number; daypassChildren: number; accommodations: number; pasatarde: number };
     notes: string;

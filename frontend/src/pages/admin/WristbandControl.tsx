@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Paper, Typography, Grid, TextField, Button, Alert, TableContainer, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Container, Paper, Typography, Grid, TextField, Button, Alert, TableContainer, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,6 +14,7 @@ const WristbandControl: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [date, setDate] = useState<Date>(new Date());
+  const [type, setType] = useState<'delivery' | 'collection'>('delivery');
   const [recipient, setRecipient] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [counts, setCounts] = useState({ daypassAdults: 0, daypassChildren: 0, accommodations: 0, pasatarde: 0 });
@@ -76,6 +77,7 @@ const WristbandControl: React.FC = () => {
   const openCreate = () => {
     setEditing(null);
     setDate(new Date());
+    setType('delivery');
     setRecipient('');
     setNotes('');
     setCounts({ daypassAdults: 0, daypassChildren: 0, accommodations: 0, pasatarde: 0 });
@@ -105,6 +107,7 @@ const WristbandControl: React.FC = () => {
       if (editing) {
         await wristbandsService.updateDelivery(editing._id, {
           date,
+          type,
           recipient: recipient || '',
           counts,
           notes: notes || '',
@@ -113,6 +116,7 @@ const WristbandControl: React.FC = () => {
       } else {
         await wristbandsService.createDelivery({
           date,
+          type,
           recipient: recipient || undefined,
           counts,
           notes: notes || undefined,
@@ -172,16 +176,52 @@ const WristbandControl: React.FC = () => {
     }
   };
 
-  // Summary helpers
+  // Summary helpers - deliveries add, collections subtract (filtered by date range)
   const totals = {
-    daypassAdults: deliveries.reduce((sum, d) => sum + (d.counts?.daypassAdults ?? 0), 0),
-    daypassChildren: deliveries.reduce((sum, d) => sum + (d.counts?.daypassChildren ?? 0), 0),
-    accommodations: deliveries.reduce((sum, d) => sum + (d.counts?.accommodations ?? 0), 0),
-    pasatarde: deliveries.reduce((sum, d) => sum + (d.counts?.pasatarde ?? 0), 0),
+    daypassAdults: deliveries.reduce((sum, d) => {
+      const deliveryDate = new Date(d.date);
+      const fromDate = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0, 0);
+      const toDate = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+      if (deliveryDate >= fromDate && deliveryDate <= toDate) {
+        const amount = d.counts?.daypassAdults ?? 0;
+        return sum + (d.type === 'collection' ? -amount : amount);
+      }
+      return sum;
+    }, 0),
+    daypassChildren: deliveries.reduce((sum, d) => {
+      const deliveryDate = new Date(d.date);
+      const fromDate = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0, 0);
+      const toDate = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+      if (deliveryDate >= fromDate && deliveryDate <= toDate) {
+        const amount = d.counts?.daypassChildren ?? 0;
+        return sum + (d.type === 'collection' ? -amount : amount);
+      }
+      return sum;
+    }, 0),
+    accommodations: deliveries.reduce((sum, d) => {
+      const deliveryDate = new Date(d.date);
+      const fromDate = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0, 0);
+      const toDate = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+      if (deliveryDate >= fromDate && deliveryDate <= toDate) {
+        const amount = d.counts?.accommodations ?? 0;
+        return sum + (d.type === 'collection' ? -amount : amount);
+      }
+      return sum;
+    }, 0),
+    pasatarde: deliveries.reduce((sum, d) => {
+      const deliveryDate = new Date(d.date);
+      const fromDate = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0, 0);
+      const toDate = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+      if (deliveryDate >= fromDate && deliveryDate <= toDate) {
+        const amount = d.counts?.pasatarde ?? 0;
+        return sum + (d.type === 'collection' ? -amount : amount);
+      }
+      return sum;
+    }, 0),
   };
   const [used, setUsed] = useState({ daypassAdults: 0, daypassChildren: 0, accommodations: 0, pasatarde: 0 });
 
-  const WristbandStatCard = ({ title, available, used, total, color }: { title: string; available: number; used: number; total: number; color: string }) => (
+  const WristbandStatCard = ({ title, available, used, total }: { title: string; available: number; used: number; total: number }) => (
     <Paper sx={{ p: 2 }}>
       <Typography variant="subtitle1" color="text.secondary" gutterBottom>
         {title}
@@ -189,7 +229,7 @@ const WristbandControl: React.FC = () => {
       <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
           <Typography variant="body2" color="text.secondary">{t('admin.wristbands.summary.available')}</Typography>
-          <Typography variant="h6" sx={{ color }}>{available.toLocaleString()}</Typography>
+          <Typography variant="h6" sx={{ color: available < 0 ? 'error.main' : 'success.main' }}>{available.toLocaleString()}</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
           <Typography variant="body2" color="text.secondary">{t('admin.wristbands.summary.used')}</Typography>
@@ -197,7 +237,7 @@ const WristbandControl: React.FC = () => {
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
           <Typography variant="body2" color="text.secondary">{t('admin.wristbands.summary.total')}</Typography>
-          <Typography variant="h6" sx={{ color: 'success.main' }}>{total.toLocaleString()}</Typography>
+          <Typography variant="h6" sx={{ color: 'text.primary' }}>{total.toLocaleString()}</Typography>
         </Box>
       </Box>
     </Paper>
@@ -263,16 +303,16 @@ const WristbandControl: React.FC = () => {
         {/* Summary cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <WristbandStatCard title={t('admin.wristbands.categories.daypassAdults')} available={Math.max(totals.daypassAdults - used.daypassAdults, 0)} used={used.daypassAdults} total={totals.daypassAdults} color={'primary.main'} />
+            <WristbandStatCard title={t('admin.wristbands.categories.daypassAdults')} available={totals.daypassAdults - used.daypassAdults} used={used.daypassAdults} total={totals.daypassAdults} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <WristbandStatCard title={t('admin.wristbands.categories.daypassChildren')} available={Math.max(totals.daypassChildren - used.daypassChildren, 0)} used={used.daypassChildren} total={totals.daypassChildren} color={'info.main'} />
+            <WristbandStatCard title={t('admin.wristbands.categories.daypassChildren')} available={totals.daypassChildren - used.daypassChildren} used={used.daypassChildren} total={totals.daypassChildren} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <WristbandStatCard title={t('admin.wristbands.categories.accommodations')} available={Math.max(totals.accommodations - used.accommodations, 0)} used={used.accommodations} total={totals.accommodations} color={'success.main'} />
+            <WristbandStatCard title={t('admin.wristbands.categories.accommodations')} available={totals.accommodations - used.accommodations} used={used.accommodations} total={totals.accommodations} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <WristbandStatCard title={t('admin.wristbands.categories.pasatarde')} available={Math.max(totals.pasatarde - used.pasatarde, 0)} used={used.pasatarde} total={totals.pasatarde} color={'error.main'} />
+            <WristbandStatCard title={t('admin.wristbands.categories.pasatarde')} available={totals.pasatarde - used.pasatarde} used={used.pasatarde} total={totals.pasatarde} />
           </Grid>
         </Grid>
 
@@ -282,6 +322,7 @@ const WristbandControl: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>{t('admin.wristbands.deliveryDate')}</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell>{t('admin.wristbands.recipient')}</TableCell>
                 <TableCell>{t('admin.wristbands.categories.daypassAdults')}</TableCell>
                 <TableCell>{t('admin.wristbands.categories.daypassChildren')}</TableCell>
@@ -295,6 +336,22 @@ const WristbandControl: React.FC = () => {
               {deliveries.map((d) => (
                 <TableRow key={d._id}>
                   <TableCell>{format(new Date(d.date), 'yyyy-MM-dd')}</TableCell>
+                  <TableCell>
+                    <Box 
+                      sx={{ 
+                        display: 'inline-block',
+                        px: 1.5, 
+                        py: 0.5, 
+                        borderRadius: 1, 
+                        bgcolor: d.type === 'collection' ? 'error.light' : 'success.light',
+                        color: d.type === 'collection' ? 'error.dark' : 'success.dark',
+                        fontWeight: 500,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {d.type === 'collection' ? '← Collection' : '→ Delivery'}
+                    </Box>
+                  </TableCell>
                   <TableCell>{d.recipient || '-'}</TableCell>
                   <TableCell>{d.counts?.daypassAdults ?? 0}</TableCell>
                   <TableCell>{d.counts?.daypassChildren ?? 0}</TableCell>
@@ -313,7 +370,7 @@ const WristbandControl: React.FC = () => {
               ))}
               {deliveries.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <Typography variant="body2" color="text.secondary">No deliveries found</Typography>
                   </TableCell>
                 </TableRow>
@@ -339,6 +396,19 @@ const WristbandControl: React.FC = () => {
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                 />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Type</InputLabel>
+                  <Select
+                    value={type}
+                    label="Type"
+                    onChange={(e) => setType(e.target.value as 'delivery' | 'collection')}
+                  >
+                    <MenuItem value="delivery">Delivery (Add)</MenuItem>
+                    <MenuItem value="collection">Collection (Remove)</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={12} md={4}>
                 <TextField

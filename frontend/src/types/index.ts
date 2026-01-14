@@ -199,6 +199,7 @@ export interface EventType {
 export interface WristbandDelivery {
   _id: string;
   date: string;
+  type: 'delivery' | 'collection';
   deliveredBy?: string | User;
   recipient?: string;
   counts: {

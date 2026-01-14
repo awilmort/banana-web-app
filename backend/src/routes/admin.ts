@@ -471,11 +471,12 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
     // @access  Private (permission: admin.wristbands.manage or admin.access)
     router.post('/wristbands/deliveries', authenticate, authorizePermission('admin.wristbands.manage', 'admin.access'), async (req: Request, res: Response) => {
       try {
-        const { date, recipient, counts, notes } = req.body as {
+        const { date, recipient, counts, notes, type } = req.body as {
           date?: string | Date;
           recipient?: string;
           counts?: { daypassAdults?: number; daypassChildren?: number; accommodations?: number; pasatarde?: number };
           notes?: string;
+          type?: 'delivery' | 'collection';
         };
 
         const parseLocalDate = (s?: string | Date) => {
@@ -507,6 +508,7 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
             pasatarde: Number(counts?.pasatarde ?? 0),
           },
           notes: notes ? String(notes).trim() : undefined,
+          type: type || 'delivery',
         };
 
         const created = await WristbandDelivery.create(payload as any);
@@ -522,27 +524,11 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
     });
 
     // @route   GET /api/admin/wristbands/deliveries
-    // @desc    List wristband deliveries within date range
+    // @desc    List all wristband deliveries/collections (no date filter)
     // @access  Private (permission: admin.wristbands.view or admin.access)
     router.get('/wristbands/deliveries', authenticate, authorizePermission('admin.wristbands.view', 'admin.access'), async (req: Request, res: Response) => {
       try {
-        const { from, to } = req.query as { from?: string; to?: string };
-        const parseLocalDate = (s?: string) => {
-          if (!s) return undefined;
-          const strict = /^\d{4}-\d{2}-\d{2}$/.test(s);
-          if (strict) {
-            const [y, m, d] = s.split('-').map(Number);
-            return new Date(y, m - 1, d, 0, 0, 0, 0);
-          }
-          return new Date(s);
-        };
-        const now = new Date();
-        const fromDate = (parseLocalDate(from) || new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0));
-        const toDate = (parseLocalDate(to) || new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0));
-        // Use half-open interval [from, toNext) to include the entire 'to' day without timezone edge cases
-        const toNextDay = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate() + 1, 0, 0, 0, 0);
-
-        const deliveries = await WristbandDelivery.find({ date: { $gte: fromDate, $lt: toNextDay } }).sort({ date: -1 }).exec();
+        const deliveries = await WristbandDelivery.find().sort({ date: -1 }).exec();
         res.status(200).json({ success: true, count: deliveries.length, data: deliveries });
       } catch (error: any) {
         console.error('List wristband deliveries error:', error);
@@ -555,11 +541,12 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
     // @access  Private (permission: admin.wristbands.manage or admin.access)
     router.put('/wristbands/deliveries/:id', authenticate, authorizePermission('admin.wristbands.manage', 'admin.access'), async (req: Request, res: Response) => {
       try {
-        const { date, recipient, counts, notes } = req.body as {
+        const { date, recipient, counts, notes, type } = req.body as {
           date?: string | Date;
           recipient?: string;
           counts?: { daypassAdults?: number; daypassChildren?: number; accommodations?: number; pasatarde?: number };
           notes?: string;
+          type?: 'delivery' | 'collection';
         };
 
         const parseLocalDate = (s?: string | Date) => {
@@ -585,6 +572,7 @@ router.get('/commissions', authenticate, authorizePermission('admin.commissions'
         }
         if (recipient !== undefined) update.recipient = recipient ? String(recipient).trim() : undefined;
         if (notes !== undefined) update.notes = notes ? String(notes).trim() : undefined;
+        if (type !== undefined) update.type = type;
         if (counts) {
           update.counts = {
             daypassAdults: Number(counts.daypassAdults ?? 0),

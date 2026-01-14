@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IWristbandDelivery extends Document {
   date: Date;
+  type: 'delivery' | 'collection';
   deliveredBy?: mongoose.Types.ObjectId;
   recipient?: string; // e.g., reception crew name or shift
   counts: {
@@ -17,6 +18,7 @@ export interface IWristbandDelivery extends Document {
 
 const wristbandDeliverySchema = new Schema<IWristbandDelivery>({
   date: { type: Date, required: true },
+  type: { type: String, enum: ['delivery', 'collection'], default: 'delivery', required: true },
   deliveredBy: { type: Schema.Types.ObjectId, ref: 'User' },
   recipient: { type: String, trim: true, maxlength: 100 },
   counts: {
