@@ -1218,6 +1218,8 @@
       "checkInDate": "Check-in Date",
       "checkOutDate": "Check-out Date",
       "checkingAvailability": "Checking availability...",
+      "loadingDates": "Loading available dates...",
+      "selectCheckInFirst": "Please select check-in date first",
       "available": "Room is available for the selected dates!",
       "notAvailable": "Room is not available for the selected dates. Please choose different dates.",
       "guestInfo": "Guest Information",

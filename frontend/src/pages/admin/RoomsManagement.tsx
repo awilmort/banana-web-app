@@ -104,7 +104,6 @@ const RoomsManagement: React.FC = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
-  const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);

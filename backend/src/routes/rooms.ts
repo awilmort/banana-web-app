@@ -114,6 +114,133 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
+// @route   GET /api/rooms/available-dates
+// @desc    Get available dates in a range where at least one room is available
+// @access  Public
+router.get('/available-dates', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Start date and end date are required (format: YYYY-MM-DD)' 
+      });
+    }
+
+    const parseLocalDate = (s: string) => {
+      const [y, m, d] = s.split('-').map(Number);
+      return new Date(y, m - 1, d, 0, 0, 0, 0);
+    };
+
+    const start = parseLocalDate(startDate);
+    const end = parseLocalDate(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid date format' });
+    }
+
+    if (start > end) {
+      return res.status(400).json({ success: false, message: 'Start date must be before end date' });
+    }
+
+    // Get all active rooms
+    const activeRooms = await Room.find({ status: 'active' }).select('_id').lean();
+    const totalActiveRooms = activeRooms.length;
+
+    if (totalActiveRooms === 0) {
+      return res.status(200).json({ success: true, data: { availableDates: [], unavailableDates: [] } });
+    }
+
+    const activeRoomIds = activeRooms.map(r => r._id);
+
+    // Get all reservations that overlap with the date range
+    const reservations = await Reservation.find({
+      type: 'room',
+      status: { $in: ['pending', 'confirmed', 'completed'] },
+      checkInDate: { $lt: end },
+      checkOutDate: { $gt: start },
+      $or: [
+        { room: { $in: activeRoomIds } },
+        { rooms: { $elemMatch: { $in: activeRoomIds } } }
+      ]
+    }).select('checkInDate checkOutDate room rooms').lean();
+
+    // Build a map of date -> number of rooms occupied
+    const dateOccupancyMap = new Map<string, Set<string>>();
+
+    // Helper to format date as YYYY-MM-DD
+    const formatDate = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // Iterate through each reservation and mark occupied dates
+    for (const reservation of reservations as any[]) {
+      const resStart = new Date(reservation.checkInDate);
+      const resEnd = new Date(reservation.checkOutDate);
+      
+      // Get room IDs for this reservation
+      const roomIds: string[] = [];
+      if (reservation.room) {
+        roomIds.push(String(reservation.room));
+      }
+      if (Array.isArray(reservation.rooms)) {
+        roomIds.push(...reservation.rooms.map((r: any) => String(r)));
+      }
+
+      // Mark each date in the reservation period as occupied for these rooms
+      const currentDate = new Date(resStart);
+      while (currentDate < resEnd) {
+        const dateKey = formatDate(currentDate);
+        
+        if (!dateOccupancyMap.has(dateKey)) {
+          dateOccupancyMap.set(dateKey, new Set());
+        }
+        
+        const occupiedRooms = dateOccupancyMap.get(dateKey)!;
+        roomIds.forEach(roomId => occupiedRooms.add(roomId));
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+
+    // Check each date in the requested range
+    const availableDates: string[] = [];
+    const unavailableDates: string[] = [];
+    
+    const currentDate = new Date(start);
+    while (currentDate <= end) {
+      const dateKey = formatDate(currentDate);
+      const occupiedRooms = dateOccupancyMap.get(dateKey);
+      const occupiedCount = occupiedRooms ? occupiedRooms.size : 0;
+      const availableCount = totalActiveRooms - occupiedCount;
+
+      if (availableCount > 0) {
+        availableDates.push(dateKey);
+      } else {
+        unavailableDates.push(dateKey);
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        availableDates,
+        unavailableDates,
+        totalActiveRooms
+      }
+    });
+  } catch (error: any) {
+    console.error('Get available dates error:', error);
+    res.status(500).json({ success: false, message: 'Server error while checking available dates' });
+  }
+});
+
 // Additional endpoint: list all active rooms available for a given date range
 // @route   GET /api/rooms/available
 // @desc    Get active rooms with no overlapping reservations in [checkIn, checkOut)

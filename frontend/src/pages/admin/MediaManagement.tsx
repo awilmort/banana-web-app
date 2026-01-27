@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -58,7 +58,7 @@ const MediaManagement: React.FC = () => {
   const [editFeatured, setEditFeatured] = useState(false);
   const [editPublic, setEditPublic] = useState(true);
 
-  const loadMedia = async () => {
+  const loadMedia = useCallback(async () => {
     try {
       setLoading(true);
       const res = await mediaService.getMedia({ limit: 200 });
@@ -69,9 +69,9 @@ const MediaManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  useEffect(() => { loadMedia(); }, []);
+  useEffect(() => { loadMedia(); }, [loadMedia]);
 
   const handleUpload = async () => {
     if (!file) return;

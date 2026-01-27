@@ -1243,6 +1243,8 @@
       "checkInDate": "Fecha de check-in",
       "checkOutDate": "Fecha de check-out",
       "checkingAvailability": "Verificando disponibilidad...",
+      "loadingDates": "Cargando fechas disponibles...",
+      "selectCheckInFirst": "Por favor selecciona la fecha de check-in primero",
       "available": "¡La habitación está disponible para las fechas seleccionadas!",
       "notAvailable": "La habitación no está disponible para las fechas seleccionadas. Por favor elige fechas diferentes.",
       "guestInfo": "Información del huésped",

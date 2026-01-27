@@ -21,6 +21,10 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import {
   Hotel,
   CheckCircle,
@@ -68,6 +72,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
   const [pricingRules, setPricingRules] = useState<PricingRule[]>([]);
   const [adultRate, setAdultRate] = useState<number>(0);
   const [childrenRate, setChildrenRate] = useState<number>(0);
+  const [unavailableDates, setUnavailableDates] = useState<Set<string>>(new Set());
+  const [datesLoading, setDatesLoading] = useState(false);
 
   const [bookingData, setBookingData] = useState<BookingData>({
     checkInDate: null,
@@ -112,7 +118,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
   }, [bookingData.checkInDate, bookingData.checkOutDate, room, checkAvailability]);
 
   useEffect(() => {
-    // Load hospedaje pricing rules when dialog opens
+    // Load hospedaje pricing rules and available dates when dialog opens
     if (!open) return;
     (async () => {
       try {
@@ -121,6 +127,36 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
         setPricingRules(list as PricingRule[]);
       } catch (e) {
         console.error('Failed to load hospedaje pricing');
+      }
+    })();
+
+    // Load available dates for the next 12 months
+    (async () => {
+      setDatesLoading(true);
+      try {
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+        
+        const formatDate = (d: Date) => {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        const response = await roomsService.getAvailableDates(
+          formatDate(startDate),
+          formatDate(endDate)
+        );
+        
+        if (response.data.success && response.data.data) {
+          setUnavailableDates(new Set(response.data.data.unavailableDates));
+        }
+      } catch (error) {
+        console.error('Failed to load available dates:', error);
+      } finally {
+        setDatesLoading(false);
       }
     })();
   }, [open]);
@@ -289,65 +325,98 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
             )}
 
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label={t('pages.roomBooking.checkInDate')}
-                type="date"
-                value={bookingData.checkInDate ? bookingData.checkInDate.toISOString().split('T')[0] : ''}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    // Create date with local timezone to avoid day-before issue
-                    const [year, month, day] = e.target.value.split('-').map(Number);
-                    const date = new Date(year, month - 1, day);
-                    setBookingData({ ...bookingData, checkInDate: date });
-                  } else {
-                    setBookingData({ ...bookingData, checkInDate: null });
-                  }
-                }}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: (() => {
-                    const t = new Date();
-                    const yyyy = t.getFullYear();
-                    const mm = String(t.getMonth() + 1).padStart(2, '0');
-                    const dd = String(t.getDate()).padStart(2, '0');
-                    return `${yyyy}-${mm}-${dd}`;
-                  })(),
-                  max: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                }}
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label={t('pages.roomBooking.checkInDate')}
+                  value={bookingData.checkInDate ? dayjs(bookingData.checkInDate) : null}
+                  onChange={(newValue: Dayjs | null) => {
+                    if (newValue && newValue.isValid()) {
+                      const date = newValue.toDate();
+                      setBookingData({ ...bookingData, checkInDate: date });
+                    } else {
+                      setBookingData({ ...bookingData, checkInDate: null });
+                    }
+                  }}
+                  shouldDisableDate={(date: Dayjs) => {
+                    // Disable past dates
+                    const today = dayjs().startOf('day');
+                    if (date.isBefore(today)) return true;
+                    
+                    // Disable dates that are not available (no rooms free)
+                    const dateStr = date.format('YYYY-MM-DD');
+                    if (unavailableDates.has(dateStr)) return true;
+                    
+                    return false;
+                  }}
+                  loading={datesLoading}
+                  disabled={datesLoading}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      helperText: datesLoading ? t('pages.roomBooking.loadingDates') : undefined
+                    }
+                  }}
+                />
+              </LocalizationProvider>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label={t('pages.roomBooking.checkOutDate')}
-                type="date"
-                value={bookingData.checkOutDate ? bookingData.checkOutDate.toISOString().split('T')[0] : ''}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    // Create date with local timezone to avoid day-before issue
-                    const [year, month, day] = e.target.value.split('-').map(Number);
-                    const date = new Date(year, month - 1, day);
-                    setBookingData({ ...bookingData, checkOutDate: date });
-                  } else {
-                    setBookingData({ ...bookingData, checkOutDate: null });
-                  }
-                }}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: bookingData.checkInDate ?
-                    new Date(bookingData.checkInDate.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] :
-                    (() => {
-                      const t = new Date();
-                      t.setDate(t.getDate() + 1);
-                      const yyyy = t.getFullYear();
-                      const mm = String(t.getMonth() + 1).padStart(2, '0');
-                      const dd = String(t.getDate()).padStart(2, '0');
-                      return `${yyyy}-${mm}-${dd}`;
-                    })(),
-                  max: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                }}
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label={t('pages.roomBooking.checkOutDate')}
+                  value={bookingData.checkOutDate ? dayjs(bookingData.checkOutDate) : null}
+                  onChange={(newValue: Dayjs | null) => {
+                    if (newValue && newValue.isValid()) {
+                      const date = newValue.toDate();
+                      setBookingData({ ...bookingData, checkOutDate: date });
+                    } else {
+                      setBookingData({ ...bookingData, checkOutDate: null });
+                    }
+                  }}
+                  shouldDisableDate={(date: Dayjs) => {
+                    // Disable past dates
+                    const today = dayjs().startOf('day');
+                    if (date.isBefore(today)) return true;
+                    
+                    // Check-out must be after check-in
+                    if (bookingData.checkInDate) {
+                      const checkIn = dayjs(bookingData.checkInDate).startOf('day');
+                      if (date.isSame(checkIn, 'day') || date.isBefore(checkIn)) return true;
+                    }
+                    
+                    // Disable dates where any day in the stay would be unavailable
+                    // (Check if there's availability for continuous stay from check-in to this date)
+                    if (bookingData.checkInDate) {
+                      const checkIn = dayjs(bookingData.checkInDate);
+                      let currentDate = checkIn;
+                      
+                      while (currentDate.isBefore(date)) {
+                        const dateStr = currentDate.format('YYYY-MM-DD');
+                        if (unavailableDates.has(dateStr)) {
+                          return true; // Block checkout if any date in range is unavailable
+                        }
+                        currentDate = currentDate.add(1, 'day');
+                      }
+                    }
+                    
+                    return false;
+                  }}
+                  loading={datesLoading}
+                  disabled={datesLoading || !bookingData.checkInDate}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      helperText: !bookingData.checkInDate 
+                        ? t('pages.roomBooking.selectCheckInFirst') 
+                        : datesLoading 
+                        ? t('pages.roomBooking.loadingDates') 
+                        : undefined
+                    }
+                  }}
+                  minDate={bookingData.checkInDate ? dayjs(bookingData.checkInDate).add(1, 'day') : undefined}
+                />
+              </LocalizationProvider>
             </Grid>
 
             {/* No room type selection required when no specific room is chosen */}

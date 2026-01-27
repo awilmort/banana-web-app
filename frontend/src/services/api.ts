@@ -161,6 +161,9 @@ export const roomsService = {
   getAvailableRooms: (checkIn: string, checkOut: string): Promise<AxiosResponse<ApiResponse<Room[]>>> =>
     apiClient.get('/rooms/available', { params: { checkIn, checkOut } }),
 
+  getAvailableDates: (startDate: string, endDate: string): Promise<AxiosResponse<ApiResponse<{ availableDates: string[]; unavailableDates: string[]; totalActiveRooms: number }>>> =>
+    apiClient.get('/rooms/available-dates', { params: { startDate, endDate } }),
+
 };
 
 // Reservations Service
