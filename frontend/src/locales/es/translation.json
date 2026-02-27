@@ -154,6 +154,15 @@
         "daypass": "DayPass",
         "pasatarde": "PasaTarde",
         "event": "Evento"
+      },
+      "breakdown": {
+        "guest": "Huésped",
+        "adults": "Adultos",
+        "adultPrice": "Precio adulto",
+        "children": "Niños",
+        "childPrice": "Precio niño",
+        "total": "Total",
+        "noRecords": "Sin registros"
       }
     },
     "common": {

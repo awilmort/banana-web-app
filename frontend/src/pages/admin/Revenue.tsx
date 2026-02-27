@@ -1,17 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Container, Typography, Grid, Card, CardContent, Box, Paper, TextField, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip } from '@mui/material';
-import { AttachMoney, Group, Payments } from '@mui/icons-material';
+import { Container, Typography, Grid, Card, CardContent, Box, Paper, TextField, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { AttachMoney, Group, Payments, ExpandMore } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { formatMoney } from '../../utils/currency';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { adminService } from '../../services/api';
 
+type ReservationEntry = {
+  id: string;
+  guest: string;
+  adults: number;
+  children: number;
+  adultPrice: number;
+  childrenPrice: number;
+  totalPrice: number;
+};
+
 type RevenueData = {
   filters: { from: string; to: string };
   categories: Record<'room' | 'daypass' | 'event' | 'pasatarde', { adults: number; children: number; guests: number; revenue: number }>;
   income: { total: number; cash: number; transfer: number; card: number };
   pending: Array<{ id: string; type: 'room' | 'daypass' | 'PasaTarde' | 'event'; guest: string; endedOn: string; balanceDue: number; totalPrice: number; totalPayments: number }>;
+  reservations?: Record<'room' | 'daypass' | 'event' | 'pasatarde', ReservationEntry[]>;
 };
 
 const CombinedStatCard = ({ title, adults, children, revenue, color }: { title: string; adults: number; children: number; revenue: number; color: string }) => (
@@ -71,6 +82,51 @@ const IncomeCard = ({ title, amount, highlight }: { title: string; amount: numbe
     </CardContent>
   </Card>
 );
+
+const ReservationBreakdownSection = ({ title, rows }: { title: string; rows: ReservationEntry[] }) => {
+  const { t } = useTranslation();
+  return (
+    <Accordion>
+      <AccordionSummary expandIcon={<ExpandMore />}>
+        <Typography variant="h5">{title} ({rows.length})</Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={{ p: 0 }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('admin.revenue.breakdown.guest')}</TableCell>
+                <TableCell align="center">{t('admin.revenue.breakdown.adults')}</TableCell>
+                <TableCell align="right">{t('admin.revenue.breakdown.adultPrice')}</TableCell>
+                <TableCell align="center">{t('admin.revenue.breakdown.children')}</TableCell>
+                <TableCell align="right">{t('admin.revenue.breakdown.childPrice')}</TableCell>
+                <TableCell align="right">{t('admin.revenue.breakdown.total')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Typography variant="body2" color="text.secondary">{t('admin.revenue.breakdown.noRecords')}</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell>{r.guest}</TableCell>
+                  <TableCell align="center">{r.adults}</TableCell>
+                  <TableCell align="right">{r.adultPrice > 0 ? formatMoney(r.adultPrice) : '—'}</TableCell>
+                  <TableCell align="center">{r.children}</TableCell>
+                  <TableCell align="right">{r.childrenPrice > 0 ? formatMoney(r.childrenPrice) : '—'}</TableCell>
+                  <TableCell align="right">{formatMoney(r.totalPrice)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </AccordionDetails>
+    </Accordion>
+  );
+};
 
 const Revenue: React.FC = () => {
   const { t } = useTranslation();
@@ -170,35 +226,57 @@ const Revenue: React.FC = () => {
         </Grid>
 
         {/* Pending payments */}
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            {t('admin.revenue.pending.title')}
-          </Typography>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('admin.revenue.pending.table.guest')}</TableCell>
-                  <TableCell>{t('admin.revenue.pending.table.type')}</TableCell>
-                  <TableCell>{t('admin.revenue.pending.table.endedOn')}</TableCell>
-                  <TableCell>{t('admin.revenue.pending.table.balanceDue')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data?.pending?.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>{r.guest}</TableCell>
-                    <TableCell>
-                      <Chip label={t(`admin.revenue.typeLabels.${r.type === 'PasaTarde' ? 'pasatarde' : r.type}`)} size="small" />
-                    </TableCell>
-                    <TableCell>{r.endedOn ? dayjs(r.endedOn).format('YYYY-MM-DD') : '-'}</TableCell>
-                    <TableCell>{formatMoney(r.balanceDue || 0)}</TableCell>
+        <Accordion sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography variant="h5">{t('admin.revenue.pending.title')} ({data?.pending?.length ?? 0})</Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0 }}>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('admin.revenue.pending.table.guest')}</TableCell>
+                    <TableCell>{t('admin.revenue.pending.table.type')}</TableCell>
+                    <TableCell>{t('admin.revenue.pending.table.endedOn')}</TableCell>
+                    <TableCell>{t('admin.revenue.pending.table.balanceDue')}</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {data?.pending?.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>{r.guest}</TableCell>
+                      <TableCell>
+                        <Chip label={t(`admin.revenue.typeLabels.${r.type === 'PasaTarde' ? 'pasatarde' : r.type}`)} size="small" />
+                      </TableCell>
+                      <TableCell>{r.endedOn ? dayjs(r.endedOn).format('YYYY-MM-DD') : '-'}</TableCell>
+                      <TableCell>{formatMoney(r.balanceDue || 0)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Per-category reservation breakdowns */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <ReservationBreakdownSection
+            title={t('admin.revenue.cards.daypass')}
+            rows={data?.reservations?.daypass ?? []}
+          />
+          <ReservationBreakdownSection
+            title={t('admin.revenue.cards.room')}
+            rows={data?.reservations?.room ?? []}
+          />
+          <ReservationBreakdownSection
+            title={t('admin.revenue.cards.events')}
+            rows={data?.reservations?.event ?? []}
+          />
+          <ReservationBreakdownSection
+            title={t('admin.revenue.cards.pasatarde')}
+            rows={data?.reservations?.pasatarde ?? []}
+          />
+        </Box>
       </Container>
     </AdminLayout>
   );

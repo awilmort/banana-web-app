@@ -249,6 +249,25 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
       { $group: { _id: '$type', adults: { $sum: '$adults' }, children: { $sum: '$children' }, guests: { $sum: '$guests' } } }
     ]);
 
+    // 4) Individual reservation details per type (for breakdown lists)
+    const reservationDetailAgg = await Reservation.aggregate([
+      { $unwind: '$payments' },
+      { $match: { 'payments.createdAt': { $gte: fromDate, $lte: toDate } } },
+      {
+        $group: {
+          _id: '$_id',
+          type: { $first: '$type' },
+          guestName: { $first: '$guestName' },
+          userId: { $first: '$user' },
+          adults: { $first: '$guestDetails.adults' },
+          children: { $first: '$guestDetails.children' },
+          adultPrice: { $first: '$adultPrice' },
+          childrenPrice: { $first: '$childrenPrice' },
+          totalPrice: { $first: '$totalPrice' },
+        }
+      }
+    ]);
+
     // Build category map
     const getCat = (type: string) => {
       const key = type === 'PasaTarde' ? 'pasatarde' : type; // normalize key
@@ -271,6 +290,38 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
       categories[key].adults = g.adults || 0;
       categories[key].children = g.children || 0;
       categories[key].guests = g.guests || 0;
+    }
+
+    // Build per-type reservation lists for UI breakdown
+    const missingDetailUserIds = reservationDetailAgg
+      .filter((r: any) => !r.guestName?.firstName && r.userId)
+      .map((r: any) => r.userId);
+    const detailUsers = missingDetailUserIds.length > 0
+      ? await User.find({ _id: { $in: missingDetailUserIds } }).select('firstName lastName')
+      : [];
+    const detailUserMap = new Map((detailUsers as any[]).map((u: any) => [String(u._id), u]));
+
+    type ReservationEntry = { id: string; guest: string; adults: number; children: number; adultPrice: number; childrenPrice: number; totalPrice: number };
+    const reservations: Record<'room' | 'daypass' | 'event' | 'pasatarde', ReservationEntry[]> = { room: [], daypass: [], event: [], pasatarde: [] };
+
+    for (const r of reservationDetailAgg) {
+      const key = getCat(r.type);
+      let guest = 'Guest';
+      if (r.guestName?.firstName) {
+        guest = `${r.guestName.firstName} ${r.guestName.lastName || ''}`.trim();
+      } else if (r.userId) {
+        const u = detailUserMap.get(String(r.userId));
+        if (u) guest = `${(u as any).firstName} ${(u as any).lastName}`.trim();
+      }
+      reservations[key].push({
+        id: String(r._id),
+        guest,
+        adults: r.adults || 0,
+        children: r.children || 0,
+        adultPrice: r.adultPrice || 0,
+        childrenPrice: r.childrenPrice || 0,
+        totalPrice: r.totalPrice || 0,
+      });
     }
 
     // Payment method totals
@@ -337,7 +388,8 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
           balanceDue: Math.max((r.totalPrice || 0) - (r.totalPayments || 0), 0),
           totalPrice: r.totalPrice,
           totalPayments: r.totalPayments
-        }))
+        })),
+        reservations
       }
     });
   } catch (error: any) {
