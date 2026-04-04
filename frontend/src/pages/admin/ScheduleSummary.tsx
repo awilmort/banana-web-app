@@ -123,7 +123,7 @@ const ScheduleSummary: React.FC = () => {
   const SectionHeader = ({ title, stats }: { title: string; stats: { total: number; arrived: number; pending: number } }) => (
     <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="h6">{title}</Typography>
+        <Typography variant="h5">{title}</Typography>
         <Chip label={`${stats.total}`} size="medium" variant="outlined" />
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
