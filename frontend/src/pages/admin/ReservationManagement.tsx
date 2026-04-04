@@ -107,7 +107,6 @@ const ReservationManagement: React.FC = () => {
     try {
       const reset = !!opts?.reset;
       if (reset) {
-        setPage(1);
         setHasMore(true);
         // Avoid clearing list on subsequent resets to preserve focus/UX
         if (!initialLoadDone) {
@@ -126,7 +125,16 @@ const ReservationManagement: React.FC = () => {
       setError(null);
       const response = await reservationsService.getReservations(params);
       const newItems = response.data.data || [];
-      setReservations(prev => reset ? newItems : [...prev, ...newItems]);
+      if (reset) {
+        setReservations(newItems);
+      } else {
+        // Deduplicate by _id to prevent duplicates on concurrent fetches
+        setReservations(prev => {
+          const existingIds = new Set(prev.map(r => r._id));
+          const unique = newItems.filter((r: Reservation) => !existingIds.has(r._id));
+          return [...prev, ...unique];
+        });
+      }
       setInitialLoadDone(true);
       const pagination = (response.data as any).pagination;
       if (pagination) {
@@ -134,7 +142,8 @@ const ReservationManagement: React.FC = () => {
       } else {
         setHasMore(newItems.length === params.limit);
       }
-      if (!reset) setPage(currentPage + 1);
+      // Always advance to the next page
+      setPage(currentPage + 1);
     } catch (error: any) {
       console.error('Error fetching reservations:', error);
       setError(t('admin.reservations.messages.loadFailed'));

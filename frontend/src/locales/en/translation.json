@@ -800,21 +800,31 @@
       "title": "Schedule Summary",
       "today": "Today",
       "tomorrow": "Tomorrow",
+      "arrived": "arrived",
+      "pending": "pending",
+      "arrivedLabel": "Arrived",
+      "pendingLabel": "Pending",
       "cards": {
         "totalPeople": "Total People",
         "adults": "Adults",
         "children": "Children",
-        "infants": "Infants"
+        "infants": "Infants",
+        "arrivedProgress": "Arrived",
+        "pendingGuests": "Pending"
       },
       "sections": {
         "daypass": "DayPass ({{count}})",
         "accommodations": "Accommodations ({{count}})",
-        "events": "Events ({{count}})"
+        "events": "Events ({{count}})",
+        "daypassTitle": "DayPass",
+        "accommodationsTitle": "Accommodations",
+        "eventsTitle": "Events"
       },
       "table": {
         "guest": "Guest",
         "room": "Room",
-        "totalGuests": "Total Guests"
+        "totalGuests": "Total Guests",
+        "status": "Status"
       },
       "empty": {
         "daypass": "No daypass reservations",

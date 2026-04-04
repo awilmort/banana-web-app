@@ -799,21 +799,31 @@
       "title": "Resumen de agenda",
       "today": "Hoy",
       "tomorrow": "Mañana",
+      "arrived": "llegaron",
+      "pending": "pendientes",
+      "arrivedLabel": "Llegó",
+      "pendingLabel": "Pendiente",
       "cards": {
         "totalPeople": "Total de personas",
         "adults": "Adultos",
         "children": "Niños",
-        "infants": "Infantes"
+        "infants": "Infantes",
+        "arrivedProgress": "Llegados",
+        "pendingGuests": "Pendientes"
       },
       "sections": {
         "daypass": "DayPass ({{count}})",
         "accommodations": "Alojamientos ({{count}})",
-        "events": "Eventos ({{count}})"
+        "events": "Eventos ({{count}})",
+        "daypassTitle": "DayPass",
+        "accommodationsTitle": "Alojamientos",
+        "eventsTitle": "Eventos"
       },
       "table": {
         "guest": "Huésped",
         "room": "Habitación",
-        "totalGuests": "Total de huéspedes"
+        "totalGuests": "Total de huéspedes",
+        "status": "Estado"
       },
       "empty": {
         "daypass": "No hay reservas de daypass",
@@ -864,21 +874,31 @@
       "title": "Resumen de agenda",
       "today": "Hoy",
       "tomorrow": "Mañana",
+      "arrived": "llegaron",
+      "pending": "pendientes",
+      "arrivedLabel": "Llegó",
+      "pendingLabel": "Pendiente",
       "cards": {
         "totalPeople": "Total de personas",
         "adults": "Adultos",
         "children": "Niños",
-        "infants": "Infantes"
+        "infants": "Infantes",
+        "arrivedProgress": "Llegados",
+        "pendingGuests": "Pendientes"
       },
       "sections": {
         "daypass": "DayPass ({{count}})",
         "accommodations": "Alojamientos ({{count}})",
-        "events": "Eventos ({{count}})"
+        "events": "Eventos ({{count}})",
+        "daypassTitle": "DayPass",
+        "accommodationsTitle": "Alojamientos",
+        "eventsTitle": "Eventos"
       },
       "table": {
         "guest": "Huésped",
         "room": "Habitación",
-        "totalGuests": "Total de huéspedes"
+        "totalGuests": "Total de huéspedes",
+        "status": "Estado"
       },
       "empty": {
         "daypass": "No hay reservas de daypass",
