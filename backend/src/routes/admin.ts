@@ -250,6 +250,7 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
     ]);
 
     // 4) Individual reservation details per type (for breakdown lists)
+    //    Use $sum of payments in range (not totalPrice) so the breakdown matches the revenue cards
     const reservationDetailAgg = await Reservation.aggregate([
       { $unwind: '$payments' },
       { $match: { 'payments.createdAt': { $gte: fromDate, $lte: toDate } } },
@@ -263,7 +264,7 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
           children: { $first: '$guestDetails.children' },
           adultPrice: { $first: '$adultPrice' },
           childrenPrice: { $first: '$childrenPrice' },
-          totalPrice: { $first: '$totalPrice' },
+          revenueInRange: { $sum: '$payments.amount' },
         }
       }
     ]);
@@ -320,7 +321,7 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
         children: r.children || 0,
         adultPrice: r.adultPrice || 0,
         childrenPrice: r.childrenPrice || 0,
-        totalPrice: r.totalPrice || 0,
+        totalPrice: r.revenueInRange || 0,
       });
     }
 
@@ -335,7 +336,7 @@ router.get('/revenue', authenticate, authorizePermission('admin.revenue', 'admin
       income.total += amount;
     }
 
-    // Pending payments: all past reservations with balance due, up to the selected end date (no future reservations)
+    // Pending payments: all past reservations with balance due, up to the selected end date
     const pendingFilter: any = {
       $and: [
         // Exclude cancelled reservations from pending payments

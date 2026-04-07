@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -253,6 +254,27 @@ const ReservationManagement: React.FC = () => {
     setShowDetails(false);
     setSelectedReservation(null);
   };
+
+  // Deep-link: open reservation details when ?id= is present in URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const reservationId = searchParams.get('id');
+    if (!reservationId) return;
+    // Clear the param so it doesn't re-trigger
+    searchParams.delete('id');
+    setSearchParams(searchParams, { replace: true });
+    // Try to find in already-loaded list first
+    const existing = reservations.find(r => r._id === reservationId);
+    if (existing) {
+      openDetailsView(existing);
+    } else {
+      // Fetch individually
+      reservationsService.getReservation(reservationId).then(res => {
+        if (res.data?.data) openDetailsView(res.data.data);
+      }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const formatDate = (dateString: string) => {

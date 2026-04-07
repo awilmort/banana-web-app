@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Container, Typography, Grid, Card, CardContent, Box, Paper, TextField, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Box, Paper, TextField, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, Accordion, AccordionSummary, AccordionDetails, Link } from '@mui/material';
 import { AttachMoney, Group, Payments, ExpandMore } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { formatMoney } from '../../utils/currency';
@@ -96,9 +97,7 @@ const ReservationBreakdownSection = ({ title, rows }: { title: string; rows: Res
             <TableHead>
               <TableRow>
                 <TableCell>{t('admin.revenue.breakdown.guest')}</TableCell>
-                <TableCell align="center">{t('admin.revenue.breakdown.adults')}</TableCell>
                 <TableCell align="right">{t('admin.revenue.breakdown.adultPrice')}</TableCell>
-                <TableCell align="center">{t('admin.revenue.breakdown.children')}</TableCell>
                 <TableCell align="right">{t('admin.revenue.breakdown.childPrice')}</TableCell>
                 <TableCell align="right">{t('admin.revenue.breakdown.total')}</TableCell>
               </TableRow>
@@ -106,16 +105,18 @@ const ReservationBreakdownSection = ({ title, rows }: { title: string; rows: Res
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={4} align="center">
                     <Typography variant="body2" color="text.secondary">{t('admin.revenue.breakdown.noRecords')}</Typography>
                   </TableCell>
                 </TableRow>
               ) : rows.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell>{r.guest}</TableCell>
-                  <TableCell align="center">{r.adults}</TableCell>
+                  <TableCell>
+                    <Link component={RouterLink} to={`/admin/reservations?id=${r.id}`} underline="hover">
+                      {r.guest}
+                    </Link>
+                  </TableCell>
                   <TableCell align="right">{r.adultPrice > 0 ? formatMoney(r.adultPrice) : '—'}</TableCell>
-                  <TableCell align="center">{r.children}</TableCell>
                   <TableCell align="right">{r.childrenPrice > 0 ? formatMoney(r.childrenPrice) : '—'}</TableCell>
                   <TableCell align="right">{formatMoney(r.totalPrice)}</TableCell>
                 </TableRow>
@@ -135,9 +136,9 @@ const Revenue: React.FC = () => {
   const [data, setData] = useState<RevenueData | null>(null);
   const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
 
-  const loadData = async () => {
+  const loadData = async (overrideFrom?: string, overrideTo?: string) => {
     try {
-      const res = await adminService.getRevenue({ from, to });
+      const res = await adminService.getRevenue({ from: overrideFrom ?? from, to: overrideTo ?? to });
       if (res.data.success) {
         setData(res.data.data);
       }
@@ -157,7 +158,8 @@ const Revenue: React.FC = () => {
     const toClamped = dayjs(to).isAfter(today) ? today : to;
     setFrom(fromClamped);
     setTo(toClamped);
-    setTimeout(loadData, 0);
+    // Pass clamped values directly to avoid stale closure over pre-update state
+    loadData(fromClamped, toClamped);
   };
 
   const cat = data?.categories;
@@ -244,7 +246,11 @@ const Revenue: React.FC = () => {
                 <TableBody>
                   {data?.pending?.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell>{r.guest}</TableCell>
+                      <TableCell>
+                        <Link component={RouterLink} to={`/admin/reservations?id=${r.id}`} underline="hover">
+                          {r.guest}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <Chip label={t(`admin.revenue.typeLabels.${r.type === 'PasaTarde' ? 'pasatarde' : r.type}`)} size="small" />
                       </TableCell>
