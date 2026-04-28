@@ -5,7 +5,7 @@ import {
   Container, Typography, Box, Card, CardContent, Grid, Button, TextField,
   Alert, CircularProgress, Select, MenuItem, FormControl, InputLabel,
 } from '@mui/material';
-import { CheckCircle, Pool, LocalParking, Wifi, Shower, Weekend, Waves } from '@mui/icons-material';
+import { CheckCircle, Pool, LocalParking, Wifi, Shower, Weekend, Waves, Restaurant, SportsTennis } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useRouter, usePathname } from 'next/navigation';
@@ -224,6 +224,8 @@ export default function DayPassPage() {
                     { key: 'includedChangingRooms', icon: <Shower fontSize="small" /> },
                     { key: 'includedLounge', icon: <Weekend fontSize="small" /> },
                     { key: 'includedAquaPark', icon: <Waves fontSize="small" /> },
+                    { key: 'includedLunch', icon: <Restaurant fontSize="small" /> },
+                    { key: 'includedSportCourts', icon: <SportsTennis fontSize="small" /> },
                   ].map(({ key, icon }) => (
                     <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Box sx={{ color: 'text.secondary', display: 'flex' }}>{icon}</Box>
