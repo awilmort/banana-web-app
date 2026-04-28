@@ -1,0 +1,9 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "mv": true,
+    "/^cd \"/Users/abimaelwilmort/Documents/Work/projects/Banana Ranch Villages/web-app/banana-web-app\" && node fix-mui-v9\\.mjs$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
+}

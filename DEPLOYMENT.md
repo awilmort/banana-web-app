@@ -69,8 +69,9 @@ Root Directory: `backend`
 - Connect Render service to your GitHub repo and enable auto-deploy on `main` (or create a staging service for a `staging` branch).
 - On each push, Render will rebuild and redeploy.
   - `JWT_EXPIRES_IN=7d`
-  - `FRONTEND_URL=https://your-app.vercel.app`
-  - Or `CORS_ORIGINS=https://your-app.vercel.app,https://your-app-git-branch-user.vercel.app`
+  - `FRONTEND_URL=https://bananaaquapark.com`
+  - Or `CORS_ORIGINS=https://bananaaquapark.com,https://app.bananaaquapark.com,https://your-preview.vercel.app`
+  - **Important:** Both the public domain AND the admin subdomain must be in `CORS_ORIGINS`.
 - Build Command: `npm run build`
 - Start Command: `npm start`
 - Node Version: leave default or set to latest LTS.

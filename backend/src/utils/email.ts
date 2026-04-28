@@ -128,7 +128,7 @@ export const sendVerificationEmail = async (user: any, token: string): Promise<v
     <html>
     <head>
         <meta charset="utf-8">
-    <title>Verifica tu correo electrónico - Banana Ranch Villages</title>
+    <title>Verifica tu correo electrónico - Banana Aqua Park</title>
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -160,10 +160,10 @@ export const sendVerificationEmail = async (user: any, token: string): Promise<v
                 
         <p>Si no solicitaste esto, por favor ignora este correo.</p>
                 
-        <p>Saludos cordiales,<br>El equipo de Banana Ranch Villages</p>
+        <p>Saludos cordiales,<br>El equipo de Banana Aqua Park</p>
             </div>
             <div class="footer">
-        <p>&copy; 2024 Banana Ranch Villages. Todos los derechos reservados.</p>
+        <p>&copy; 2024 Banana Aqua Park. Todos los derechos reservados.</p>
             </div>
         </div>
     </body>
@@ -171,7 +171,7 @@ export const sendVerificationEmail = async (user: any, token: string): Promise<v
   `;
 
   const text = `
-  Verifica tu correo electrónico - Banana Ranch Villages
+  Verifica tu correo electrónico - Banana Aqua Park
     
   Hola ${user.firstName},
     
@@ -184,12 +184,12 @@ export const sendVerificationEmail = async (user: any, token: string): Promise<v
   Si no solicitaste esto, por favor ignora este correo.
     
   Saludos cordiales,
-  El equipo de Banana Ranch Villages
+  El equipo de Banana Aqua Park
   `;
 
   await sendEmail({
     to: user.pendingEmail || user.email,
-  subject: 'Verifica tu correo electrónico - Banana Ranch Villages',
+  subject: 'Verifica tu correo electrónico - Banana Aqua Park',
     html,
     text
   });
@@ -203,7 +203,7 @@ export const sendPasswordResetEmail = async (user: any, token: string): Promise<
     <html>
     <head>
         <meta charset="utf-8">
-    <title>Restablecer contraseña - Banana Ranch Villages</title>
+    <title>Restablecer contraseña - Banana Aqua Park</title>
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -221,7 +221,7 @@ export const sendPasswordResetEmail = async (user: any, token: string): Promise<
             </div>
             <div class="content">
         <h2>Hola ${user.firstName},</h2>
-        <p>Has solicitado restablecer la contraseña de tu cuenta de Banana Ranch Villages. Haz clic en el botón para restablecerla:</p>
+        <p>Has solicitado restablecer la contraseña de tu cuenta de Banana Aqua Park. Haz clic en el botón para restablecerla:</p>
                 
                 <div style="text-align: center;">
           <a href="${resetUrl}" class="btn">Restablecer contraseña</a>
@@ -234,10 +234,10 @@ export const sendPasswordResetEmail = async (user: any, token: string): Promise<
                 
         <p>Si no solicitaste el restablecimiento, por favor ignora este correo. Tu contraseña permanecerá sin cambios.</p>
                 
-        <p>Saludos cordiales,<br>El equipo de Banana Ranch Villages</p>
+        <p>Saludos cordiales,<br>El equipo de Banana Aqua Park</p>
             </div>
             <div class="footer">
-        <p>&copy; 2024 Banana Ranch Villages. Todos los derechos reservados.</p>
+        <p>&copy; 2024 Banana Aqua Park. Todos los derechos reservados.</p>
             </div>
         </div>
     </body>
@@ -249,7 +249,7 @@ export const sendPasswordResetEmail = async (user: any, token: string): Promise<
     
   Hola ${user.firstName},
     
-  Has solicitado restablecer la contraseña de tu cuenta de Banana Ranch Villages. Visita el siguiente enlace para restablecerla:
+  Has solicitado restablecer la contraseña de tu cuenta de Banana Aqua Park. Visita el siguiente enlace para restablecerla:
     
   ${resetUrl}
     
@@ -258,12 +258,12 @@ export const sendPasswordResetEmail = async (user: any, token: string): Promise<
   Si no solicitaste el restablecimiento, por favor ignora este correo.
     
   Saludos cordiales,
-  El equipo de Banana Ranch Villages
+  El equipo de Banana Aqua Park
   `;
 
   await sendEmail({
     to: user.email,
-  subject: 'Solicitud de restablecimiento de contraseña - Banana Ranch Villages',
+  subject: 'Solicitud de restablecimiento de contraseña - Banana Aqua Park',
     html,
     text
   });
@@ -349,7 +349,7 @@ export const sendReservationConfirmationEmail = async (reservation: any): Promis
     <html>
     <head>
         <meta charset="utf-8">
-        <title>Confirmación de reserva - Banana Ranch Villages</title>
+        <title>Confirmación de reserva - Banana Aqua Park</title>
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -370,7 +370,7 @@ export const sendReservationConfirmationEmail = async (reservation: any): Promis
             </div>
             <div class="content">
                 <h2>Hola ${firstName},</h2>
-                <p>¡Gracias por elegir Banana Ranch Villages! Tu ${reservationTypeLabel.toLowerCase()} ha sido confirmada.</p>
+                <p>¡Gracias por elegir Banana Aqua Park! Tu ${reservationTypeLabel.toLowerCase()} ha sido confirmada.</p>
                 
                 <div class="summary-box">
                     <h3>${reservationTypeLabel}</h3>
@@ -395,16 +395,16 @@ export const sendReservationConfirmationEmail = async (reservation: any): Promis
                     <li>Por favor llega a la hora de check-in especificada</li>
                     <li>Lleva una identificación válida para el check-in</li>
                     <li>Las cancelaciones deben realizarse al menos con 24 horas de anticipación</li>
-                    <li>Contáctanos en info@bananaranch.com para cualquier pregunta</li>
+                    <li>Contáctanos en info@bananaaquapark.com para cualquier pregunta</li>
                 </ul>
                 
-                <p>¡Esperamos darte la bienvenida en Banana Ranch Villages!</p>
+                <p>¡Esperamos darte la bienvenida en Banana Aqua Park!</p>
                 
-                <p>Saludos cordiales,<br>El equipo de Banana Ranch Villages</p>
+                <p>Saludos cordiales,<br>El equipo de Banana Aqua Park</p>
             </div>
             <div class="footer">
-              <p>&copy; ${currentYear} Banana Ranch Villages. Todos los derechos reservados.</p>
-                <p>¿Necesitas ayuda? Contáctanos en info@bananaranch.com o llama al +1-234-567-8900</p>
+              <p>&copy; ${currentYear} Banana Aqua Park. Todos los derechos reservados.</p>
+                <p>¿Necesitas ayuda? Contáctanos en info@bananaaquapark.com o llama al +1-234-567-8900</p>
             </div>
         </div>
     </body>
@@ -412,11 +412,11 @@ export const sendReservationConfirmationEmail = async (reservation: any): Promis
   `;
 
   const text = `
-    Reserva confirmada - Banana Ranch Villages
+    Reserva confirmada - Banana Aqua Park
     
     Hola ${firstName},
     
-    ¡Gracias por elegir Banana Ranch Villages! Tu ${reservationTypeLabel.toLowerCase()} ha sido confirmada.
+    ¡Gracias por elegir Banana Aqua Park! Tu ${reservationTypeLabel.toLowerCase()} ha sido confirmada.
     
     RESUMEN DE LA RESERVA
     ----------------------
@@ -440,17 +440,17 @@ export const sendReservationConfirmationEmail = async (reservation: any): Promis
     - Por favor llega a la hora de check-in especificada
     - Lleva una identificación válida para el check-in
     - Las cancelaciones deben realizarse al menos con 24 horas de anticipación
-    - Contáctanos en info@bananaranch.com para cualquier pregunta
+    - Contáctanos en info@bananaaquapark.com para cualquier pregunta
     
-    ¡Esperamos darte la bienvenida en Banana Ranch Villages!
+    ¡Esperamos darte la bienvenida en Banana Aqua Park!
     
     Saludos cordiales,
-    El equipo de Banana Ranch Villages
+    El equipo de Banana Aqua Park
   `;
 
   await sendEmail({
     to: reservation.contactInfo.email,
-    subject: `Reserva confirmada - Banana Ranch Villages (${reservation.reservationCode || 'CONFIRMADA'})`,
+    subject: `Reserva confirmada - Banana Aqua Park (${reservation.reservationCode || 'CONFIRMADA'})`,
     html,
     text
   });

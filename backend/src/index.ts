@@ -21,11 +21,13 @@ import amenityRoutes from './routes/amenities';
 import eventTypeRoutes from './routes/eventTypes';
 import roleRoutes from './routes/roles';
 import pricingRoutes from './routes/pricing';
+import guestRoutes from './routes/guests';
 import { syncUploadsToMedia } from './utils/mediaSync';
 import Role from './models/Role';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables (override: true ensures .env values override any stale
+// inherited env vars from nodemon or parent processes — critical for CORS config)
+dotenv.config({ override: true });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -117,6 +119,7 @@ app.use('/api/amenities', amenityRoutes);
 app.use('/api/event-types', eventTypeRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/guests', guestRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

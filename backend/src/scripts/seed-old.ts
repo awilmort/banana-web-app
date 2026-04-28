@@ -335,7 +335,7 @@ const seedDatabase = async () => {
       },
       {
         title: 'Resort Tour Video',
-        description: 'Complete virtual tour of Banana Ranch Villages',
+        description: 'Complete virtual tour of Banana Aqua Park',
         url: '/videos/resort-tour.mp4',
         type: 'video',
         category: 'general',

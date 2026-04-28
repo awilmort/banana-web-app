@@ -1,0 +1,303 @@
+'use client';
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Container, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem,
+  Switch, FormControlLabel, Alert
+} from '@mui/material';
+import SectionTitle from '@/components/admin/SectionTitle';
+import NumberField from '@/components/common/NumberField';
+import { pricingService } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
+
+interface PricingRule {
+  _id?: string;
+  service: 'daypass' | 'pasatarde' | 'hospedaje';
+  category: 'standard' | 'special';
+  validity: 'everyday' | 'weekdays' | 'weekend' | 'custom';
+  startDate?: string;
+  endDate?: string;
+  adultPrice: number;
+  childrenPrice: number;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+const PriceManagement: React.FC = () => {
+  const { t } = useTranslation();
+  const tr = useCallback((key: string, fallback?: string) => {
+    const val = t(key);
+    if (val === key && fallback) return t(fallback);
+    return val;
+  }, [t]);
+  const [rules, setRules] = useState<PricingRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [filterService, setFilterService] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [form, setForm] = useState<PricingRule>({
+    service: 'daypass',
+    category: 'standard',
+    validity: 'everyday',
+    adultPrice: 0,
+    childrenPrice: 0,
+    isActive: true,
+  });
+
+  const fetchRules = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await pricingService.getPricing();
+      setRules((res.data.data as PricingRule[]) || []);
+    } catch (e: any) {
+      setError(e.response?.data?.message || tr('admin.pricing.messages.loadFailed', 'pricing.messages.loadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  }, [tr]);
+
+  useEffect(() => { fetchRules(); }, [fetchRules]);
+
+  const openNew = () => {
+    setForm({ service: 'daypass', category: 'standard', validity: 'everyday', adultPrice: 0, childrenPrice: 0, isActive: true });
+    setDialogOpen(true);
+  };
+
+  const toInputDate = (value?: string) => {
+    if (!value) return '';
+    const d = new Date(value);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayInput = useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }, []);
+
+  const serviceLabels = useMemo(() => ({
+    daypass: tr('admin.pricing.serviceLabels.daypass', 'pricing.serviceLabels.daypass'),
+    pasatarde: tr('admin.pricing.serviceLabels.pasatarde', 'pricing.serviceLabels.pasatarde'),
+    hospedaje: tr('admin.pricing.serviceLabels.hospedaje', 'pricing.serviceLabels.hospedaje'),
+  }), [tr]);
+
+  const categoryLabels = useMemo(() => ({
+    standard: tr('admin.pricing.categoryLabels.standard', 'pricing.categoryLabels.standard'),
+    special: tr('admin.pricing.categoryLabels.special', 'pricing.categoryLabels.special'),
+  }), [tr]);
+
+  const validityLabels = useMemo(() => ({
+    everyday: tr('admin.pricing.validityLabels.everyday', 'pricing.validityLabels.everyday'),
+    weekdays: tr('admin.pricing.validityLabels.weekdays', 'pricing.validityLabels.weekdays'),
+    weekend: tr('admin.pricing.validityLabels.weekend', 'pricing.validityLabels.weekend'),
+    custom: tr('admin.pricing.validityLabels.custom', 'pricing.validityLabels.custom'),
+  }), [tr]);
+
+  const openEdit = (rule: PricingRule) => {
+    setForm({ ...rule, startDate: rule.startDate ? toInputDate(rule.startDate) : undefined, endDate: rule.endDate ? toInputDate(rule.endDate) : undefined });
+    setDialogOpen(true);
+  };
+
+  const saveRule = async () => {
+    try {
+      if (form.category === 'special') {
+        if (form.validity !== 'custom') {
+          setError(tr('admin.pricing.errors.specialRequiresCustom', 'pricing.errors.specialRequiresCustom'));
+          return;
+        }
+        if (!form.startDate || !form.endDate) {
+          setError(tr('admin.pricing.errors.specialRequiresRange', 'pricing.errors.specialRequiresRange'));
+          return;
+        }
+      }
+      setError(null);
+      // Prepare payload with mid-day timestamps to avoid timezone day-shift
+      const payload: any = { ...form };
+      if (form.startDate) payload.startDate = new Date(`${form.startDate}T12:00:00`).toISOString();
+      if (form.endDate) payload.endDate = new Date(`${form.endDate}T12:00:00`).toISOString();
+      if (form._id) {
+        await pricingService.updatePricing(form._id, payload);
+      } else {
+        await pricingService.createPricing(payload);
+      }
+      setDialogOpen(false);
+      await fetchRules();
+    } catch (e: any) {
+      setError(e.response?.data?.message || tr('admin.pricing.messages.saveFailed', 'pricing.messages.saveFailed'));
+    }
+  };
+
+  const deleteRule = async (id: string) => {
+    if (!window.confirm(tr('admin.pricing.dialog.deletePrompt', 'pricing.dialog.deletePrompt'))) return;
+    await pricingService.deletePricing(id);
+    await fetchRules();
+  };
+
+  const categoryChanged = (val: 'standard' | 'special') => {
+    if (val === 'special') {
+      setForm(prev => ({ ...prev, category: val, validity: 'custom' }));
+    } else {
+      setForm(prev => ({ ...prev, category: val }));
+    }
+  };
+
+  const filteredRules = useMemo(() => rules.filter(r => {
+    if (filterService !== 'all' && r.service !== filterService) return false;
+    if (filterCategory !== 'all' && r.category !== filterCategory) return false;
+    return true;
+  }), [rules, filterService, filterCategory]);
+
+  return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <SectionTitle title={tr('admin.pricing.title', 'pricing.title')} />
+        {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+
+        {/* Filters */}
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel>{tr('admin.pricing.table.service', 'pricing.table.service')}</InputLabel>
+              <Select
+                value={filterService}
+                label={tr('admin.pricing.table.service', 'pricing.table.service')}
+                onChange={(e) => setFilterService(e.target.value)}
+              >
+                <MenuItem value="all">{tr('admin.reservations.filters.status.all', 'All')}</MenuItem>
+                <MenuItem value="daypass">{serviceLabels.daypass}</MenuItem>
+                <MenuItem value="pasatarde">{serviceLabels.pasatarde}</MenuItem>
+                <MenuItem value="hospedaje">{serviceLabels.hospedaje}</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel>{tr('admin.pricing.table.category', 'pricing.table.category')}</InputLabel>
+              <Select
+                value={filterCategory}
+                label={tr('admin.pricing.table.category', 'pricing.table.category')}
+                onChange={(e) => setFilterCategory(e.target.value)}
+              >
+                <MenuItem value="all">{tr('admin.reservations.filters.status.all', 'All')}</MenuItem>
+                <MenuItem value="standard">{categoryLabels.standard}</MenuItem>
+                <MenuItem value="special">{categoryLabels.special}</MenuItem>
+              </Select>
+            </FormControl>
+            <Button
+              variant="outlined"
+              onClick={() => { setFilterService('all'); setFilterCategory('all'); }}
+              disabled={filterService === 'all' && filterCategory === 'all'}
+            >
+              {tr('admin.reservations.filters.clear', 'Clear')}
+            </Button>
+            <Button variant="contained" onClick={openNew} sx={{ ml: 'auto' }}>
+              {tr('admin.pricing.actions.newRule', 'pricing.actions.newRule')}
+            </Button>
+          </Box>
+        </Paper>
+
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>{tr('admin.pricing.table.service', 'pricing.table.service')}</TableCell>
+                <TableCell>{tr('admin.pricing.table.category', 'pricing.table.category')}</TableCell>
+                <TableCell>{tr('admin.pricing.table.validity', 'pricing.table.validity')}</TableCell>
+                <TableCell>{tr('admin.pricing.table.dateRange', 'pricing.table.dateRange')}</TableCell>
+                <TableCell>{tr('admin.pricing.table.adult', 'pricing.table.adult')}</TableCell>
+                <TableCell>{tr('admin.pricing.table.children', 'pricing.table.children')}</TableCell>
+                <TableCell>{tr('admin.pricing.table.active', 'pricing.table.active')}</TableCell>
+                <TableCell>{tr('admin.pricing.table.actions', 'pricing.table.actions')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredRules.map(rule => (
+                <TableRow key={rule._id}>
+                  <TableCell>{serviceLabels[rule.service] || rule.service}</TableCell>
+                  <TableCell>{categoryLabels[rule.category] || rule.category}</TableCell>
+                  <TableCell>{validityLabels[rule.validity] || rule.validity}</TableCell>
+                  <TableCell>{rule.startDate ? `${rule.startDate.substring(0,10)} - ${rule.endDate?.substring(0,10)}` : '—'}</TableCell>
+                  <TableCell>${rule.adultPrice}</TableCell>
+                  <TableCell>${rule.childrenPrice}</TableCell>
+                  <TableCell>{rule.isActive ? t('common.yes') : t('common.no')}</TableCell>
+                  <TableCell>
+                    <Button size="small" onClick={() => openEdit(rule)}>{tr('admin.pricing.actions.edit', 'pricing.actions.edit')}</Button>
+                    <Button size="small" color="error" onClick={() => deleteRule(rule._id!)}>{tr('admin.pricing.actions.delete', 'pricing.actions.delete')}</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filteredRules.length === 0 && !loading && (
+                <TableRow><TableCell colSpan={8} align="center">{tr('admin.pricing.empty', 'pricing.empty')}</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>{form._id ? tr('admin.pricing.dialog.editTitle', 'pricing.dialog.editTitle') : tr('admin.pricing.dialog.newTitle', 'pricing.dialog.newTitle')}</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>{tr('admin.pricing.form.service', 'pricing.form.service')}</InputLabel>
+                <Select value={form.service} label={tr('admin.pricing.form.service', 'pricing.form.service')} onChange={(e) => setForm({ ...form, service: e.target.value as any })}>
+                  <MenuItem value="daypass">{serviceLabels.daypass}</MenuItem>
+                  <MenuItem value="pasatarde">{serviceLabels.pasatarde}</MenuItem>
+                  <MenuItem value="hospedaje">{serviceLabels.hospedaje}</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>{tr('admin.pricing.form.category', 'pricing.form.category')}</InputLabel>
+                <Select value={form.category} label={tr('admin.pricing.form.category', 'pricing.form.category')} onChange={(e) => categoryChanged(e.target.value as any)}>
+                  <MenuItem value="standard">{categoryLabels.standard}</MenuItem>
+                  <MenuItem value="special">{categoryLabels.special}</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>{tr('admin.pricing.form.validity', 'pricing.form.validity')}</InputLabel>
+                <Select value={form.validity} label={tr('admin.pricing.form.validity', 'pricing.form.validity')} onChange={(e) => setForm({ ...form, validity: e.target.value as any })} disabled={form.category === 'special'}>
+                  <MenuItem value="everyday">{validityLabels.everyday}</MenuItem>
+                  <MenuItem value="weekdays">{validityLabels.weekdays}</MenuItem>
+                  <MenuItem value="weekend">{validityLabels.weekend}</MenuItem>
+                  <MenuItem value="custom">{validityLabels.custom}</MenuItem>
+                </Select>
+              </FormControl>
+              {(form.category === 'special' || form.validity === 'custom') && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <TextField
+                    type="date"
+                    label={tr('admin.pricing.form.startDate', 'pricing.form.startDate')}
+                    value={form.startDate || ''}
+                    onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                    slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: todayInput } }}
+                  />
+                  <TextField
+                    type="date"
+                    label={tr('admin.pricing.form.endDate', 'pricing.form.endDate')}
+                    value={form.endDate || ''}
+                    onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                    slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: todayInput } }}
+                  />
+                </Box>
+              )}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <NumberField label={tr('admin.pricing.form.adultPrice', 'pricing.form.adultPrice')} value={form.adultPrice} onChange={(val) => setForm({ ...form, adultPrice: val ?? 0 })} min={0} />
+                <NumberField label={tr('admin.pricing.form.childrenPrice', 'pricing.form.childrenPrice')} value={form.childrenPrice} onChange={(val) => setForm({ ...form, childrenPrice: val ?? 0 })} min={0} />
+              </Box>
+              <FormControlLabel control={<Switch checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />} label={tr('admin.pricing.form.active', 'pricing.form.active')} />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDialogOpen(false)}>{tr('admin.pricing.actions.cancel', 'pricing.actions.cancel')}</Button>
+            <Button variant="contained" onClick={saveRule}>{tr('admin.pricing.actions.save', 'pricing.actions.save')}</Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
+
+  );
+};
+
+export default PriceManagement;

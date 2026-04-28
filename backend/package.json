@@ -1,7 +1,7 @@
 {
   "name": "banana-ranch-backend",
   "version": "1.0.0",
-  "description": "Backend server for Banana Ranch Villages eco-hotel and aqua park",
+  "description": "Backend server for Banana Aqua Park eco-hotel and aqua park",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
