@@ -146,7 +146,7 @@ export default function ContactPage() {
       {/* Map placeholder */}
       <Box sx={{ mt: 8 }}>
         <Typography variant="h4" gutterBottom sx={{ textAlign: 'center' }}>{t('pages.contact.findUs')}</Typography>
-        <Paper elevation={4} sx={{ mt: 4, borderRadius: 3, overflow: 'hidden', height: 400, bgcolor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Paper elevation={4} sx={{ mt: 4, borderRadius: 3, overflow: 'hidden', bgcolor: '#f5f5f5' }}>
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d242052.31415158242!2d-68.7280879895148!3d18.570999468394838!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8ea8b0d9be138b95%3A0xcc1f760ddb2c00ab!2sBANANA%20Ranch%20Villages!5e0!3m2!1sen!2sdo!4v1776963612106!5m2!1sen!2sdo"
             width="100%"

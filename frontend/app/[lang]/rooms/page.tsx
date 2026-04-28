@@ -636,16 +636,22 @@ export default function RoomsPage() {
 
                     {/* Calendar dropdown – absolutely positioned so it can overflow the card */}
                     {showDatePicker && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 'calc(100% + 4px)',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          zIndex: 1300,
-                          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.18))',
-                        }}
-                      >
+                      <>
+                        {/* Transparent backdrop — closes picker on tap/click outside */}
+                        <Box
+                          sx={{ position: 'fixed', inset: 0, zIndex: 1299 }}
+                          onClick={() => setShowDatePicker(false)}
+                        />
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 'calc(100% + 4px)',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            zIndex: 1300,
+                            filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.18))',
+                          }}
+                        >
                         <DateRangePicker
                           startDate={toDateStr(bookingData.checkInDate)}
                           endDate={toDateStr(bookingData.checkOutDate)}
@@ -660,7 +666,8 @@ export default function RoomsPage() {
                             if (start && end) setTimeout(() => setShowDatePicker(false), 400);
                           }}
                         />
-                      </Box>
+                        </Box>
+                      </>
                     )}
                   </Box>
 
