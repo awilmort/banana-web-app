@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -36,9 +36,31 @@ const SingleDatePicker: React.FC<SingleDatePickerProps> = ({
   const theme = useTheme();
   const minDateStr = minDate ?? '';
 
-  const today = new Date();
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const getInitialView = (dateStr: string) => {
+    if (dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (!isNaN(d.getTime())) return { year: d.getFullYear(), month: d.getMonth() };
+    }
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
+  };
+
+  const initial = getInitialView(value);
+  const [viewYear, setViewYear] = useState(initial.year);
+  const [viewMonth, setViewMonth] = useState(initial.month);
+
+  const prevValueRef = useRef(value);
+  useEffect(() => {
+    const prev = prevValueRef.current;
+    prevValueRef.current = value;
+    if (value && !prev) {
+      const d = new Date(value + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        setViewYear(d.getFullYear());
+        setViewMonth(d.getMonth());
+      }
+    }
+  }, [value]);
 
   const rightYear = viewMonth === 11 ? viewYear + 1 : viewYear;
   const rightMonth = viewMonth === 11 ? 0 : viewMonth + 1;

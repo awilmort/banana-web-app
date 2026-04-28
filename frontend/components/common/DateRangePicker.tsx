@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -49,9 +49,31 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   // No default minDate in admin context (allow any date)
   const minDateStr = minDate ?? '';
 
-  const today = new Date();
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const getInitialView = (dateStr: string) => {
+    if (dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (!isNaN(d.getTime())) return { year: d.getFullYear(), month: d.getMonth() };
+    }
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
+  };
+
+  const initial = getInitialView(startDate);
+  const [viewYear, setViewYear] = useState(initial.year);
+  const [viewMonth, setViewMonth] = useState(initial.month);
+
+  const prevStartDateRef = useRef(startDate);
+  useEffect(() => {
+    const prev = prevStartDateRef.current;
+    prevStartDateRef.current = startDate;
+    if (startDate && !prev) {
+      const d = new Date(startDate + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        setViewYear(d.getFullYear());
+        setViewMonth(d.getMonth());
+      }
+    }
+  }, [startDate]);
 
   const [selecting, setSelecting] = useState<'start' | 'end'>('start');
   const [hoverDate, setHoverDate] = useState<string | null>(null);
