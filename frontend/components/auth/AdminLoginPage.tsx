@@ -8,7 +8,7 @@ import {
 import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
 import NextLink from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface LoginFormData {
@@ -16,18 +16,21 @@ interface LoginFormData {
   password: string;
 }
 
+interface AdminLoginPageProps {
+  redirectTarget?: string;
+}
+
+const defaultRedirectTarget = '/admin';
+
 /**
  * Admin login page — authenticates and redirects to /admin.
  * Will be replaced with the full component imported from CRA in Phase 3.
  */
-export default function AdminLoginPage() {
+export default function AdminLoginPage({ redirectTarget = defaultRedirectTarget }: AdminLoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { login, isAuthenticated, loading } = useAuth();
-  const requestedNext = searchParams.get('next');
-  const redirectTarget = requestedNext && requestedNext.startsWith('/admin') ? requestedNext : '/admin';
 
   React.useEffect(() => {
     if (!loading && isAuthenticated) {
