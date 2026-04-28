@@ -2,13 +2,15 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Button, Chip, Container, Divider, Grid, Paper, Typography, TextField, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Tooltip } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';
 import { Reservation } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { reservationsService } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import NumberField from '@/components/common/NumberField';
 import { formatMoney } from '@/utils/currency';
+import SingleDatePicker from '@/components/common/SingleDatePicker';
+import DateRangePicker from '@/components/common/DateRangePicker';
 
 type Props = {
   reservation: Reservation;
@@ -22,13 +24,30 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
   const { user, permissions } = useAuth();
   const isAdmin = String(user?.role).toLowerCase() === 'admin';
   const canManagePayments = isAdmin || (permissions || []).includes('admin.reservations.managePayments');
+  const canEditDates = isAdmin || (permissions || []).includes('admin.reservations.update');
   const { t } = useTranslation();
   const paymentsDisabled = current.status === 'cancelled';
+  const isImmutable = current.status === 'completed' || current.status === 'cancelled';
+
+  // Date editing state
+  const [editingDates, setEditingDates] = useState(false);
+  const [editCheckIn, setEditCheckIn] = useState('');
+  const [editCheckOut, setEditCheckOut] = useState('');
+  const [savingDates, setSavingDates] = useState(false);
+  const [datesError, setDatesError] = useState<string | null>(null);
+
+  // Extract YYYY-MM-DD from ISO string without timezone conversion
+  const toDateStr = (dateString?: string): string => {
+    if (!dateString) return '';
+    return String(dateString).split('T')[0];
+  };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     try {
-      return new Date(dateString).toLocaleDateString();
+      const dateOnly = String(dateString).split('T')[0];
+      const [y, m, d] = dateOnly.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString();
     } catch {
       return String(dateString);
     }
@@ -123,7 +142,87 @@ const ReservationDetails: React.FC<Props> = ({ reservation, onBack, onUpdated })
             <Typography variant="subtitle2" gutterBottom>{t('admin.reservations.details.section.reservation')}</Typography>
             <Box sx={{ pl: 1 }}>
               <Typography variant="body2"><strong>{t('admin.reservations.details.labels.type')}:</strong> {current.type}</Typography>
-              <Typography variant="body2"><strong>{t('admin.reservations.details.labels.dates')}:</strong> {formatDate(current.checkInDate)} {current.checkOutDate ? `- ${formatDate(current.checkOutDate)}` : ''}</Typography>
+
+              {/* Dates row with inline editing */}
+              {editingDates ? (
+                <Box sx={{ mt: 1, mb: 1 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    {(current.type === 'room' || current.type === 'event') ? (
+                      <DateRangePicker
+                        startDate={editCheckIn}
+                        endDate={editCheckOut}
+                        onChange={(start, end) => { setEditCheckIn(start); setEditCheckOut(end); }}
+                      />
+                    ) : (
+                      <SingleDatePicker
+                        value={editCheckIn}
+                        onChange={date => setEditCheckIn(date)}
+                      />
+                    )}
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <Tooltip title={t('common.save', 'Save')}>
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          disabled={savingDates || !editCheckIn}
+                          onClick={async () => {
+                            setSavingDates(true);
+                            setDatesError(null);
+                            try {
+                              const payload: any = { checkInDate: editCheckIn };
+                              if (current.type === 'room' || current.type === 'event') {
+                                payload.checkOutDate = editCheckOut;
+                              }
+                              const res = await reservationsService.updateReservation(current._id, payload);
+                              const updated = res.data.data as Reservation;
+                              setCurrent(updated);
+                              if (onUpdated) onUpdated(updated);
+                              setEditingDates(false);
+                            } catch (err: any) {
+                              setDatesError(err?.response?.data?.message || t('admin.reservations.details.errors.updateFailed', 'Failed to update dates'));
+                            } finally {
+                              setSavingDates(false);
+                            }
+                          }}
+                        >
+                          <SaveIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={t('common.cancel', 'Cancel')}>
+                        <IconButton size="small" onClick={() => { setEditingDates(false); setDatesError(null); }}>
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Box>
+                  {datesError && (
+                    <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>{datesError}</Typography>
+                  )}
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="body2">
+                    <strong>{t('admin.reservations.details.labels.dates')}:</strong> {formatDate(current.checkInDate)} {current.checkOutDate ? `- ${formatDate(current.checkOutDate)}` : ''}
+                  </Typography>
+                  {canEditDates && !isImmutable && (
+                    <Tooltip title={t('admin.reservations.details.actions.editDates', 'Edit dates')}>
+                      <IconButton
+                        size="small"
+                        sx={{ p: 0.25 }}
+                        onClick={() => {
+                          setEditCheckIn(toDateStr(current.checkInDate));
+                          setEditCheckOut(toDateStr(current.checkOutDate));
+                          setDatesError(null);
+                          setEditingDates(true);
+                        }}
+                      >
+                        <EditIcon sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
+              )}
+
               <Typography variant="body2"><strong>{t('admin.reservations.details.labels.guests')}:</strong> {current.guestDetails.adults} {t('admin.schedule.cards.adults')}, {current.guestDetails.children} {t('admin.schedule.cards.children')}, {current.guestDetails.infants} {t('admin.schedule.cards.infants')}</Typography>
               {current.reservationCode && (
                 <Typography variant="body2"><strong>{t('admin.reservations.details.labels.reservationCode')}:</strong> {current.reservationCode}</Typography>

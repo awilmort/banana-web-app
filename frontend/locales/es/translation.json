@@ -1222,7 +1222,7 @@
         "errorCheckoutAfterCheckin": "La fecha de salida debe ser posterior a la llegada",
         "errorPastDate": "La fecha de llegada no puede ser en el pasado",
         "errorAdultRequired": "Se requiere al menos un adulto",
-        "errorContactRequired": "Teléfono y correo electrónico son obligatorios",
+        "errorContactRequired": "El correo electrónico es obligatorio",
         "errorEmailInvalid": "Por favor ingresa un correo electrónico válido",
         "errorBookingFailed": "No se pudo crear la reserva. Inténtalo de nuevo.",
         "guestInfoTitle": "Información del huésped",

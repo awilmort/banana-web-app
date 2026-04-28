@@ -49,6 +49,8 @@ import { useTranslation } from 'react-i18next';
 import NumberField from '@/components/common/NumberField';
 import { formatMoney } from '@/utils/currency';
 import CreateReservationDialog from '@/components/admin/CreateReservationDialog';
+import SingleDatePicker from '@/components/common/SingleDatePicker';
+import DateRangePicker from '@/components/common/DateRangePicker';
 
 const ReservationManagement: React.FC = () => {
   const { t } = useTranslation();
@@ -283,7 +285,9 @@ const ReservationManagement: React.FC = () => {
 
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    const dateOnly = String(dateString).split('T')[0];
+    const [y, m, d] = dateOnly.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString();
   };
 
   const formatDateTime = (dateString?: string) => {
@@ -296,11 +300,8 @@ const ReservationManagement: React.FC = () => {
   };
 
   const toInputDate = (dateString: string) => {
-    const d = new Date(dateString);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    if (!dateString) return '';
+    return String(dateString).split('T')[0];
   };
 
   const addOneDay = (dateStr: string) => {
@@ -319,6 +320,12 @@ const ReservationManagement: React.FC = () => {
     return { ci, co };
   };
 
+  const countNights = (checkIn: string, checkOut: string): number => {
+    const ci = new Date(checkIn + 'T00:00:00');
+    const co = new Date(checkOut + 'T00:00:00');
+    return Math.max(1, Math.round((co.getTime() - ci.getTime()) / (1000 * 60 * 60 * 24)));
+  };
+
   // Refresh available rooms when dates in the edit form change
   useEffect(() => {
     if (!editDialog.open) return;
@@ -330,6 +337,25 @@ const ReservationManagement: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editDialog.open, editForm.checkInDate, editForm.checkOutDate]);
+
+  // Auto-recalculate total price when dates, guest counts, or unit prices change in the edit form
+  useEffect(() => {
+    if (!editDialog.open) return;
+    const type = editDialog.reservation?.type;
+    if (type === 'event') return; // keep manual for events
+    if (!editForm.checkInDate || !editForm.adultPrice) return;
+    if (type === 'room') {
+      if (!editForm.checkOutDate) return;
+      const nights = countNights(editForm.checkInDate, editForm.checkOutDate);
+      const total = nights * (editForm.adultPrice * editForm.adults + editForm.childrenPrice * editForm.children);
+      setEditForm(f => ({ ...f, totalPrice: Math.round(total) }));
+    } else {
+      // daypass, PasaTarde
+      const total = editForm.adultPrice * editForm.adults + editForm.childrenPrice * editForm.children;
+      setEditForm(f => ({ ...f, totalPrice: Math.round(total) }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editDialog.open, editForm.checkInDate, editForm.checkOutDate, editForm.adults, editForm.children, editForm.adultPrice, editForm.childrenPrice]);
 
   const isImmutableReservation = (res?: Reservation | null) => {
     if (!res) return false;
@@ -887,23 +913,33 @@ const ReservationManagement: React.FC = () => {
                   </Typography>
                 </Box>
               )}
-              <TextField
-                label={t('admin.reservations.form.checkinDate')}
-                type="date"
-                value={editForm.checkInDate}
-                onChange={(e) => setEditForm({ ...editForm, checkInDate: e.target.value })}
-                slotProps={{ inputLabel: { shrink: true } }}
-                disabled={editImmutable}
-              />
-              {(editDialog.reservation?.type === 'room' || editDialog.reservation?.type === 'event') && (
-                <TextField
-                  label={t('admin.reservations.form.checkoutDate')}
-                  type="date"
-                  value={editForm.checkOutDate}
-                  onChange={(e) => setEditForm({ ...editForm, checkOutDate: e.target.value })}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  disabled={editImmutable}
+              {!editImmutable && (editDialog.reservation?.type === 'room' || editDialog.reservation?.type === 'event') ? (
+                <DateRangePicker
+                  startDate={editForm.checkInDate}
+                  endDate={editForm.checkOutDate}
+                  onChange={(start, end) => setEditForm(f => ({ ...f, checkInDate: start, checkOutDate: end }))}
                 />
+              ) : !editImmutable ? (
+                <SingleDatePicker
+                  value={editForm.checkInDate}
+                  onChange={date => setEditForm(f => ({ ...f, checkInDate: date }))}
+                />
+              ) : (
+                /* immutable: show read-only text fields */
+                <>
+                  <TextField
+                    label={t('admin.reservations.form.checkinDate')}
+                    value={editForm.checkInDate}
+                    slotProps={{ input: { readOnly: true }, inputLabel: { shrink: true } }}
+                  />
+                  {(editDialog.reservation?.type === 'room' || editDialog.reservation?.type === 'event') && (
+                    <TextField
+                      label={t('admin.reservations.form.checkoutDate')}
+                      value={editForm.checkOutDate}
+                      slotProps={{ input: { readOnly: true }, inputLabel: { shrink: true } }}
+                    />
+                  )}
+                </>
               )}
               {editDialog.reservation?.type === 'room' && (
                 <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(2, 1fr)' }}>

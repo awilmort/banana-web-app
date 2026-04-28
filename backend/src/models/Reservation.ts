@@ -280,8 +280,8 @@ const reservationSchema = new Schema<IReservation>({
   contactInfo: {
     phone: {
       type: String,
-      required: true,
-      // No strict format validation; required but flexible
+      required: false,
+      // No strict format validation; optional
     },
     email: {
       type: String,

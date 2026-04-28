@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import { Reservation } from '@/types';
 import { reservationsService, roomsService, pricingService } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { findApplicablePricing, PricingRule } from '@/utils/pricing';
 import { formatMoney } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
@@ -103,6 +104,8 @@ const DEFAULT_FORM = {
   infants:         0,
   specialRequests: '',
   totalPrice:      0,
+  adultPrice:      0,
+  childPrice:      0,
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -111,6 +114,9 @@ const CreateReservationDialog: React.FC<Props> = ({
   defaultType, defaultCheckIn, defaultCheckOut, defaultRoomId,
 }) => {
   const { t } = useTranslation();
+  const { user, permissions } = useAuth();
+  const isAdmin = String(user?.role).toLowerCase() === 'admin';
+  const canUpdatePrice = isAdmin || (permissions || []).includes('admin.reservations.priceUpdate');
 
   const [createStep, setCreateStep]     = useState<0 | 1 | 2 | 3>(0);
   const [createForm, setCreateForm]     = useState(DEFAULT_FORM);
@@ -191,24 +197,31 @@ const CreateReservationDialog: React.FC<Props> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, createForm.type]);
 
-  // ── Recalculate total price whenever relevant fields change ──────────────
+  // ── Sync per-unit rates from pricing rule when rule/type/date changes ──────
   useEffect(() => {
     if (!createForm.checkInDate) return;
     const date = new Date(createForm.checkInDate + 'T00:00:00');
     const rule = findApplicablePricing(pricingRules, date);
     if (!rule) return;
+    setCreateForm(f => ({ ...f, adultPrice: rule.adultPrice, childPrice: rule.childrenPrice }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricingRules, createForm.type, createForm.checkInDate]);
+
+  // ── Recalculate total price whenever rates or guest counts change ───────────
+  useEffect(() => {
+    if (!createForm.checkInDate || !createForm.adultPrice) return;
 
     if (createForm.type === 'room') {
       if (!createForm.checkOutDate) return;
       const nights = countNights(createForm.checkInDate, createForm.checkOutDate);
-      const total = nights * (rule.adultPrice * createForm.adults + rule.childrenPrice * createForm.children);
+      const total = nights * (createForm.adultPrice * createForm.adults + createForm.childPrice * createForm.children);
       setCreateForm(f => ({ ...f, totalPrice: Math.round(total) }));
     } else if (createForm.type !== 'event') {
-      const total = rule.adultPrice * createForm.adults + rule.childrenPrice * createForm.children;
+      const total = createForm.adultPrice * createForm.adults + createForm.childPrice * createForm.children;
       setCreateForm(f => ({ ...f, totalPrice: Math.round(total) }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pricingRules, createForm.type, createForm.checkInDate, createForm.checkOutDate, createForm.adults, createForm.children]);
+  }, [createForm.type, createForm.checkInDate, createForm.checkOutDate, createForm.adults, createForm.children, createForm.adultPrice, createForm.childPrice]);
 
   const resetDialog = () => {
     setCreateForm(DEFAULT_FORM);
@@ -295,18 +308,16 @@ const CreateReservationDialog: React.FC<Props> = ({
     return map[type] || type;
   };
 
-  // Computed price preview label
+  // Computed price preview label — uses current form rates (which reflect any user override)
   const pricePreviewLabel = (() => {
-    if (!createForm.checkInDate) return null;
-    const date = new Date(createForm.checkInDate + 'T00:00:00');
-    const rule = findApplicablePricing(pricingRules, date);
-    if (!rule) return null;
+    if (!createForm.checkInDate || !createForm.adultPrice) return null;
     if (createForm.type === 'room') {
       if (!createForm.checkOutDate) return null;
       const nights = countNights(createForm.checkInDate, createForm.checkOutDate);
-      return { nights, adultRate: rule.adultPrice, childrenRate: rule.childrenPrice };
+      return { nights, adultRate: createForm.adultPrice, childrenRate: createForm.childPrice };
     }
-    return { adultRate: rule.adultPrice, childrenRate: rule.childrenPrice };
+    if (createForm.type === 'event') return null;
+    return { adultRate: createForm.adultPrice, childrenRate: createForm.childPrice };
   })();
 
   return (
@@ -620,12 +631,31 @@ const CreateReservationDialog: React.FC<Props> = ({
               <TextField fullWidth size="small" type="email" label={t('admin.reservations.form.email', 'Email')} value={createForm.email} onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} required />
               <TextField fullWidth size="small" label={t('admin.reservations.form.phone', 'Phone')} value={createForm.phone} onChange={e => setCreateForm(f => ({ ...f, phone: e.target.value }))} />
             </Box>
+            {canUpdatePrice && (
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  fullWidth size="small" type="number"
+                  label={t('admin.reservations.form.adultPrice', 'Adult Price (per person)')}
+                  value={createForm.adultPrice}
+                  onChange={e => setCreateForm(f => ({ ...f, adultPrice: Number(e.target.value) || 0 }))}
+                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                />
+                <TextField
+                  fullWidth size="small" type="number"
+                  label={t('admin.reservations.form.childPrice', 'Child Price (per child)')}
+                  value={createForm.childPrice}
+                  onChange={e => setCreateForm(f => ({ ...f, childPrice: Number(e.target.value) || 0 }))}
+                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                />
+              </Box>
+            )}
             <TextField
               fullWidth size="small" type="number"
               label={t('admin.reservations.form.estimatedPrice', 'Total Price')}
               value={createForm.totalPrice}
-              onChange={e => setCreateForm(f => ({ ...f, totalPrice: Number(e.target.value) || 0 }))}
-              slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+              onChange={e => canUpdatePrice && setCreateForm(f => ({ ...f, totalPrice: Number(e.target.value) || 0 }))}
+              slotProps={{ htmlInput: { min: 0, step: 0.01, readOnly: !canUpdatePrice } }}
+              helperText={!canUpdatePrice ? t('admin.reservations.form.priceReadOnly', 'Price is auto-calculated') : undefined}
             />
             <TextField
               fullWidth size="small" multiline rows={3}
@@ -675,6 +705,28 @@ const CreateReservationDialog: React.FC<Props> = ({
                   </Box>
                 )}
                 <Box sx={{ gridColumn: '1 / -1', pt: 1.5, mt: 0.5, borderTop: 1, borderColor: 'divider' }}>
+                  {pricePreviewLabel && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {createForm.adults} {t('admin.reservations.form.adults')} × {formatMoney((pricePreviewLabel as any).adultRate)}{(pricePreviewLabel as any).nights ? ` × ${(pricePreviewLabel as any).nights} ${t('admin.reservations.create.nights', 'nights')}` : ''}
+                        </Typography>
+                        <Typography variant="body2">
+                          {formatMoney(createForm.adults * (pricePreviewLabel as any).adultRate * ((pricePreviewLabel as any).nights ?? 1))}
+                        </Typography>
+                      </Box>
+                      {createForm.children > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {createForm.children} {t('admin.reservations.form.children')} × {formatMoney((pricePreviewLabel as any).childrenRate)}{(pricePreviewLabel as any).nights ? ` × ${(pricePreviewLabel as any).nights} ${t('admin.reservations.create.nights', 'nights')}` : ''}
+                          </Typography>
+                          <Typography variant="body2">
+                            {formatMoney(createForm.children * (pricePreviewLabel as any).childrenRate * ((pricePreviewLabel as any).nights ?? 1))}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
                   <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.main">
                     {t('admin.reservations.form.totalPrice', 'Total')}: {formatMoney(createForm.totalPrice)}
                   </Typography>

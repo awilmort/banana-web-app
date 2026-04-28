@@ -74,6 +74,34 @@ const getGuestName = (res: Reservation, fallback: string) => {
   return fallback;
 };
 
+/**
+ * Assigns each reservation to a vertical lane so that overlapping reservations
+ * occupy different lanes (rows within the same calendar row).
+ * Returns a map of reservation._id → lane index (0-based).
+ */
+const assignLanes = (reservations: Reservation[]): Map<string, number> => {
+  const sorted = [...reservations].sort(
+    (a, b) => dayjs(a.checkInDate).valueOf() - dayjs(b.checkInDate).valueOf(),
+  );
+  const laneEnds: Dayjs[] = [];
+  const result = new Map<string, number>();
+  for (const res of sorted) {
+    const ci = dayjs(res.checkInDate).startOf('day');
+    const co = res.checkOutDate
+      ? dayjs(res.checkOutDate).startOf('day')
+      : ci.add(1, 'day');
+    let lane = laneEnds.findIndex(end => !end.isAfter(ci));
+    if (lane === -1) {
+      lane = laneEnds.length;
+      laneEnds.push(co);
+    } else {
+      laneEnds[lane] = co;
+    }
+    result.set(res._id, lane);
+  }
+  return result;
+};
+
 // ─── Component ───────────────────────────────────────────────────────────────
 const BookingCalendar: React.FC = () => {
   const { t } = useTranslation();
@@ -184,7 +212,7 @@ const BookingCalendar: React.FC = () => {
   };
 
   // ── Reservation bar ────────────────────────────────────────────────────────
-  const renderBar = (res: Reservation) => {
+  const renderBar = (res: Reservation, topOverride?: number) => {
     const bar = calcBar(res);
     if (!bar) return null;
 
@@ -207,7 +235,7 @@ const BookingCalendar: React.FC = () => {
           }}
           sx={{
             position:   'absolute',
-            top:        8,
+            top:        topOverride ?? 8,
             height:     ROW_H - 16,
             left:       bar.left,
             width:      bar.width,
@@ -233,7 +261,7 @@ const BookingCalendar: React.FC = () => {
   };
 
   // ── Shared day-grid lines inside a row ────────────────────────────────────
-  const renderGridLines = () =>
+  const renderGridLines = (height: number = ROW_H) =>
     days.map((day, i) => (
       <div
         key={i}
@@ -242,7 +270,7 @@ const BookingCalendar: React.FC = () => {
           left:        i * CELL_W,
           top:         0,
           width:       CELL_W,
-          height:      ROW_H,
+          height:      height,
           borderRight: '1px solid rgba(0,0,0,0.07)',
           background:  day.isSame(today, 'day') ? 'rgba(59,130,246,0.06)' : 'transparent',
           boxSizing:   'border-box',
@@ -257,7 +285,12 @@ const BookingCalendar: React.FC = () => {
     rowReservations: Reservation[],
     isUnassigned: boolean,
     stripeIdx: number,
+    laneMap?: Map<string, number>,
   ) => {
+    const numLanes = laneMap && laneMap.size > 0
+      ? Math.max(...laneMap.values()) + 1
+      : 1;
+    const rowHeight = numLanes * ROW_H;
     const bg = isUnassigned ? '#FFFBEB' : stripeIdx % 2 === 0 ? '#ffffff' : '#F8FAFC';
 
     const getDayIdx = (e: React.MouseEvent<HTMLTableCellElement>) => {
@@ -305,7 +338,7 @@ const BookingCalendar: React.FC = () => {
       ? Math.max(dragStartIdx, dragEndIdx) : null;
 
     return (
-      <tr key={key} style={{ height: ROW_H }}>
+      <tr key={key} style={{ height: rowHeight }}>
         {/* Sticky room-name cell */}
         <td
           style={{
@@ -342,7 +375,7 @@ const BookingCalendar: React.FC = () => {
             position:      'relative',
             width:         CELL_W * DAYS,
             minWidth:      CELL_W * DAYS,
-            height:        ROW_H,
+            height:        rowHeight,
             padding:       0,
             borderBottom:  '1px solid rgba(0,0,0,0.07)',
             background:    bg,
@@ -352,7 +385,7 @@ const BookingCalendar: React.FC = () => {
             userSelect:    'none',
           }}
         >
-          {renderGridLines()}
+          {renderGridLines(rowHeight)}
 
           {/* Drag-selection highlight overlay */}
           {selLo !== null && selHi !== null && (
@@ -372,7 +405,11 @@ const BookingCalendar: React.FC = () => {
             />
           )}
 
-          {rowReservations.map(res => renderBar(res))}
+          {rowReservations.map(res => {
+            const lane = laneMap?.get(res._id) ?? 0;
+            const top  = lane * ROW_H + 8;
+            return renderBar(res, top);
+          })}
         </td>
       </tr>
     );
@@ -392,8 +429,9 @@ const BookingCalendar: React.FC = () => {
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, []);
 
-  const unassigned    = reservationsByRoom['__unassigned'] ?? [];
-  const hasUnassigned = unassigned.length > 0;
+  const unassigned         = reservationsByRoom['__unassigned'] ?? [];
+  const hasUnassigned      = unassigned.length > 0;
+  const unassignedLaneMap  = useMemo(() => assignLanes(unassigned), [unassigned]);
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
@@ -591,6 +629,7 @@ const BookingCalendar: React.FC = () => {
                     unassigned,
                     true,
                     rooms.length,
+                    unassignedLaneMap,
                   )}
 
                   {/* Empty state */}

@@ -1187,7 +1187,7 @@
         "errorCheckoutAfterCheckin": "Check-out must be after check-in",
         "errorPastDate": "Check-in date cannot be in the past",
         "errorAdultRequired": "At least one adult is required",
-        "errorContactRequired": "Phone and email are required",
+        "errorContactRequired": "Email is required",
         "errorEmailInvalid": "Please enter a valid email address",
         "errorBookingFailed": "Failed to create booking. Please try again.",
         "guestInfoTitle": "Guest information",

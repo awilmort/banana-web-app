@@ -237,7 +237,7 @@ export default function RoomsPage() {
   const handleConfirmBooking = async () => {
     setBookingError(null);
     if (bookingData.adults < 1) { setBookingError(t('pages.rooms.booking.errorAdultRequired')); return; }
-    if (!bookingData.contactInfo.phone || !bookingData.contactInfo.email) {
+    if (!bookingData.contactInfo.email) {
       setBookingError(t('pages.rooms.booking.errorContactRequired'));
       return;
     }
@@ -807,7 +807,7 @@ export default function RoomsPage() {
                       onChange={(e) => setBookingData((p) => ({ ...p, contactInfo: { ...p.contactInfo, email: e.target.value } }))}
                     />
                     <TextField
-                      fullWidth required size="small"
+                      fullWidth size="small"
                       label={t('pages.rooms.booking.phone')}
                       value={bookingData.contactInfo.phone}
                       onChange={(e) => setBookingData((p) => ({ ...p, contactInfo: { ...p.contactInfo, phone: e.target.value } }))}
