@@ -1,0 +1,1801 @@
+{
+  "common": {
+    "language": "Language",
+    "english": "English",
+    "spanish": "Español",
+    "yes": "Yes",
+    "no": "No",
+    "guestDistribution": "Guest Distribution",
+    "back": "Back",
+    "email": "Email",
+    "phone": "Phone",
+    "country": "Country",
+    "notes": "Notes",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "search": "Search...",
+    "actions": "Actions",
+    "confirmDelete": "Confirm Delete",
+    "noData": "No data found",
+    "errorLoading": "Error loading data",
+    "errorSaving": "Error saving",
+    "errorDeleting": "Error deleting",
+    "continue": "Continue",
+    "saving": "Saving..."
+  },
+  "guests": {
+    "title": "Guests",
+    "subtitle": "View and manage guest profiles",
+    "addGuest": "Add Guest",
+    "editGuest": "Edit Guest",
+    "name": "Name",
+    "memberSince": "Member Since",
+    "total": "guests",
+    "reservationHistory": "Reservation History",
+    "deleteConfirm": "Are you sure you want to delete this guest record? This action cannot be undone.",
+    "messages": {
+      "loadFailed": "Failed to load guests",
+      "saveFailed": "Failed to save guest",
+      "deleteFailed": "Failed to delete guest"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "checkinCancelledGuard": "Cannot check-in a cancelled reservation",
+    "rooms": "Rooms",
+    "daypass": "Day Pass",
+    "afternoonPass": "Afternoon Pass",
+    "events": "Events",
+    "gallery": "Gallery",
+    "journal": "Our Journal",
+    "contact": "Contact",
+    "howToGetHere": "How to Get Here"
+  },
+  "auth": {
+    "welcome": "Welcome, {{name}}!",
+    "profile": "Profile",
+    "myReservations": "My Reservations",
+    "adminDashboard": "Admin Dashboard",
+    "logout": "Logout",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "daypass": {
+    "heroTitle": "Day Pass Experience",
+    "heroSubtitle": "Enjoy all our resort facilities for the day",
+    "pasatardeHeroTitle": "Afternoon Pass Experience",
+    "pasatardeHeroSubtitle": "Enjoy all our resort facilities from 1:30 PM to 5:00 PM",
+    "bookTitle": "Book Your Day Pass",
+    "bookTitlePasaTarde": "Book Your Afternoon Pass",
+    "visitDate": "Visit Date",
+    "guestDistribution": "Guest Distribution",
+    "adults": "Adults",
+    "children": "Children (4-9 years)",
+    "infants": "Infants (0-3 years)",
+    "contactInfo": "Contact Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone Number",
+    "country": "Country",
+    "specialRequests": "Special Requests",
+    "specialRequestsPlaceholder": "Any special requirements, dietary restrictions, accessibility needs, etc.",
+    "bookButton": "Book Day Pass - {{price}}",
+    "bookButtonPasaTarde": "Book Afternoon Pass - {{price}}",
+    "successDaypassTitle": "Day Pass Booked Successfully!",
+    "successPasaTardeTitle": "Afternoon Pass Booked Successfully!",
+    "successBody": "Your {{product}} for {{date}} has been confirmed. We look forward to welcoming you to our tropical paradise!",
+    "productDayPass": "day pass",
+    "productPasaTarde": "afternoon pass",
+    "viewReservations": "View My Reservations",
+    "bookAnotherDayPass": "Book Another Day Pass",
+    "bookAnotherPasaTarde": "Book Another Afternoon Pass",
+    "pricingTitle": "Pricing Summary",
+    "adultPrice": "Adult: {{price}}",
+    "childPrice": "Child: {{price}}",
+    "total": "Total: {{price}}",
+    "includedTitle": "What's Included",
+    "includedPool": "Pool Access",
+    "includedParking": "Free Parking",
+    "includedWifi": "Free WiFi",
+    "includedChangingRooms": "Changing Rooms",
+    "includedLounge": "Lounge Areas",
+    "includedAquaPark": "Aqua Park Access",
+    "validityDayPass": "DayPass is valid from 9:00 AM to 5:00 PM on your selected date.",
+    "validityPasaTarde": "Afternoon Pass is valid from 1:30 PM to 5:00 PM on your selected date.",
+    "foodNotIncluded": "Food not included",
+    "currentRate": "Current rate: {{adult}} per adult • {{child}} per child",
+    "errors": {
+      "selectDate": "Please select a visit date",
+      "nameRequired": "Please enter your first and last name",
+      "emailRequired": "Please enter your email address",
+      "emailInvalid": "Please enter a valid email address",
+      "phoneRequired": "Please enter your phone number",
+      "adultsRequired": "At least one adult is required",
+      "bookingFailed": "Failed to book day pass"
+    }
+  },
+  "switcher": {
+    "daypass": "DayPass",
+    "pasatarde": "Afternoon Pass"
+  },
+  "footer": {
+    "description": "Experience paradise at our eco-friendly hotel and aqua park. Nestled in nature, we offer luxury accommodations and exciting water activities for the perfect tropical getaway.",
+    "quickLinks": "Quick Links",
+    "roomsAndSuites": "Rooms & Suites",
+    "contactUs": "Contact Us",
+    "portal": "Portal",
+    "ourServices": "Our Services",
+    "services": {
+      "luxuryAccommodations": "Luxury Accommodations",
+      "aquaPark": "Aqua Park & Water Sports",
+      "spaWellness": "Spa & Wellness",
+      "fineDining": "Fine Dining",
+      "conferenceFacilities": "Conference Facilities",
+      "eventPlanning": "Event Planning"
+    },
+    "contactInformation": "Contact Information",
+    "address": "Matachalupe, Higüey, Dominican Republic, 23000",
+    "phone": "+1 (829) 599-9540",
+    "email": "info@bananaaquapark.com",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyright": "© {{year}} Banana Aqua Park. All rights reserved."
+  },
+  "admin": {
+    "title": "Admin",
+    "panelTitle": "Admin Panel",
+    "nav": {
+      "dashboard": "Dashboard",
+      "revenue": "Revenue",
+      "schedule": "Schedule",
+      "accommodations": "Maintenance",
+      "rooms": "Rooms",
+      "amenities": "Amenities",
+      "eventTypes": "Event Types",
+      "wristbands": "Wristbands",
+      "pricing": "Pricing",
+      "reservations": "Reservations",
+      "users": "Users",
+      "roles": "Roles",
+      "commissions": "Commissions",
+      "contacts": "Contacts",
+      "media": "Media",
+      "analytics": "Analytics",
+      "settings": "Settings",
+      "guests": "Guests",
+      "bookingCalendar": "Calendar"
+    },
+    "header": {
+      "profile": "Profile",
+      "dashboard": "Dashboard"
+    },
+    "revenue": {
+      "title": "Revenue",
+      "filters": {
+        "from": "From",
+        "to": "To",
+        "apply": "Apply"
+      },
+      "cards": {
+        "daypass": "DayPass",
+        "room": "Room Reservations",
+        "events": "Events (Total Guests)",
+        "pasatarde": "Afternoon Pass (Total Guests)"
+      },
+      "summary": {
+        "totalIncome": "Total Income",
+        "totalIncomeCash": "Total Income Cash",
+        "totalIncomeTransfers": "Total Income Transfers",
+        "totalIncomeCard": "Total Income Card"
+      },
+      "pending": {
+        "title": "Pending Payments",
+        "table": {
+          "guest": "Guest",
+          "type": "Type",
+          "endedOn": "Ended On",
+          "balanceDue": "Balance Due"
+        }
+      },
+      "typeLabels": {
+        "room": "Room",
+        "daypass": "Day Pass",
+        "pasatarde": "Afternoon Pass",
+        "event": "Event"
+      },
+      "breakdown": {
+        "guest": "Guest",
+        "adults": "Adults",
+        "adultPrice": "Adult Price",
+        "children": "Children",
+        "childPrice": "Child Price",
+        "total": "Total",
+        "noRecords": "No records"
+      }
+    },
+    "common": {
+      "accessDenied": "Access denied. You must be an administrator to view this page."
+    },
+    "rooms": {
+      "title": "Rooms Management",
+      "subtitle": "Manage hotel rooms and details",
+      "searchRooms": "Search rooms",
+      "roomType": "Room Type",
+      "allTypes": "All Types",
+      "types": {
+        "standard": "Standard",
+        "deluxe": "Deluxe",
+        "suite": "Suite",
+        "villa": "Villa"
+      },
+      "view": {
+        "cards": "Cards",
+        "table": "Table"
+      },
+      "roomsFound": "{{count}} rooms found",
+      "table": {
+        "name": "Name",
+        "type": "Type",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "statusLabels": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "empty": {
+        "title": "No rooms found",
+        "adjustFilters": "Try adjusting your search or filters",
+        "getStarted": "Get started by creating your first room"
+      },
+      "sections": {
+        "basicInfo": "Basic Information",
+        "statusCondition": "Status & Condition",
+        "features": "Features",
+        "amenities": "Amenities",
+        "images": "Images"
+      },
+      "form": {
+        "roomName": "Room Name",
+        "description": "Description",
+        "status": "Status",
+        "condition": "Condition",
+        "comment": "Comment",
+        "commentPlaceholder": "Optional note (max 500 chars)",
+        "bedConfiguration": "Bed Configuration",
+        "bedPlaceholder": "e.g., 1 King Bed, 2 Twin Beds",
+        "addAmenity": "Add Amenity"
+      },
+      "condition": {
+        "clean": "Clean",
+        "pending_cleanup": "Pending Clean Up"
+      },
+      "features": {
+        "wifi": "WiFi",
+        "airConditioning": "Air Conditioning",
+        "miniBar": "Mini Bar",
+        "balcony": "Balcony",
+        "oceanView": "Ocean View",
+        "kitchenette": "Kitchenette",
+        "jacuzzi": "Jacuzzi"
+      },
+      "images": {
+        "noneSelected": "No images selected.",
+        "useSelectFromMedia": "Use Select from Media to add."
+      },
+      "actions": {
+        "addNewRoom": "Add New Room",
+        "edit": "Edit",
+        "delete": "Delete",
+        "add": "Add",
+        "remove": "Remove",
+        "selectFromMedia": "Select from Media",
+        "cancel": "Cancel",
+        "createRoom": "Create Room",
+        "updateRoom": "Update Room"
+      },
+      "dialog": {
+        "createTitle": "Create New Room",
+        "editTitle": "Edit Room",
+        "deleteTitle": "Delete Room",
+        "deletePrompt": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+      },
+      "messages": {
+        "roomCreated": "Room created successfully",
+        "roomUpdated": "Room updated successfully",
+        "saveFailed": "Failed to save room",
+        "roomDeleted": "Room deleted successfully",
+        "deleteFailed": "Failed to delete room",
+        "loadFailed": "Failed to load rooms"
+      }
+    },
+    "roles": {
+      "title": "Roles Management",
+      "subtitle": "Create, edit, delete roles and assign permissions",
+      "loading": "Loading roles...",
+      "actions": {
+        "createRole": "Create Role",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "save": "Save",
+        "create": "Create"
+      },
+      "table": {
+        "name": "Name",
+        "description": "Description",
+        "permissions": "Permissions",
+        "actions": "Actions"
+      },
+      "empty": "No roles found.",
+      "dialog": {
+        "editTitle": "Edit Role",
+        "createTitle": "Create Role"
+      },
+      "form": {
+        "name": "Name",
+        "description": "Description"
+      },
+      "messages": {
+        "loadFailed": "Failed to load roles",
+        "deleteFailed": "Failed to delete role",
+        "updateFailed": "Failed to update role",
+        "createFailed": "Failed to create role"
+      },
+      "permissionLabels": {
+        "adminAccess": "Admin Access (General)",
+        "reservationsAssignRoom": "Reservations: Assign Room",
+        "reservationsManagePayments": "Reservations: Manage Payments",
+        "reservationsPriceUpdate": "Reservations: Price Update",
+        "reservationsAmountUpdate": "Reservations: Total Price Update",
+        "reservationsCheckIn": "Reservations: Check-in",
+        "reservationsCancel": "Reservations: Cancel",
+        "wristbandsView": "Wristbands: View",
+        "wristbandsManage": "Wristbands: Manage",
+        "salesman": "Salesman"
+      }
+    },
+    "commissions": {
+      "title": "Commissions",
+      "filters": {
+        "from": "From",
+        "to": "To",
+        "name": "Name",
+        "email": "Email",
+        "apply": "Apply"
+      },
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "totalGuests": "Total Guests",
+        "bookings": "Bookings"
+      }
+    },
+    "eventTypes": {
+      "title": "Event Types",
+      "actions": {
+        "newEventType": "New Event Type",
+        "cancel": "Cancel",
+        "save": "Save",
+        "create": "Create"
+      },
+      "table": {
+        "identifier": "Identifier",
+        "title": "Title",
+        "priceFrom": "Price From",
+        "maxGuests": "Max Guests",
+        "features": "Features",
+        "active": "Active",
+        "actions": "Actions"
+      },
+      "empty": "No event types found",
+      "dialog": {
+        "createTitle": "Create Event Type",
+        "editTitle": "Edit Event Type",
+        "deletePrompt": "Delete this event type?"
+      },
+      "form": {
+        "identifier": "Identifier",
+        "title": "Title",
+        "description": "Description",
+        "features": "Features (comma separated)",
+        "priceFrom": "Price From",
+        "maxGuests": "Max Guests",
+        "maxChildren": "Max Children",
+        "maxAdults": "Max Adults (optional)",
+        "maxAdultsHelper": "Leave blank to not enforce an adults cap",
+        "active": "Active"
+      },
+      "messages": {
+        "loadFailed": "Failed to load event types",
+        "saveFailed": "Failed to save event type",
+        "deleteFailed": "Failed to delete event type"
+      }
+    },
+    "wristbands": {
+      "title": "Wristband Control",
+      "deliveryDate": "Delivery Date",
+      "recipient": "Recipient",
+      "categoriesTitle": "Categories",
+      "categories": {
+        "daypassAdults": "DayPass Adults",
+        "daypassChildren": "DayPass Children",
+        "accommodations": "Accommodations",
+        "pasatarde": "Afternoon Pass"
+      },
+      "summary": {
+        "available": "Available",
+        "used": "Used",
+        "total": "Total"
+      },
+      "notes": "Notes",
+      "actions": {
+        "registerDelivery": "Register Delivery",
+        "addDelivery": "Add Delivery"
+      },
+      "table": {
+        "type": "Type",
+        "actions": "Actions"
+      },
+      "empty": "No deliveries found",
+      "messages": {
+        "createSuccess": "Wristband delivery recorded successfully",
+        "createFailed": "Failed to record wristband delivery",
+        "updateSuccess": "Wristband delivery updated successfully",
+        "updateFailed": "Failed to update wristband delivery",
+        "deleteSuccess": "Wristband delivery deleted",
+        "deleteFailed": "Failed to delete wristband delivery",
+        "confirmDelete": "Delete this wristband delivery?"
+      }
+    },
+    "amenities": {
+      "title": "Amenities Management",
+      "subtitle": "Manage resort amenities and features",
+      "loading": "Loading amenities...",
+      "inactive": "Inactive",
+      "order": "Order",
+      "actions": {
+        "addNewAmenity": "Add New Amenity",
+        "addFirstAmenity": "Add First Amenity",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "createAmenity": "Create Amenity",
+        "updateAmenity": "Update Amenity",
+        "selectFromMediaLibrary": "Select from Media Library"
+      },
+      "form": {
+        "name": "Amenity Name",
+        "description": "Description",
+        "image": "Amenity Image",
+        "category": "Category",
+        "displayOrder": "Display Order",
+        "active": "Active"
+      },
+      "categories": {
+        "accommodation": "Accommodation",
+        "dining": "Dining",
+        "recreation": "Recreation",
+        "wellness": "Wellness",
+        "business": "Business",
+        "general": "General"
+      },
+      "empty": {
+        "title": "No amenities found",
+        "getStarted": "Get started by creating your first amenity"
+      },
+      "dialog": {
+        "createTitle": "Create New Amenity",
+        "editTitle": "Edit Amenity",
+        "deleteTitle": "Delete Amenity",
+        "deletePrompt": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+      },
+      "messages": {
+        "created": "Amenity created successfully",
+        "updated": "Amenity updated successfully",
+        "deleted": "Amenity deleted successfully",
+        "loadFailed": "Failed to load amenities",
+        "saveFailed": "Failed to save amenity",
+        "deleteFailed": "Failed to delete amenity"
+      },
+      "errors": {
+        "nameDescriptionRequired": "Name and description are required",
+        "imageRequired": "Image is required for new amenities"
+      }
+    },
+    "accommodations": {
+      "title": "Accommodations Management",
+      "subtitle": "Manage accommodations inventory and assignments",
+      "loading": "Loading accommodations...",
+      "filters": {
+        "statusLabel": "Filter by Status",
+        "search": "Search name/status",
+        "clear": "Clear"
+      },
+      "table": {
+        "name": "Name",
+        "type": "Type",
+        "status": "Status",
+        "availability": "Availability",
+        "assigned": "Assigned",
+        "actions": "Actions"
+      },
+      "statusLabels": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "availabilityLabels": {
+        "available": "Available",
+        "booked": "Booked",
+        "occupied": "Occupied",
+        "not_available": "Not Available"
+      },
+      "reservationStatusLabels": {
+        "arriving": "Arriving",
+        "departing": "Departing",
+        "in_progress": "In Progress"
+      },
+      "empty": {
+        "title": "No accommodations found",
+        "adjustFilters": "Try adjusting your search or filters",
+        "getStarted": "Get started by creating your first accommodation"
+      },
+      "actions": {
+        "assign": "Assign",
+        "unassign": "Unassign",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "messages": {
+        "loadFailed": "Failed to load accommodations",
+        "saveFailed": "Failed to save accommodation",
+        "updateSuccess": "Accommodation updated successfully",
+        "deleteSuccess": "Accommodation deleted successfully",
+        "operationFailed": "Operation failed"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "View and manage registered users",
+      "loading": "Loading users...",
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "role": "Role",
+        "actions": "Actions"
+      },
+      "actions": {
+        "createUser": "Create User",
+        "edit": "Edit",
+        "delete": "Delete",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "form": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "role": "Role",
+        "password": "Password"
+      },
+      "dialog": {
+        "editTitle": "Edit User",
+        "createTitle": "Create User",
+        "deleteConfirmTitle": "Confirm Deletion",
+        "deleteConfirmPrompt": "Are you sure you want to delete {{name}}? This action cannot be undone."
+      },
+      "messages": {
+        "loadFailed": "Failed to load users",
+        "deleteFailed": "Failed to delete user",
+        "updateFailed": "Failed to update user",
+        "createFailed": "Failed to create user",
+        "noUsers": "No users found."
+      }
+    },
+    "media": {
+      "title": "Media Library",
+      "loading": "Loading media...",
+      "buttons": {
+        "upload": "Upload",
+        "syncUploads": "Sync uploads",
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "labels": {
+        "featured": "Featured",
+        "public": "Public",
+        "private": "Private",
+        "category": "Category",
+        "tags": "Tags (comma-separated)",
+        "title": "Title",
+        "description": "Description",
+        "filename": "Filename (unique, no extension)",
+        "filenameHelper": "Only letters, numbers, - and _; extension will be kept"
+      },
+      "categories": {
+        "general": "General",
+        "rooms": "Rooms",
+        "aquapark": "Aquapark",
+        "facilities": "Facilities",
+        "dining": "Dining",
+        "activities": "Activities"
+      },
+      "empty": {
+        "title": "No media uploaded yet",
+        "subtitle": "Upload your first image or video",
+        "ctaUpload": "Upload"
+      },
+      "dialog": {
+        "uploadTitle": "Upload Media",
+        "editTitle": "Edit Media"
+      },
+      "messages": {
+        "loadFailed": "Failed to load media",
+        "uploadFailed": "Upload failed",
+        "updateFailed": "Update failed",
+        "deleteFailed": "Delete failed",
+        "uploaded": "Uploaded successfully",
+        "updated": "Updated successfully",
+        "deleted": "Deleted successfully",
+        "syncComplete": "Sync complete",
+        "syncFailed": "Sync failed"
+      },
+      "confirm": {
+        "deleteItem": "Delete this media item?"
+      },
+      "picker": {
+        "title": "Select Media",
+        "searchLabel": "Search by title",
+        "allCategories": "All",
+        "select": "Select"
+      }
+    },
+    "bookingCalendar": {
+      "title": "Booking Calendar",
+      "today": "Today",
+      "room": "Room",
+      "unassigned": "Unassigned",
+      "noRooms": "No active rooms found."
+    },
+    "reservations": {
+      "title": "Reservation Management",
+      "subtitle": "Manage guest reservations and room assignments",
+      "loading": "Loading reservations...",
+      "na": "N/A",
+      "nights": "nights",
+      "statusLabels": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "checked_in": "Checked In",
+        "checked_out": "Checked Out"
+      },
+      "paymentStatus": {
+        "pending": "Pending",
+        "paid": "Paid",
+        "refunded": "Refunded",
+        "failed": "Failed"
+      },
+      "typeLabels": {
+        "room": "Room",
+        "daypass": "Day Pass",
+        "pasatarde": "Afternoon Pass",
+        "event": "Event"
+      },
+      "filters": {
+        "statusLabel": "Filter by Status",
+        "typeLabel": "Filter by Type",
+        "status": {
+          "all": "All Reservations"
+        },
+        "types": {
+          "all": "All Types"
+        },
+        "search": "Search name/email/type/code",
+        "from": "From",
+        "to": "To",
+        "today": "Today",
+        "clear": "Clear"
+      },
+      "table": {
+        "guest": "Guest",
+        "type": "Type",
+        "dates": "Dates",
+        "guests": "Guests",
+        "status": "Status",
+        "assignedRoom": "Assigned Room",
+        "total": "Total",
+        "payment": "Payment",
+        "actions": "Actions"
+      },
+      "actions": {
+        "viewDetails": "View Details",
+        "editReservation": "Edit Reservation",
+        "removeReservation": "Remove Reservation",
+        "checkin": "Check-In",
+        "checkout": "Check-Out",
+        "cancel": "Cancel",
+        "saveChanges": "Save Changes",
+        "newReservation": "New Reservation"
+      },
+      "dialog": {
+        "editTitle": "Edit Reservation",
+        "deletePrompt": "This will permanently remove the reservation. Continue?"
+      },
+      "form": {
+        "guest": "Guest",
+        "checkinDate": "Check-in Date",
+        "checkoutDate": "Check-out Date",
+        "actualCheckin": "Actual Check-In",
+        "actualCheckout": "Actual Check-Out",
+        "assignedRoom": "Assigned Room",
+        "status": "Status",
+        "adults": "Adults",
+        "children": "Children",
+        "infants": "Infants",
+        "adultPrice": "Adult Price (per person)",
+        "childrenPrice": "Children Price (per person)",
+        "totalPrice": "Total Price",
+        "email": "Email",
+        "phone": "Phone",
+        "specialRequests": "Special Requests",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "checkIn": "Check-in Date",
+        "estimatedPrice": "Total Price"
+      },
+      "create": {
+        "step1Title": "Dates & Guests",
+        "step2Title": "Guest Details",
+        "step3Title": "Summary",
+        "stepDates": "Dates & Guests",
+        "stepGuest": "Guest Info",
+        "stepSummary": "Summary",
+        "pickServicePrompt": "Select the type of reservation you want to create.",
+        "roomDesc": "Multi-night room stay",
+        "daypassDesc": "Full-day pool & facilities",
+        "pasatardeDesc": "Afternoon experience",
+        "eventDesc": "Private event or celebration",
+        "roomsAvailable": "{{count}} room(s) available for your selection.",
+        "noRoomsAvailable": "No rooms available for the selected dates.",
+        "selectDateRange": "Select dates",
+        "guestCount": "Guests",
+        "assignRooms": "Assign Rooms",
+        "selected": "selected",
+        "checkingAvailability": "Checking availability...",
+        "filterRooms": "Filter rooms...",
+        "noMatchingRooms": "No matching rooms",
+        "pricePreview": "Price Preview",
+        "summaryTitle": "Reservation Summary",
+        "bookReservation": "Book Reservation",
+        "roomsSelected": "room(s) selected",
+        "capacityWarning": "Selected rooms may not fit all guests"
+      },
+      "none": "None",
+      "tooltips": {
+        "checkin": "Check in this reservation",
+        "assignBeforeCheckin": "Assign a room before check-in",
+        "checkinDateGuard": "Check-in allowed only on/after check-in and before check-out"
+      },
+      "messages": {
+        "loadFailed": "Failed to load reservations. Please try again.",
+        "removed": "Reservation removed",
+        "removeFailed": "Failed to remove reservation",
+        "assignBeforeCheckin": "Assign a room before checking in",
+        "checkinDateGuard": "Check-in is not available for the current date",
+        "checkinSuccess": "Checked in successfully",
+        "checkoutSuccess": "Checked out successfully",
+        "operationFailed": "Operation failed",
+        "createSuccess": "Reservation created successfully!",
+        "updateSuccess": "Reservation updated successfully!",
+        "updateFailed": "Failed to update reservation"
+      },
+      "empty": {
+        "title": "No reservations found",
+        "initial": "No reservations have been made yet.",
+        "filtered": "No {{status}} reservations found."
+      },
+      "checkin": {
+        "title": "Check-In",
+        "provideId": "Provide the guest identification document to confirm check-in.",
+        "idDocument": "Identification Document",
+        "idRequired": "Identification document is required",
+        "confirm": "Confirm Check-In"
+      },
+      "checkout": {
+        "title": "Check-Out",
+        "confirm": "Confirm the guest is checking out.",
+        "confirmButton": "Confirm Check-Out"
+      },
+      "loadMore": "Load More",
+      "loadingMore": "Loading...",
+      "details": {
+        "title": "Reservation Details",
+        "deleteConfirm": "This will permanently remove the reservation. Continue?",
+        "delete": "Delete Reservation",
+        "back": "Back to Reservations",
+        "section": {
+          "reservation": "Reservation",
+          "payment": "Payment",
+          "operational": "Operational",
+          "event": "Event",
+          "room": "Room",
+          "specialRequests": "Special Requests",
+          "payments": "Payments"
+        },
+        "labels": {
+          "type": "Type",
+          "dates": "Dates",
+          "guests": "Guests",
+          "reservationCode": "Reservation Code",
+          "status": "Status",
+          "total": "Total",
+          "totalPayments": "Total Payments",
+          "pendingBalance": "Pending Balance",
+          "actualCheckIn": "Actual Check-In",
+          "actualCheckOut": "Actual Check-Out",
+          "eventType": "Event Type",
+          "description": "Description",
+          "assignedRoom": "Assigned Room"
+        },
+        "table": {
+          "date": "Date",
+          "method": "Method",
+          "amount": "Amount",
+          "note": "Note",
+          "actions": "Actions",
+          "noPayments": "No payments recorded"
+        },
+        "actions": {
+          "addPayment": "Add Payment",
+          "edit": "Edit",
+          "delete": "Delete",
+          "cancel": "Cancel",
+          "saveChanges": "Save Changes"
+        },
+        "paymentDialog": {
+          "titleAdd": "Add Payment",
+          "titleEdit": "Edit Payment",
+          "amount": "Amount",
+          "method": "Method",
+          "methodSelect": "Select Method",
+          "methodCash": "Cash",
+          "methodCard": "Card",
+          "methodTransfer": "Transfer",
+          "noteOptional": "Note (optional)",
+          "pendingBalance": "Pending Balance: {{amount}}",
+          "afterPayment": "After payment: {{amount}}",
+          "recorded": "Payment recorded",
+          "failed": "Failed to record payment",
+          "blockedForCancelled": "Payments are blocked for cancelled reservations"
+        },
+        "errors": {
+          "deletePaymentConfirm": "Delete this payment?",
+          "deletePaymentFailed": "Failed to delete payment",
+          "deleteReservationFailed": "Failed to remove reservation"
+        },
+        "status": {
+          "pending": "Pending",
+          "confirmed": "Confirmed",
+          "cancelled": "Cancelled",
+          "completed": "Completed",
+          "checked-in": "Checked-in",
+          "checked-out": "Checked-out"
+        }
+      }
+    },
+    "schedule": {
+      "title": "Schedule Summary",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "arrived": "arrived",
+      "pending": "pending",
+      "arrivedLabel": "Arrived",
+      "pendingLabel": "Pending",
+      "cards": {
+        "totalPeople": "Total People",
+        "adults": "Adults",
+        "children": "Children",
+        "infants": "Infants",
+        "arrivedProgress": "Arrived",
+        "pendingGuests": "Pending"
+      },
+      "sections": {
+        "daypass": "DayPass ({{count}})",
+        "accommodations": "Accommodations ({{count}})",
+        "events": "Events ({{count}})",
+        "daypassTitle": "DayPass",
+        "accommodationsTitle": "Accommodations",
+        "eventsTitle": "Events"
+      },
+      "table": {
+        "guest": "Guest",
+        "room": "Room",
+        "totalGuests": "Total Guests",
+        "status": "Status"
+      },
+      "empty": {
+        "daypass": "No daypass reservations",
+        "rooms": "No room reservations",
+        "events": "No event reservations"
+      },
+      "notAssigned": "Not assigned"
+    }
+  },
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "welcome": "Welcome back, {{name}}! Here's what's happening at Banana Ranch Villages.",
+    "stats": {
+      "totalRooms": "Total Rooms",
+      "reservations": "Reservations",
+      "totalUsers": "Total Users",
+      "monthlyRevenue": "Monthly Revenue",
+      "occupancyRate": "Occupancy Rate"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "manageRooms": "Manage Rooms",
+      "manageReservations": "Manage Reservations",
+      "manageAmenities": "Manage Amenities",
+      "manageUsers": "Manage Users",
+      "viewReports": "View Reports"
+    },
+    "roomsOverview": {
+      "title": "Rooms Overview",
+      "table": {
+        "roomName": "Room Name",
+        "type": "Type",
+        "status": "Status"
+      }
+    },
+    "recentReservations": {
+      "title": "Recent Reservations",
+      "guestFallback": "Guest",
+      "table": {
+        "guest": "Guest",
+        "checkin": "Check-in",
+        "status": "Status",
+        "total": "Total"
+      }
+    }
+  },
+  "pricing": {
+    "title": "Price Management",
+    "actions": {
+      "newRule": "New Rule",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "table": {
+      "service": "Service",
+      "category": "Category",
+      "validity": "Validity",
+      "dateRange": "Date Range",
+      "adult": "Adult",
+      "children": "Children",
+      "active": "Active",
+      "actions": "Actions"
+    },
+    "serviceLabels": {
+      "daypass": "DayPass",
+      "pasatarde": "Afternoon Pass",
+      "hospedaje": "Accommodation"
+    },
+    "categoryLabels": {
+      "standard": "Standard",
+      "special": "Special"
+    },
+    "validityLabels": {
+      "everyday": "Everyday",
+      "weekdays": "Weekdays",
+      "weekend": "Weekend",
+      "custom": "Custom"
+    },
+    "form": {
+      "service": "Service",
+      "category": "Category",
+      "validity": "Validity",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "adultPrice": "Adult Price",
+      "childrenPrice": "Children Price",
+      "active": "Active"
+    },
+    "messages": {
+      "loadFailed": "Failed to load pricing",
+      "saveFailed": "Failed to save pricing"
+    },
+    "errors": {
+      "specialRequiresCustom": "Special category requires validity to be Custom",
+      "specialRequiresRange": "Special pricing requires a date range"
+    },
+    "dialog": {
+      "deletePrompt": "Delete this pricing rule?",
+      "newTitle": "New Pricing Rule",
+      "editTitle": "Edit Pricing Rule"
+    },
+    "empty": "No pricing rules yet"
+  },
+  "pages": {
+    "home": {
+      "heroTitle": "Welcome to Paradise",
+      "heroSubtitle": "Experience nature at Banana Aqua Park - Your eco-friendly tropical escape",
+      "exploreGallery": "Explore Gallery",
+      "welcomeTitle": "Welcome to Banana Aqua Park",
+      "welcomeBody": "Escape to paradise at our eco-friendly resort featuring luxurious accommodations, thrilling aqua park adventures, and sustainable tourism practices in a stunning tropical setting.",
+      "cardLuxuryTitle": "Luxury Accommodations",
+      "cardLuxuryBody": "Experience comfort and elegance in our beautifully designed rooms and suites, each featuring modern amenities and stunning views.",
+      "cardLuxuryButton": "Book Your Stay",
+      "cardAquaTitle": "Thrilling Aqua Park",
+      "cardAquaBody": "Dive into excitement with our world-class water slides, pools, and aquatic adventures perfect for guests of all ages.",
+      "cardAquaButton": "Book DayPass",
+      "cardEventsTitle": "Unforgettable Events",
+      "cardEventsBody": "Host your wedding, birthday or corporate activities in our top eco-friendly facilities.",
+      "cardEventsButton": "Book Event",
+      "ctaTitle": "Ready for Your Dream Vacation?",
+      "ctaBody": "Book now and experience the perfect blend of luxury and nature",
+      "ctaBookStay": "Book Your Stay",
+      "ctaContact": "Contact Us",
+      "comparisonTitle": "Choose Your Experience",
+      "comparisonSubtitle": "From a relaxing afternoon to a full luxurious stay — there's a perfect option for you.",
+      "compAfternoonTitle": "Afternoon Pass",
+      "compAfternoonTime": "1:30 PM – 5:00 PM",
+      "compDayTitle": "Day Pass",
+      "compDayTime": "9:00 AM – 5:00 PM",
+      "compStayTitle": "Stay",
+      "compStayTime": "Flexible check-in & check-out",
+      "compBadgeRecommended": "Best Choice",
+      "compFromLabel": "From",
+      "compPerPerson": "/ person",
+      "compPerNight": "/ night",
+      "compCtaAfternoon": "Book Afternoon Pass",
+      "compCtaDay": "Book Day Pass",
+      "compCtaStay": "Book Your Stay",
+      "compFeaturePools": "All pools",
+      "compFeatureAquaPark": "Aqua park access",
+      "compFeatureBasketball": "Basketball courts",
+      "compFeatureVillar": "Pool Table",
+      "compFeaturePingPong": "Ping Pong",
+      "compFeatureLunch": "Lunch included",
+      "compFeatureVilla": "Luxury ecological villa",
+      "compFeatureMeals": "Breakfast, lunch & dinner",
+      "distEyebrow": "Getting here",
+      "distHeadline": "49 MIN FROM PUNTA CANA AIRPORT",
+      "distChipTime": "49 min from Punta Cana Airport",
+      "distChipParking": "Free parking on site",
+      "distChipLocation": "Matachalupe, Higüey · Dominican Republic",
+      "distChipHours": "Open daily · 9:00 AM – 6:00 PM",
+      "distCta": "How to Get Here",
+      "instaBadge": "37,700 people follow our adventures",
+      "instaCta": "Follow us on Instagram",
+      "faqTitle": "Frequently Asked Questions",
+      "faqSubtitle": "Everything you need to know before your visit.",
+      "faqQ1": "How far is Banana Aqua Park from Punta Cana?",
+      "faqA1": "About 49 minutes by car from Punta Cana International Airport. We're located in Matachalupe, Higüey — easily reachable from both Punta Cana and La Romana. Free parking is available on site.",
+      "faqQ2": "What experiences are available at Banana Aqua Park?",
+      "faqA2": "You can choose from an Afternoon Pass (1:30–5 PM), a full Day Pass (9 AM–5 PM), or an overnight stay at our eco villas. All options include access to our natural aqua park, pools, basketball courts, pool table, and ping pong.",
+      "faqQ3": "Is it suitable for families with young children?",
+      "faqA3": "Absolutely. Our pools and aqua park attractions are designed for all age groups. Families with young children are one of our most frequent guest types — the natural setting, open spaces, and varied activities make it a great fit for everyone.",
+      "faqQ4": "What's included in the Day Pass?",
+      "faqA4": "The Day Pass covers full-day access (9 AM–5 PM) to the aqua park, all pools, basketball courts, pool table, and ping pong — plus lunch. It's the most complete day-visit option we offer.",
+      "faqQ5": "Can I book Banana Aqua Park for a private event?",
+      "faqA5": "Yes. We host weddings, birthday parties, corporate retreats, and other group events in our eco-friendly facilities. Contact us directly to discuss availability, capacity, and packages for your event."
+    },
+    "rooms": {
+      "loadingAmenities": "Loading amenities...",
+      "loadingPage": "Loading...",
+      "headerTitle": "Our Accommodations",
+      "headerSubtitle": "Discover our range of eco-friendly accommodations, from cozy standard rooms to luxurious villas",
+      "headerBookNow": "Book Your Stay Now",
+      "availableTitle": "Available Rooms",
+      "availableSubtitle": "Choose from our comfortable and eco-friendly accommodations",
+      "bookThisRoom": "Book This Room",
+      "includedTitle": "What's Included",
+      "includedSubtitle": "Enjoy these amazing amenities and services during your stay at Banana Ranch Villages",
+      "moreAmenities": "And {{count}} more amazing amenities!",
+      "listingTitle": "Eco-Villa & Aqua Park Access",
+      "metaRating": "4.93",
+      "metaReviews": "40 reviews",
+      "metaGuestFavorite": "Guest favorite",
+      "metaLocation": "Matachalupe, Higüey, Dominican Republic",
+      "photo1Alt": "Villa at Banana Ranch Villages",
+      "photo2Alt": "Resort grounds",
+      "photo3Alt": "Aqua Park",
+      "photo4Alt": "Event venue",
+      "photo5Alt": "Luxury villa interior",
+      "showAllPhotos": "Show all photos",
+      "amenitiesTitle": "What's included",
+      "showAllAmenities": "Show all {{count}} amenities",
+      "allAmenitiesTitle": "What this place offers",
+      "descriptionTitle": "About this place",
+      "descriptionShort": "Escape to paradise at Banana Ranch Villages — a lush eco-friendly resort nestled in the tropical heart of the Dominican Republic. Our beautifully appointed villas and rooms blend comfortable luxury with authentic Caribbean living, offering world-class amenities including a thrilling aqua park, tropical gardens, and attentive 24/7 service.",
+      "descriptionFull": "Escape to paradise at Banana Ranch Villages — a lush eco-friendly resort nestled in the tropical heart of the Dominican Republic. Our beautifully appointed villas and rooms blend comfortable luxury with authentic Caribbean living, offering world-class amenities including a thrilling aqua park, tropical gardens, and attentive 24/7 service.\n\nEach accommodation is carefully designed to offer the perfect blend of comfort and natural surroundings. Wake up to the sounds of nature, enjoy your morning coffee on a private terrace, and spend your days exploring our sprawling resort grounds.\n\nOur commitment to sustainable tourism means you can enjoy an unforgettable stay while treading lightly on this beautiful island. From solar-powered facilities to locally sourced dining options, every detail reflects our passion for eco-conscious hospitality.\n\nWhether you're celebrating a special occasion, unwinding as a family, or simply craving a tropical escape, Banana Ranch Villages is your perfect destination.",
+      "showMore": "Show more",
+      "whereYouSleep": "Where you'll sleep",
+      "roomDefaultBed": "Comfortable bed configuration",
+      "whereYouBe": "Where you'll be",
+      "locationCity": "Matachalupe, Higüey, Dominican Republic",
+      "thingsToKnow": "Things to know",
+      "cancellationTitle": "Cancellation policy",
+      "cancellationLine1": "Free cancellation up to 7 days before check-in",
+      "cancellationLine2": "Partial refund available within 7 days",
+      "cancellationLine3": "Contact us to review the full policy",
+      "houseRulesTitle": "House rules",
+      "houseRulesLine1": "Check-in: After 3:00 PM",
+      "houseRulesLine2": "Checkout: Before 11:00 AM",
+      "houseRulesLine3": "16 guests maximum",
+      "safetyTitle": "Safety & property",
+      "safetyLine1": "No smoke alarm installed",
+      "safetyLine2": "No carbon monoxide alarm",
+      "safetyLine3": "Shared property areas may apply",
+      "learnMore": "Learn more",
+      "amenities": {
+        "pool": "Swimming Pool",
+        "ecoVilla": "Eco-Villa",
+        "gardens": "Tropical Gardens",
+        "wifi": "Free WiFi",
+        "parking": "Free Parking",
+        "aquaPark": "Aqua Park Access",
+        "airConditioning": "Air Conditioning",
+        "hotWater": "Hot Water",
+        "breakfast": "Breakfast, Lunch and Dinner",
+        "buffet": "Buffet",
+        "kingBeds": "King Size Beds",
+        "outdoorSpaces": "Outdoor Spaces",
+        "bbq": "BBQ Area",
+        "laundry": "Laundry Service",
+        "fitness": "Fitness Center",
+        "eventSpaces": "Event Spaces",
+        "reception": "24/7 Reception"
+      },
+      "booking": {
+        "perNight": "night",
+        "selectDatesPrompt": "Select dates and check availability",
+        "checkIn": "CHECK-IN",
+        "checkOut": "CHECKOUT",
+        "guests": "GUESTS",
+        "addDate": "Add date",
+        "guestsCounter": "{{count}} guest",
+        "guestsCounterPlural": "{{count}} guests",
+        "adults": "Adults",
+        "adultsDesc": "Ages 13 or above",
+        "children": "Children",
+        "childrenDesc": "Ages 4–12",
+        "infants": "Infants",
+        "infantsDesc": "Under 4",
+        "reserve": "Reserve",
+        "notChargedYet": "You won't be charged yet",
+        "night": "night",
+        "nights": "nights",
+        "totalBeforeTaxes": "Total before taxes",
+        "checkingAvailability": "Checking availability...",
+        "availableForDates": "Available for your selected dates!",
+        "errorNotAvailable": "Not available for selected dates. Try different dates.",
+        "errorSelectDates": "Please select check-in and check-out dates",
+        "errorCheckoutAfterCheckin": "Check-out must be after check-in",
+        "errorPastDate": "Check-in date cannot be in the past",
+        "errorAdultRequired": "At least one adult is required",
+        "errorContactRequired": "Phone and email are required",
+        "errorEmailInvalid": "Please enter a valid email address",
+        "errorBookingFailed": "Failed to create booking. Please try again.",
+        "guestInfoTitle": "Guest information",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email address",
+        "phone": "Phone number",
+        "country": "Country",
+        "emergencyContact": "Emergency contact (optional)",
+        "specialRequests": "Special requests (optional)",
+        "specialRequestsPlaceholder": "Allergies, accessibility needs, etc.",
+        "completeBooking": "Complete booking",
+        "processing": "Processing...",
+        "back": "Back",
+        "checkAvailability": "Check Availability",
+        "continueToBook": "Continue to Book"
+      }
+    },
+    "reservations": {
+      "fetchError": "Failed to fetch reservations",
+      "cancelError": "Failed to cancel reservation",
+      "loginPrompt": "Please log in to view your reservations",
+      "loading": "Loading your reservations...",
+      "title": "My Reservations",
+      "subtitle": "Manage your bookings and view reservation details",
+      "tabs": {
+        "all": "All",
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "cancelTitle": "Cancel Reservation",
+      "cancelPrompt": "Are you sure you want to cancel this reservation?",
+      "cancelReason": "Cancellation Reason (Optional)",
+      "keepReservation": "Keep Reservation",
+      "cancelButton": "Cancel Reservation",
+      "empty": "No reservations found",
+      "browseRooms": "Browse Rooms"
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "Get in touch with us for reservations, questions, or to learn more about our eco-friendly resort",
+      "getInTouch": "Get in Touch",
+      "intro": "We're here to help make your stay at Banana Ranch Villages unforgettable. Reach out to us through any of the following channels.",
+      "followUs": "Follow Us",
+      "sendMessage": "Send us a Message",
+      "sendMessageSubtitle": "Fill out the form below and we'll get back to you as soon as possible.",
+      "success": "Thank you for your message! We'll get back to you within 24 hours.",
+      "error": "Sorry, there was an error sending your message. Please try again.",
+      "form": {
+        "fullName": "Full Name *",
+        "email": "Email Address *",
+        "phone": "Phone Number",
+        "subject": "Subject *",
+        "message": "Message *"
+      },
+      "sending": "Sending...",
+      "send": "Send Message",
+      "findUs": "Find Us",
+      "mapComing": "Interactive Map Coming Soon",
+      "mapAddress": "123 Eco Paradise Lane, Costa Rica",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address"
+    },
+    "events": {
+      "heroTitle": "Unforgettable Events",
+      "heroSubtitle": "Create magical memories at Banana Ranch Villages",
+      "bookEvent": "Book an Event",
+      "eventType": "Event Type",
+      "whyChooseTitle": "Why Choose Our Venue?",
+      "cateringTitle": "Premium Catering",
+      "cateringBody": "Exquisite culinary experiences with our award-winning chefs and customizable menus",
+      "servicesTitle": "Professional Services",
+      "servicesBody": "Photography, decoration, music, and all the services you need for a perfect event",
+      "paradiseTitle": "Tropical Paradise",
+      "paradiseBody": "Stunning beachfront location with lush gardens and world-class amenities",
+      "venueTitle": "Versatile Venues",
+      "venueBody": "From intimate gatherings to grand celebrations, we have the perfect space for your event"
+    },
+    "gallery": {
+      "title": "Photo Gallery",
+      "subtitle": "Explore the beauty of Banana Ranch Villages through our stunning collection of photos",
+      "ctaTitle": "Ready to Experience Paradise?",
+      "ctaBody": "These photos only capture a glimpse of what awaits you at Banana Ranch Villages. Book your stay today and create your own unforgettable memories.",
+      "img": {
+        "resort": "Resort View",
+        "resortDesc": "Experience the stunning beauty of our eco-friendly tropical resort and lush tropical gardens.",
+        "villa": "Luxury Villas",
+        "villaDesc": "Spacious and elegant private villas with modern amenities and breathtaking views.",
+        "aqua": "Aqua Park",
+        "aquaDesc": "Thrilling water slides, pools, and aquatic adventures for guests of all ages.",
+        "events": "Events & Celebrations",
+        "eventsDesc": "Unforgettable weddings, birthdays, and corporate events in a paradise setting."
+      }
+    },
+    "profile": {
+      "title": "My Profile",
+      "personalInfo": "Personal Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "saveChanges": "Save Changes",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "updatePassword": "Update Password",
+      "updateSuccess": "Profile updated successfully",
+      "updateError": "Failed to update profile",
+      "passwordSuccess": "Password changed successfully",
+      "passwordError": "Failed to change password"
+    },
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your Banana Ranch Villages account",
+      "error": "Login failed. Please try again.",
+      "emailLabel": "Email Address",
+      "passwordLabel": "Password",
+      "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 6 characters"
+      },
+      "signingIn": "Signing In...",
+      "signIn": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUpHere": "Sign up here",
+      "forgotPassword": "Forgot your password?"
+    },
+    "register": {
+      "title": "Join Banana Ranch Villages",
+      "subtitle": "Create your account to start booking amazing stays",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "phoneOptional": "Phone Number (Optional)",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "creatingAccount": "Creating Account...",
+      "createAccount": "Create Account",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInHere": "Sign in here",
+      "termsIntro": "By creating an account, you agree to our",
+      "and": "and",
+      "errors": {
+        "passwordsMismatch": "Passwords do not match",
+        "registrationFailed": "Registration failed. Please try again."
+      },
+      "validation": {
+        "firstNameRequired": "First name is required",
+        "firstNameMin": "First name must be at least 2 characters",
+        "lastNameRequired": "Last name is required",
+        "lastNameMin": "Last name must be at least 2 characters",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "phoneInvalid": "Please enter a valid phone number",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordPattern": "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        "confirmRequired": "Please confirm your password",
+        "passwordsMustMatch": "Passwords must match"
+      }
+    },
+    "emailVerification": {
+      "verifyingTitle": "Verifying your email...",
+      "verifyingBody": "Please wait while we verify your email address.",
+      "successTitle": "Email Verified Successfully!",
+      "successWelcome": "Welcome to Banana Ranch Villages",
+      "successInfo": "🎉 Your account is now active! You can start making reservations for our beautiful rooms and day passes to our aqua park.",
+      "redirectInfo": "Redirecting you to our rooms page in a few seconds...",
+      "exploreRooms": "Explore Our Rooms",
+      "errorTitle": "Verification Failed",
+      "errorHints": "This could happen if:\n• The verification link has expired (links expire after 24 hours)\n• The link has already been used\n• The link is invalid or corrupted",
+      "errorNext": "Please try registering again or contact support if the problem persists.",
+      "backToLogin": "Back to Login"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password?",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "sendButton": "Send Reset Link",
+      "backToLogin": "Back to Login",
+      "rememberPrompt": "Remember your password?",
+      "signInHere": "Sign in here",
+      "successTitle": "Check Your Email",
+      "successSubtitle": "Password reset instructions sent!",
+      "sentInfo": "If an account with the email {{email}} exists, you will receive a password reset link shortly.",
+      "importantInfo": "Important: The password reset link will expire in 1 hour for security reasons. If you don't see the email, please check your spam folder.",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "sendFailed": "Failed to send password reset email",
+        "sendError": "An error occurred while sending the password reset email"
+      }
+    },
+    "passwordReset": {
+      "title": "Reset Your Password",
+      "subtitle": "Enter your new password below",
+      "successTitle": "Password Reset Successful!",
+      "successBody": "Your password has been successfully updated. You can now log in with your new password.",
+      "redirectInfo": "Redirecting you to login page in a few seconds...",
+      "goToLogin": "Go to Login",
+      "newPassword": "New Password",
+      "confirmNewPassword": "Confirm New Password",
+      "helperPassword": "Must be at least 6 characters with uppercase, lowercase, and number",
+      "helperConfirmMismatch": "Passwords do not match",
+      "resetButton": "Reset Password",
+      "backToLogin": "Back to Login",
+      "errors": {
+        "invalidLink": "Invalid reset link. Please request a new password reset.",
+        "passwordMin": "Password must be at least 6 characters long",
+        "passwordPattern": "Password must contain at least one lowercase letter, one uppercase letter, and one number",
+        "passwordsMismatch": "Passwords do not match",
+        "resetFailed": "Password reset failed",
+        "resetError": "An error occurred while resetting your password"
+      }
+    },
+    "reservationSummary": {
+      "loading": "Loading reservation...",
+      "notFound": "Reservation not found",
+      "goHome": "Go to Home",
+      "cancelSuccess": "Your reservation has been cancelled successfully.",
+      "headerTitle": "Reservation Confirmation",
+      "labels": {
+        "guest": "Guest"
+      },
+      "typeLabels": {
+        "room": "Room Reservation",
+        "daypass": "Day Pass",
+        "event": "Event Reservation",
+        "default": "Reservation"
+      },
+      "guestInfo": "Guest Information",
+      "nameLabel": "Name",
+      "guestsLabel": "Guests",
+      "dates": "Dates",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "nights": "Nights",
+      "visitDate": "Visit Date",
+      "eventDate": "Event Date",
+      "endDate": "End Date",
+      "eventType": "Event Type",
+      "expectedAttendees": "Expected Attendees",
+      "roomDetails": "Room Details",
+      "roomType": "Room Type",
+      "additionalServices": "Additional Services",
+      "specialRequests": "Special Requests",
+      "paymentInfo": "Payment Information",
+      "total": "Total",
+      "reservationCode": "Reservation Code",
+      "actions": {
+        "cancelReservation": "Cancel Reservation",
+        "backToHome": "Back to Home"
+      },
+      "dialog": {
+        "cancelTitle": "Cancel Reservation",
+        "cancelPrompt": "Are you sure you want to cancel this reservation? This action cannot be undone.",
+        "cancelPolicy": "Cancellations must be made at least 24 hours in advance.",
+        "cancelReason": "Cancellation Reason (Optional)",
+        "keepReservation": "Keep Reservation",
+        "cancelButton": "Cancel Reservation",
+        "cancelling": "Cancelling..."
+      }
+    },
+    "registrationSuccess": {
+      "title": "Registration Successful!",
+      "checkEmail": "Please check your email to verify your account",
+      "sentTo": "We've sent a verification email to:",
+      "importantInfo": "Important: You must verify your email address before you can log in and make reservations. The verification link will expire in 24 hours.",
+      "resendHint": "Can't find the email? Check your spam folder or click below to resend.",
+      "resendButton": "Resend Verification Email",
+      "resendSuccess": "Verification email resent successfully!",
+      "resendFailed": "Failed to resend verification email",
+      "resendError": "An error occurred while resending the verification email",
+      "backToLogin": "Back to Login",
+      "nextStepsTitle": "Next Steps:",
+      "nextStepsList": "1. Check your email inbox (and spam folder)\n2. Click the verification link in the email\n3. You'll be automatically logged in and can start booking!"
+    },
+    "roomBooking": {
+      "modalTitle": "Book Room",
+      "modalTitleWithRoom": "Book {{name}}",
+      "steps": {
+        "selectDates": "Select Dates",
+        "guestDetails": "Guest Details",
+        "confirmation": "Confirmation"
+      },
+      "selectStayDates": "Select Your Stay Dates",
+      "bookingFor": "Booking for: {{roomName}} ({{roomType}} room)",
+      "currentRatePerNight": "Current rate per night: {{adult}} per adult, {{child}} per child",
+      "checkInDate": "Check-in Date",
+      "checkOutDate": "Check-out Date",
+      "checkingAvailability": "Checking availability...",
+      "loadingDates": "Loading available dates...",
+      "selectCheckInFirst": "Please select check-in date first",
+      "available": "Room is available for the selected dates!",
+      "notAvailable": "Room is not available for the selected dates. Please choose different dates.",
+      "guestInfo": "Guest Information",
+      "adults": "Adults",
+      "children": "Children (4-9 years)",
+      "infants": "Infants (0-3 years)",
+      "contactInfo": "Contact Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email Address",
+      "country": "Country",
+      "emergencyContact": "Emergency Contact (Optional)",
+      "specialRequests": "Special Requests (Optional)",
+      "specialRequestsPlaceholder": "Any special requests or dietary requirements...",
+      "confirmationTitle": "Booking Confirmation",
+      "roomLabel": "Room",
+      "labels": {
+        "checkin": "Check-in:",
+        "checkout": "Check-out:",
+        "duration": "Duration:",
+        "night": "night",
+        "nightsPlural": "nights",
+        "guests": "Guests:",
+        "guest": "guest",
+        "guestsPlural": "guests",
+        "nights": "Nights"
+      },
+      "priceBreakdown": "Price Breakdown:",
+      "perNight": "Per-night (adults/children)",
+      "total": "Total:",
+      "specialRequestsLabel": "Special Requests:",
+      "actions": {
+        "cancel": "Cancel",
+        "back": "Back",
+        "next": "Next",
+        "processing": "Processing...",
+        "confirmBooking": "Confirm Booking"
+      },
+      "errors": {
+        "selectBothDates": "Please select both check-in and check-out dates",
+        "checkoutAfterCheckin": "Check-out date must be after check-in date",
+        "checkinInPast": "Check-in date cannot be in the past",
+        "notAvailable": "Room is not available for the selected dates",
+        "adultRequired": "At least one adult is required",
+        "contactRequired": "Please provide contact information",
+        "emailInvalid": "Please provide a valid email address",
+        "createFailed": "Failed to create reservation"
+      }
+    },
+    "eventBooking": {
+      "successTitle": "Event Booked Successfully!",
+      "successBody": "Your event reservation has been submitted and is pending approval. We'll contact you within 24 hours to confirm the details.",
+      "viewReservations": "View My Reservations",
+      "bookAnother": "Book Another Event",
+      "eventDetails": "Event Details",
+      "eventDate": "Event Date",
+      "addEndDate": "Add End Date",
+      "endDate": "End Date",
+      "endDateHelper": "Multi-day event end date",
+      "removeEndDate": "Remove end date",
+      "guestDistribution": "Guest Distribution",
+      "adults": "Adults",
+      "children": "Children (4-9 years)",
+      "infants": "Infants (0-3 years)",
+      "eventDescription": "Event Description",
+      "eventDescriptionPlaceholder": "Please describe your event, special requirements, timeline, etc.",
+      "contactInfo": "Contact Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "emergencyContact": "Emergency Contact",
+      "country": "Country",
+      "additionalServices": "Additional Services",
+      "additionalServicesBody": "Select additional services to enhance your event experience",
+      "eventServices": "Event Services",
+      "resortAmenities": "Resort Amenities",
+      "services": {
+        "catering": "Premium Catering",
+        "cateringPrice": "$50 per person",
+        "decoration": "Event Decoration",
+        "decorationPrice": "$300 flat rate",
+        "photography": "Professional Photography",
+        "photographyPrice": "$500 package",
+        "musicSystem": "Sound System",
+        "musicSystemPrice": "$200 flat rate",
+        "breakfast": "Breakfast Service",
+        "breakfastPrice": "$25 per person",
+        "spa": "Spa Access",
+        "spaPrice": "$100 per adult",
+        "aquaPark": "Aqua Park Access",
+        "aquaParkPrice": "$30 per person (adults & children)"
+      },
+      "specialRequests": "Special Requests",
+      "specialRequestsPlaceholder": "Any special requirements, dietary restrictions, accessibility needs, etc.",
+      "bookingSummary": "Booking Summary",
+      "eventTitle": "{{title}} Event",
+      "labels": {
+        "date": "Date:",
+        "notSelected": "Not selected",
+        "attendees": "Attendees:",
+        "guests": "guests",
+        "description": "Description:",
+        "noneProvided": "None provided",
+        "contact": "Contact:",
+        "catering": "Catering"
+      },
+      "selectedServices": "Selected Services:",
+      "serviceLabels": {
+        "catering": "Catering",
+        "decoration": "Decoration",
+        "photography": "Photography",
+        "musicSystem": "Sound System",
+        "breakfast": "Breakfast",
+        "spa": "Spa",
+        "aquaPark": "Aqua Park"
+      },
+      "priceSummary": "Price Summary",
+      "basePrice": "Base Price:",
+      "total": "Total:",
+      "finalPriceNote": "* Final price may be adjusted after consultation",
+      "bookYourEvent": "Book Your {{title}} Event",
+      "steps": {
+        "eventDetails": "Event Details",
+        "contactInfo": "Contact Information",
+        "servicesExtras": "Services & Extras",
+        "confirmation": "Confirmation"
+      },
+      "actions": {
+        "back": "Back",
+        "cancel": "Cancel",
+        "next": "Next",
+        "booking": "Booking...",
+        "confirmBooking": "Confirm Booking"
+      },
+      "errors": {
+        "requiredFields": "Please fill in all required fields",
+        "createFailed": "Failed to create event reservation"
+      }
+    }
+  },
+  "howToGetHere": {
+    "pageTitle": "How to Get Here",
+    "pageSubtitle": "We're 49 minutes from Punta Cana Airport — easy to reach for a day trip or a villa stay.",
+    "distEyebrow": "Getting here",
+    "distHeadline": "49 MIN FROM PUNTA CANA AIRPORT",
+    "distChipTime": "49 min from Punta Cana Airport",
+    "distChipParking": "Free parking on site",
+    "distChipLocation": "Matachalupe, Higüey · Dominican Republic",
+    "distChipHours": "Open daily · 9:00 AM – 6:00 PM",
+    "routesTitle": "Choose Your Route",
+    "route1Title": "From your hotel / resort",
+    "route1Sub": "Punta Cana area · by car or taxi",
+    "route1Time": "49",
+    "route1TimeUnit": "min",
+    "route1Step1": "Take Autopista del Este heading west toward Higüey",
+    "route1Step2": "Exit at Higüey and follow signs to Matachalupe",
+    "route1Step3": "Arrive at Banana Aqua Park — free parking on site",
+    "route1Badge": "Most popular",
+    "route2Title": "From La Romana",
+    "route2Sub": "Via Autopista del Coral · 40.5 km",
+    "route2Time": "50",
+    "route2TimeUnit": "min",
+    "route2Step1": "Head west on Autopista del Coral from La Romana",
+    "route2Step2": "Take the Carretera La Romana–Higüey exit toward Higüey",
+    "route2Step3": "Follow signs to Matachalupe — free parking on arrival",
+    "route2Badge": "~50 min",
+    "route3Title": "From Santo Domingo",
+    "route3Sub": "Autopista del Este · highway route",
+    "route3Time": "106",
+    "route3TimeUnit": "min",
+    "route3Step1": "Take Autopista del Este (Route 3) east",
+    "route3Step2": "Pass through San Pedro de Macorís, continue to Higüey",
+    "route3Step3": "Follow Matachalupe signs on arrival in Higüey",
+    "route3Badge": "~1h 46min · ~RD$1,100 fuel",
+    "route4Title": "Direct from the airport",
+    "route4Sub": "PUJ Airport · arrive and come straight",
+    "route4Time": "49",
+    "route4TimeUnit": "min",
+    "route4Step1": "Exit PUJ Airport and take Autopista del Este west",
+    "route4Step2": "Higüey exit in approximately 35 minutes",
+    "route4Step3": "Drop bags at a villa — your adventure starts immediately",
+    "route4Badge": "Best for villa guests · book ahead",
+    "tipsTitle": "Good to Know Before You Arrive",
+    "tip1Label": "Parking",
+    "tip1Val": "Free, on-site. Large vehicles and buses welcome.",
+    "tip2Label": "GPS Address",
+    "tip2Val": "Banana Aqua Park, Matachalupe, Higüey. Search by name in Google Maps or Waze.",
+    "tip3Label": "Arrival Tip",
+    "tip3Val": "Gates open at 9 AM. Arrive early on weekends.",
+    "tip4Label": "Taxi from Punta Cana",
+    "tip4Val": "Local taxis, Uber, or InDriver available. Ask your hotel concierge or book a round-trip driver.",
+    "tip5Label": "Tour Operators",
+    "tip5Val": "We work with local agencies. Ask your resort excursion desk about Banana Aqua Park day trips.",
+    "tip6Label": "WhatsApp Us",
+    "tip6Val": "Share your location and we'll send a pin. +1 829-599-9540",
+    "waText": "Not sure how to get here? Send us a WhatsApp and we'll share our exact location pin, help arrange a driver, or answer any question.",
+    "waBtn": "WhatsApp Us",
+    "mapAddress": "Matachalupe, Higüey, La Altagracia, Dominican Republic",
+    "distFromPC": "min from Punta Cana",
+    "distFromAirport": "min from PUJ Airport",
+    "distFromSD": "min from Santo Domingo",
+    "distParking": "Free",
+    "distParkingLabel": "parking on site"
+  },
+  "privacy": {
+    "pageTitle": "Privacy Policy",
+    "lastUpdated": "Last updated: April 24, 2026",
+    "intro": "BANANA Ranch Villages (operating as Banana Aqua Park, hereinafter \"we\", \"us\" or \"our\") is committed to protecting your personal information. This Privacy Policy explains what data we collect, how we use it, your rights under Dominican Republic law (Ley 172-13) and applicable international standards, and how to contact us with questions.",
+    "s1Title": "1. Who We Are",
+    "s1Body": "Banana Aqua Park is a tourism and hospitality venue located in Matachalupe, Higüey, La Altagracia, Dominican Republic. We operate this website (bananaaquapark.com) and provide accommodation, aqua-park day passes, and event services.",
+    "s2Title": "2. Data We Collect",
+    "s2Body": "We collect the following categories of personal data:",
+    "s2I1": "Identification data: first name, last name, email address, phone number, country of origin.",
+    "s2I2": "Booking data: check-in and check-out dates, number of guests, special requests, selected services.",
+    "s2I3": "Identity document: ID number or passport reference collected at physical check-in, as required by Dominican Republic tourism regulations.",
+    "s2I4": "Emergency contact information: optionally provided during booking.",
+    "s2I5": "Communication data: subject and message content submitted via the contact form, together with your IP address and browser user-agent, collected automatically for security and spam-prevention purposes.",
+    "s2I6": "Account data (staff only): first and last name, email, hashed password, phone number. Self-registration is disabled; accounts are created by administrators only.",
+    "s2I7": "Technical / session data: authentication cookies (httpOnly, 7-day expiry), session identifiers stored in our database (24-hour expiry), and – if analytics are enabled – standard Google Analytics cookies (_ga, _gid).",
+    "s3Title": "3. How We Use Your Data",
+    "s3Body": "We process your personal data for the following purposes:",
+    "s3I1": "To create and manage your reservation or day-pass booking and send confirmation emails.",
+    "s3I2": "To respond to enquiries submitted through the contact form.",
+    "s3I3": "To fulfil legal obligations under Dominican Republic tourism and hospitality regulations, including physical check-in identification.",
+    "s3I4": "To secure our systems: login-attempt monitoring, account lockout, and password-reset flows.",
+    "s3I5": "To improve our website through aggregated, anonymised analytics (Google Analytics), where enabled.",
+    "s4Title": "4. Legal Basis for Processing",
+    "s4Body": "We rely on the following legal bases: (a) performance of a contract – processing necessary to fulfil your booking; (b) legal obligation – identity verification required by Dominican Republic law; (c) legitimate interest – fraud prevention and website security; (d) consent – analytics cookies, which you may withdraw at any time.",
+    "s5Title": "5. Third-Party Services",
+    "s5Body": "We share your data with the following service providers, solely to the extent necessary to deliver our services:",
+    "s5I1": "Microsoft (Azure / Microsoft Graph API): used to send transactional emails (booking confirmations, password resets). Data is transmitted over TLS and governed by Microsoft's Data Processing Agreement.",
+    "s5I2": "Google Maps: embedded map iframes on our website transmit your IP address to Google servers. No JavaScript API key is used. Google's Privacy Policy applies.",
+    "s5I3": "Google Analytics (conditional): only active if configured by site administrators. Standard analytics data (device type, pages visited, session duration) is sent to Google. No personally identifiable information is intentionally included. You can opt out via browser settings or Google's opt-out extension.",
+    "s5I4": "We do not integrate any payment gateway. All payments (cash, card, or bank transfer) are completed in person at the venue and recorded manually by staff. We never store card numbers, CVV codes, or bank account details.",
+    "s6Title": "6. Data Retention",
+    "s6Body": "We retain personal data only for as long as necessary: booking records are retained for a minimum of five (5) years to comply with Dominican tax and tourism regulations; contact-form submissions are retained for twenty-four (24) months; authentication tokens expire within 7 days; session data expires within 24 hours.",
+    "s7Title": "7. Your Rights",
+    "s7Body": "Under Ley 172-13 and aligned international standards, you have the right to:",
+    "s7I1": "Access the personal data we hold about you.",
+    "s7I2": "Rectify inaccurate or incomplete data.",
+    "s7I3": "Request deletion of your data, subject to legal retention obligations.",
+    "s7I4": "Object to processing based on legitimate interest.",
+    "s7I5": "Withdraw consent for analytics cookies at any time.",
+    "s7I6": "Lodge a complaint with the Instituto Dominicano de las Telecomunicaciones (INDOTEL) if you believe we have violated your rights.",
+    "s7Contact": "To exercise any of these rights, contact us at info@bananaaquapark.com or via WhatsApp at +1 829-599-9540.",
+    "s8Title": "8. Cookies",
+    "s8Body": "We use the following cookies: (a) Authentication cookie (\"token\"): httpOnly, secure in production, 7-day lifetime — necessary for login sessions, not optional; (b) Session cookie (\"sessionId\"): httpOnly, 24-hour lifetime — necessary for server-side session management; (c) Analytics cookies (_ga, _gid): set by Google Analytics only when enabled — you may block these in your browser settings.",
+    "s9Title": "9. Children's Privacy",
+    "s9Body": "Our services are open to families, including children. We do not knowingly collect personal data directly from children under age 13. Parental or guardian consent is required for any booking that includes minors. If you believe a child's data has been submitted without consent, please contact us immediately.",
+    "s10Title": "10. Data Security",
+    "s10Body": "We protect your data using industry-standard measures: TLS encryption for all data in transit, bcrypt password hashing, time-limited verification and reset tokens generated with cryptographically secure randomness, httpOnly/Secure cookie flags, and rate limiting on authentication endpoints.",
+    "s11Title": "11. International Transfers",
+    "s11Body": "Email services are processed by Microsoft on servers that may be located outside the Dominican Republic. All transfers are covered by Microsoft's standard contractual commitments. Analytics data (if enabled) is processed by Google on US-based servers under Google's Privacy Policy.",
+    "s12Title": "12. Changes to this Policy",
+    "s12Body": "We may update this Privacy Policy periodically. The \"last updated\" date at the top of this page will reflect any changes. Continued use of our website after the update date constitutes acceptance of the revised policy.",
+    "s13Title": "13. Contact",
+    "s13Body": "For any privacy-related questions: Email us at info@bananaaquapark.com · WhatsApp: +1 829-599-9540 · Address: Banana Aqua Park, Matachalupe, Higüey, La Altagracia, Dominican Republic."
+  },
+  "terms": {
+    "pageTitle": "Terms of Service",
+    "lastUpdated": "Last updated: April 24, 2026",
+    "intro": "These Terms of Service (\"Terms\") govern your access to and use of the Banana Aqua Park website (bananaaquapark.com) and the services offered at our venue in Matachalupe, Higüey, Dominican Republic. By visiting our website or making a booking, you agree to these Terms. If you do not agree, please do not use our services.",
+    "s1Title": "1. About Us",
+    "s1Body": "BANANA Ranch Villages operates Banana Aqua Park, a tourism and hospitality venue offering aqua-park day passes, overnight villa accommodation, and private event services, located in Matachalupe, Higüey, La Altagracia, Dominican Republic.",
+    "s2Title": "2. Services",
+    "s2Body": "We offer the following services subject to availability:",
+    "s2I1": "Aqua Park Day Pass: full-day park access from 9:00 AM to 6:00 PM, for adults and children.",
+    "s2I2": "PasaTarde (Afternoon Pass): park access from approximately 1:00 PM to 6:00 PM.",
+    "s2I3": "Villa Accommodation: overnight stays in villa rooms with optional add-on services (breakfast, airport transfer, spa, aqua park access).",
+    "s2I4": "Private Events: exclusive venue hire for weddings, celebrations, corporate events, and private parties. Subject to a separate event agreement.",
+    "s3Title": "3. Bookings and Reservations",
+    "s3Body": "Bookings are accepted via our website, WhatsApp, or in person. A booking is confirmed only upon receipt of official confirmation from Banana Aqua Park. We reserve the right to decline or cancel any booking at our discretion. Guest-facing reservations do not require an account; bookings may be retrieved using the confirmation code or email address provided at the time of booking.",
+    "s4Title": "4. Pricing and Payment",
+    "s4Body": "All prices are quoted in Dominican Pesos (RD$) unless otherwise stated. Prices are subject to change without notice. Payment is accepted in cash, debit/credit card, or bank transfer, completed in person at the venue. No card or bank details are processed or stored through this website. Prices displayed online are indicative; the final price is confirmed at time of booking.",
+    "s5Title": "5. Cancellations and Modifications",
+    "s5Body": "Cancellation and modification conditions vary by booking type. Please contact us directly via WhatsApp (+1 829-599-9540) or email to discuss your specific situation. We will make every effort to accommodate changes. Refund eligibility depends on the cancellation notice period and the type of service booked.",
+    "s6Title": "6. Check-In Requirements",
+    "s6Body": "All overnight guests are required to present a valid government-issued identification document (national ID or passport) at check-in, as required by Dominican Republic tourism regulations. Day-pass visitors are not required to provide identification unless purchasing a booking at the venue.",
+    "s7Title": "7. Venue Rules and Guest Conduct",
+    "s7Body": "All guests must comply with the following rules while on the premises:",
+    "s7I1": "Respect the safety rules posted at all aquatic attractions. Lifeguard instructions are mandatory.",
+    "s7I2": "Children under 12 must be accompanied by an adult at all times in the aqua-park area.",
+    "s7I3": "Alcohol consumption is permitted only in designated areas. Intoxicated guests may be asked to leave.",
+    "s7I4": "Outside food and beverages are not permitted in the park area unless for medical or infant dietary needs.",
+    "s7I5": "Glass containers are prohibited in the water-park and pool areas.",
+    "s7I6": "Management reserves the right to remove any guest whose behaviour is deemed unsafe, disrespectful, or disruptive, without a refund.",
+    "s8Title": "8. Liability",
+    "s8Body": "Banana Aqua Park takes all reasonable precautions for guest safety. However, participation in aquatic and recreational activities involves inherent risk. To the extent permitted by Dominican Republic law, Banana Aqua Park shall not be liable for injuries, loss, or damage arising from a guest's failure to follow posted safety instructions, or from natural events or circumstances beyond our control. Our liability for service failures is limited to the amount paid for the affected service.",
+    "s9Title": "9. Photography and Video",
+    "s9Body": "Guests consent to being photographed or filmed as part of general venue photography used for promotional purposes. If you do not wish to appear in promotional material, please inform staff upon arrival. Guests may not photograph or film other guests without their consent. Drone use on the premises requires prior written authorisation.",
+    "s10Title": "10. Intellectual Property",
+    "s10Body": "All content on this website — including text, images, video, logos, and layout — is the property of BANANA Ranch Villages or its licensors and is protected by Dominican and international copyright law. You may not reproduce, distribute, or create derivative works without our prior written consent.",
+    "s11Title": "11. Governing Law",
+    "s11Body": "These Terms are governed by and construed in accordance with the laws of the Dominican Republic. Any disputes arising from these Terms or your use of our services shall be subject to the exclusive jurisdiction of the courts of La Altagracia Province, Dominican Republic.",
+    "s12Title": "12. Changes to These Terms",
+    "s12Body": "We may modify these Terms at any time. The updated version will be posted on this page with a revised \"last updated\" date. Continued use of our services after any modification constitutes acceptance of the revised Terms.",
+    "s13Title": "13. Contact",
+    "s13Body": "For questions about these Terms: Email us at info@bananaaquapark.com · WhatsApp: +1 829-599-9540 · Address: Banana Aqua Park, Matachalupe, Higüey, La Altagracia, Dominican Republic."
+  },
+  "blog": {
+    "sectionHeading": "Explore our journal",
+    "sectionSubheading": "Stories, tips, and inspiration from the heart of the Dominican Republic",
+    "allCategories": "All",
+    "noPosts": "No articles in this category yet — check back soon!",
+    "readMore": "Read the full article",
+    "minRead": "min read",
+    "backToJournal": "← Back to Journal",
+    "moreArticles": "More articles",
+    "by": "By",
+    "publishedOn": "Published on"
+  }
+}

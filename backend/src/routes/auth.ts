@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import crypto from 'crypto';
 import User from '../models/User';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { validateRegister, validateLogin, validateEmail, validatePasswordReset } from '../middleware/validation';
 import { sendTokenResponse } from '../utils/jwt';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email';
@@ -40,9 +40,9 @@ const passwordResetRateLimit = rateLimit({
 });
 
 // @route   POST /api/auth/register
-// @desc    Register a new user
-// @access  Public
-router.post('/register', authRateLimit, validateRegister, async (req: Request, res: Response) => {
+// @desc    Register a new user (admin-only; public self-registration is disabled)
+// @access  Private (admin)
+router.post('/register', authenticate, authorize('admin'), validateRegister, async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, email, password, phone } = req.body;
 
@@ -55,40 +55,23 @@ router.post('/register', authRateLimit, validateRegister, async (req: Request, r
       });
     }
 
-    // Create new user
+    // Create new user (admin-created accounts are pre-verified)
     const user = new User({
       firstName,
       lastName,
       email,
       password,
       phone,
-      emailVerified: process.env.NODE_ENV === 'development' ? true : false // Auto-verify in development
+      emailVerified: true
     });
 
     await user.save();
 
-    // In development, auto-login after registration
-    if (process.env.NODE_ENV === 'development') {
-      sendTokenResponse(res, 201, user, 'Registration successful! Welcome to Banana Ranch Villages.');
-    } else {
-      // In production, require email verification
-      const verificationToken = user.generateEmailVerificationToken();
-      await user.save();
-
-      // Send verification email
-      try {
-        await sendVerificationEmail(user, verificationToken);
-      } catch (emailError) {
-        console.error('Email send error:', emailError);
-        // Continue with registration even if email fails
-      }
-
-      res.status(201).json({
-        success: true,
-        message: 'Registration successful! Please check your email to verify your account.',
-        emailSent: true
-      });
-    }
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully.',
+      data: { _id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email }
+    });
   } catch (error: any) {
     console.error('Registration error:', error);
     res.status(500).json({

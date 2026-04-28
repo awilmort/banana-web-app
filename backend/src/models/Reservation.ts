@@ -88,6 +88,9 @@ export interface IReservation extends Document {
   totalNights?: number; // For room reservations
   totalDays?: number; // For multi-day events
 
+  // Guest profile linked to this reservation
+  guestRecord?: mongoose.Types.ObjectId;
+
   // Administrative fields
   cancellationReason?: string;
   assignedBy?: mongoose.Types.ObjectId; // Admin who assigned the room/approved event
@@ -320,6 +323,11 @@ const reservationSchema = new Schema<IReservation>({
   cancellationReason: {
     type: String,
     maxlength: 500
+  },
+  guestRecord: {
+    type: Schema.Types.ObjectId,
+    ref: 'Guest',
+    required: false
   },
   assignedBy: {
     type: Schema.Types.ObjectId,

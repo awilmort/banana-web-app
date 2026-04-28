@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import Reservation from '../models/Reservation';
+import Guest from '../models/Guest';
 import Room from '../models/Room';
 import Role from '../models/Role';
 import { authenticate, authorize, authorizePermission, AuthRequest } from '../middleware/auth';
@@ -278,10 +279,10 @@ router.post('/', async (req: Request, res: Response) => {
           message: 'First name and last name are required for guest bookings'
         });
       }
-      if (!contactInfo || !contactInfo.email || !contactInfo.phone) {
+      if (!contactInfo || !contactInfo.email) {
         return res.status(400).json({
           success: false,
-          message: 'Email and phone number are required for all reservations'
+          message: 'Email is required for all reservations'
         });
       }
     }
@@ -509,6 +510,36 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Create reservation
     const reservation = await Reservation.create(reservationData);
+
+    // Upsert a Guest profile from the contact info provided
+    const guestEmail = contactInfo?.email ? String(contactInfo.email).toLowerCase().trim() : null;
+    if (guestEmail) {
+      const guestFirstName = nameFromRequest?.firstName || (authenticatedUser as any)?.firstName || '';
+      const guestLastName = nameFromRequest?.lastName || (authenticatedUser as any)?.lastName || '';
+      try {
+        const savedGuest = await Guest.findOneAndUpdate(
+          { email: guestEmail },
+          {
+            $setOnInsert: {
+              firstName: guestFirstName,
+              lastName: guestLastName,
+              email: guestEmail,
+            },
+            $set: {
+              phone: contactInfo?.phone || undefined,
+              country: contactInfo?.country || undefined,
+            },
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+        if (savedGuest) {
+          await Reservation.findByIdAndUpdate(reservation._id, { guestRecord: savedGuest._id });
+        }
+      } catch (guestErr) {
+        // Non-fatal — log but don't fail the reservation
+        console.error('Guest upsert error:', guestErr);
+      }
+    }
 
     // Populate the reservation before sending response and email
     const populatedReservation = await Reservation.findById(reservation._id)
