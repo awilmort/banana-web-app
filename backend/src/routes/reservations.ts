@@ -86,7 +86,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
         const toEnd = toEndOfDay(rawTo);
         occupancyCondition = {
           $or: [
-            { $and: [ { checkInDate: { $lte: toEnd } }, { checkOutDate: { $gte: fromStart } } ] },
+            { $and: [ { checkInDate: { $lte: toEnd } }, { checkOutDate: { $gt: fromStart } } ] },
             { $and: [ { $or: [ { checkOutDate: { $exists: false } }, { checkOutDate: null } ] }, { checkInDate: { $gte: fromStart, $lte: toEnd } } ] }
           ]
         };
@@ -720,16 +720,14 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
       }
 
       // Check for overlapping reservations only for room type (excluding current reservation)
+      // Uses half-open interval [checkIn, checkOut): checkout date is NOT included in the blocked period.
       if (reservation.type === 'room' && checkOut) {
         const overlappingReservation = await Reservation.findOne({
           _id: { $ne: reservation._id },
           room: reservation.room,
           status: { $in: ['confirmed'] },
-          $or: [
-            { checkInDate: { $lte: checkIn }, checkOutDate: { $gt: checkIn } },
-            { checkInDate: { $lt: checkOut }, checkOutDate: { $gte: checkOut } },
-            { checkInDate: { $gte: checkIn }, checkOutDate: { $lte: checkOut } }
-          ]
+          checkInDate: { $lt: checkOut },
+          checkOutDate: { $gt: checkIn }
         });
         if (overlappingReservation) {
           return res.status(400).json({ success: false, message: 'Room is not available for the selected dates' });
@@ -1046,18 +1044,14 @@ router.put('/:id/assign-room', authenticate, authorizePermission('admin.reservat
     // Check room capacity
     // Capacity logic removed
 
-    // Check for overlapping reservations on this specific room
+    // Check for overlapping reservations on this specific room.
+    // Uses half-open interval [checkIn, checkOut): checkout date is NOT included in the blocked period.
     const overlappingReservation = await Reservation.findOne({
       _id: { $ne: reservationId },
       status: { $in: ['confirmed'] },
-      $and: [
-        { $or: [ { room: roomId }, { rooms: roomId } ] },
-        { $or: [
-          { checkInDate: { $lte: reservation.checkInDate }, checkOutDate: { $gt: reservation.checkInDate } },
-          { checkInDate: { $lt: reservation.checkOutDate }, checkOutDate: { $gte: reservation.checkOutDate } },
-          { checkInDate: { $gte: reservation.checkInDate }, checkOutDate: { $lte: reservation.checkOutDate } }
-        ] }
-      ]
+      $or: [ { room: roomId }, { rooms: roomId } ],
+      checkInDate: { $lt: reservation.checkOutDate },
+      checkOutDate: { $gt: reservation.checkInDate }
     });
 
     if (overlappingReservation) {
@@ -1162,17 +1156,13 @@ router.put('/:id/assign-rooms', authenticate, authorizePermission('admin.reserva
       const room = await Room.findById(rid);
       if (!room) return res.status(404).json({ success: false, message: `Room not found: ${rid}` });
       if (room.status !== 'active') return res.status(400).json({ success: false, message: `Room is inactive: ${room.name}` });
+      // Uses half-open interval [checkIn, checkOut): checkout date is NOT included in the blocked period.
       const overlapping = await Reservation.findOne({
         _id: { $ne: reservationId },
         status: { $in: ['confirmed'] },
-        $and: [
-          { $or: [ { room: rid }, { rooms: rid } ] },
-          { $or: [
-            { checkInDate: { $lte: reservation.checkInDate }, checkOutDate: { $gt: reservation.checkInDate } },
-            { checkInDate: { $lt: reservation.checkOutDate }, checkOutDate: { $gte: reservation.checkOutDate } },
-            { checkInDate: { $gte: reservation.checkInDate }, checkOutDate: { $lte: reservation.checkOutDate } }
-          ] }
-        ]
+        $or: [ { room: rid }, { rooms: rid } ],
+        checkInDate: { $lt: reservation.checkOutDate },
+        checkOutDate: { $gt: reservation.checkInDate }
       });
       if (overlapping) return res.status(400).json({ success: false, message: `Room not available for selected dates: ${room.name}` });
     }
