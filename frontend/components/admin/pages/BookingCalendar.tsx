@@ -86,9 +86,9 @@ const assignLanes = (reservations: Reservation[]): Map<string, number> => {
   const laneEnds: Dayjs[] = [];
   const result = new Map<string, number>();
   for (const res of sorted) {
-    const ci = dayjs(res.checkInDate).startOf('day');
+    const ci = dayjs((res.checkInDate as string).split('T')[0]);
     const co = res.checkOutDate
-      ? dayjs(res.checkOutDate).startOf('day')
+      ? dayjs((res.checkOutDate as string).split('T')[0])
       : ci.add(1, 'day');
     let lane = laneEnds.findIndex(end => !end.isAfter(ci));
     if (lane === -1) {
@@ -194,9 +194,9 @@ const BookingCalendar: React.FC = () => {
 
   // ── Calculate bar position within the visible window ──────────────────────
   const calcBar = (res: Reservation): { left: number; width: number } | null => {
-    const ci = dayjs(res.checkInDate).startOf('day');
+    const ci = dayjs((res.checkInDate as string).split('T')[0]);
     const co = res.checkOutDate
-      ? dayjs(res.checkOutDate).startOf('day')
+      ? dayjs((res.checkOutDate as string).split('T')[0])
       : ci.add(1, 'day');
 
     const startOff   = ci.diff(startDate, 'day');
@@ -222,7 +222,7 @@ const BookingCalendar: React.FC = () => {
     return (
       <Tooltip
         key={res._id}
-        title={`${guestName} · ${res.checkInDate ? new Date(res.checkInDate).toLocaleDateString() : ''} → ${res.checkOutDate ? new Date(res.checkOutDate).toLocaleDateString() : '–'}`}
+        title={`${guestName} · ${res.checkInDate ? new Date((res.checkInDate as string).split('T')[0] + 'T00:00:00').toLocaleDateString() : ''} → ${res.checkOutDate ? new Date((res.checkOutDate as string).split('T')[0] + 'T00:00:00').toLocaleDateString() : '–'}`}
         arrow
         placement="top"
         enterDelay={300}
