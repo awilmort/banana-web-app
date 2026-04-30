@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import {
   Container, Typography, Box, Card, CardContent, Grid, Button, TextField,
-  Alert, CircularProgress, Select, MenuItem, FormControl, InputLabel,
+  Alert, CircularProgress,
 } from '@mui/material';
 import { CheckCircle, Pool, LocalParking, Wifi, Shower, Weekend, Waves } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useRouter, usePathname } from 'next/navigation';
-import { getCountriesForDisplay } from '@/utils/countries';
+
 import { pricingService, reservationsService } from '@/lib/api';
 import NumberField from '@/components/common/NumberField';
 import SingleDatePicker from '@/components/common/SingleDatePicker';
@@ -185,15 +185,7 @@ export default function PasaTardePage() {
                     <TextField label={t('daypass.phone')} type="tel" fullWidth value={bookingData.contactInfo.phone}
                       onChange={(e) => setBookingData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, phone: e.target.value } }))} />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <FormControl fullWidth>
-                      <InputLabel>{t('daypass.country')}</InputLabel>
-                      <Select value={bookingData.contactInfo.country} label={t('daypass.country')}
-                        onChange={(e) => setBookingData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, country: e.target.value } }))}>
-                        {getCountriesForDisplay().map((c) => <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>)}
-                      </Select>
-                    </FormControl>
-                  </Grid>
+
                   <Grid size={12}>
                     <TextField label={t('daypass.specialRequests')} multiline rows={3} fullWidth
                       placeholder={t('daypass.specialRequestsPlaceholder')} value={bookingData.specialRequests}

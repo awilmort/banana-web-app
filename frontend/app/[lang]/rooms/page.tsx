@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Container, Typography, Button, Dialog, DialogContent, DialogTitle,
-  DialogActions, IconButton, Divider, TextField, Select, MenuItem,
-  FormControl, InputLabel, CircularProgress, Alert, Popover,
+  DialogActions, IconButton, Divider, TextField,
+  CircularProgress, Alert, Popover,
 } from '@mui/material';
 import {
   Star, Pool, Waves, Park, AcUnit, Wifi, FreeBreakfast, LocalParking,
@@ -18,7 +18,7 @@ import { Room, Reservation } from '@/types';
 import { roomsService, pricingService, reservationsService, resolveMediaUrl } from '@/lib/api';
 import { findApplicablePricing, PricingRule } from '@/utils/pricing';
 import { formatMoney } from '@/utils/currency';
-import { getCountriesForDisplay } from '@/utils/countries';
+
 import DateRangePicker from '@/components/common/DateRangePicker';
 
 // ─── Hardcoded amenity definitions ─────────────────────────────────────────
@@ -812,18 +812,7 @@ export default function RoomsPage() {
                       value={bookingData.contactInfo.phone}
                       onChange={(e) => setBookingData((p) => ({ ...p, contactInfo: { ...p.contactInfo, phone: e.target.value } }))}
                     />
-                    <FormControl fullWidth size="small">
-                      <InputLabel>{t('pages.rooms.booking.country')}</InputLabel>
-                      <Select
-                        value={bookingData.contactInfo.country}
-                        label={t('pages.rooms.booking.country')}
-                        onChange={(e) => setBookingData((p) => ({ ...p, contactInfo: { ...p.contactInfo, country: e.target.value } }))}
-                      >
-                        {getCountriesForDisplay().map((c) => (
-                          <MenuItem key={c.code} value={c.name}>{c.name}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+
                     <TextField
                       fullWidth size="small"
                       label={t('pages.rooms.booking.emergencyContact')}

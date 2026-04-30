@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
   Grid, Typography, Box, Alert, Stepper, Step, StepLabel, Divider,
-  CircularProgress, Select, MenuItem, FormControl, InputLabel,
+  CircularProgress,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -14,7 +14,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Hotel, CheckCircle } from '@mui/icons-material';
 import { Room, Reservation } from '@/types';
 import { reservationsService, roomsService, pricingService } from '@/lib/api';
-import { getCountriesForDisplay } from '@/utils/countries';
+
 import { findApplicablePricing, PricingRule } from '@/utils/pricing';
 import { formatMoney } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
@@ -310,17 +310,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, room, onBookin
           <TextField fullWidth required type="email" label={t('pages.roomBooking.email')} value={bookingData.contactInfo.email}
             onChange={(e) => setBookingData({ ...bookingData, contactInfo: { ...bookingData.contactInfo, email: e.target.value } })} />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <FormControl fullWidth>
-            <InputLabel>{t('pages.roomBooking.country')}</InputLabel>
-            <Select value={bookingData.contactInfo.country || ''}
-              onChange={(e) => setBookingData({ ...bookingData, contactInfo: { ...bookingData.contactInfo, country: e.target.value } })}>
-              {getCountriesForDisplay().map((c) => (
-                <MenuItem key={c.code} value={c.name}>{c.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
+
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField fullWidth label={t('pages.roomBooking.emergencyContact')} value={bookingData.contactInfo.emergencyContact || ''}
             onChange={(e) => setBookingData({ ...bookingData, contactInfo: { ...bookingData.contactInfo, emergencyContact: e.target.value } })} />

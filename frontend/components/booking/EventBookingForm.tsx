@@ -4,15 +4,14 @@ import NumberField from '@/components/common/NumberField';
 import React, { useEffect, useState } from 'react';
 import {
   Box, Card, CardContent, Typography, Stepper, Step, StepLabel, Button, Grid,
-  TextField, FormControlLabel, Checkbox, Alert, Chip, Paper, Select, MenuItem,
-  FormControl, InputLabel, IconButton,
+  TextField, FormControlLabel, Checkbox, Alert, Chip, Paper, IconButton,
 } from '@mui/material';
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined';
 import { format } from 'date-fns';
 import SingleDatePicker from '@/components/common/SingleDatePicker';
 import { reservationsService } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { getCountriesForDisplay } from '@/utils/countries';
+
 import { useTranslation } from 'react-i18next';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -241,15 +240,7 @@ const EventBookingForm: React.FC<EventBookingFormProps> = ({ eventType, eventDat
               <TextField fullWidth label={t('pages.eventBooking.emergencyContact')} value={bookingData.contactInfo.emergencyContact}
                 onChange={(e) => setBookingData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, emergencyContact: e.target.value } }))} />
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth>
-                <InputLabel>{t('pages.eventBooking.country')}</InputLabel>
-                <Select value={bookingData.contactInfo.country} label={t('pages.eventBooking.country')}
-                  onChange={(e) => setBookingData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, country: e.target.value } }))}>
-                  {getCountriesForDisplay().map((c) => <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>)}
-                </Select>
-              </FormControl>
-            </Grid>
+
           </Grid>
         );
 
