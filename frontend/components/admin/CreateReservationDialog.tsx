@@ -279,6 +279,8 @@ const CreateReservationDialog: React.FC<Props> = ({
         contactInfo:     { email: createForm.email, phone: createForm.phone },
         specialRequests: createForm.specialRequests,
         totalPrice:      createForm.totalPrice,
+        adultPrice:      createForm.adultPrice,
+        childPrice:      createForm.childPrice,
       };
       if (createForm.checkOutDate) payload.checkOutDate = createForm.checkOutDate;
       if (createForm.type === 'room' && selectedRooms.length > 0) {

@@ -238,7 +238,11 @@ router.post('/', async (req: Request, res: Response) => {
       guestName, // firstName, lastName for guest bookings
       contactInfo,
       services,
-      specialRequests
+      specialRequests,
+      rooms: requestedRooms,
+      totalPrice: requestedTotalPrice,
+      adultPrice: requestedAdultPrice,
+      childPrice: requestedChildPrice,
     } = req.body;
 
     // Normalize and basic validation
@@ -467,8 +471,31 @@ router.post('/', async (req: Request, res: Response) => {
       status: 'pending'
     };
 
+    // Allow authenticated admin users to override pricing
+    const isAdminUser = authenticatedUser && (String(authenticatedUser.role).toLowerCase() === 'admin' || (authenticatedUser.permissions || []).includes('admin.reservations.priceUpdate'));
+    if (isAdminUser) {
+      if (requestedAdultPrice !== undefined && !isNaN(Number(requestedAdultPrice))) {
+        appliedAdultPrice = Number(requestedAdultPrice);
+      }
+      if (requestedChildPrice !== undefined && !isNaN(Number(requestedChildPrice))) {
+        appliedChildrenPrice = Number(requestedChildPrice);
+      }
+      if (requestedTotalPrice !== undefined && !isNaN(Number(requestedTotalPrice))) {
+        totalPrice = Number(requestedTotalPrice);
+      }
+      reservationData.totalPrice = totalPrice;
+    }
+
     if (appliedAdultPrice !== undefined) reservationData.adultPrice = appliedAdultPrice;
     if (appliedChildrenPrice !== undefined) reservationData.childrenPrice = appliedChildrenPrice;
+
+    // Assign rooms for room reservations (admin-provided)
+    if (normalizedType === 'room' && Array.isArray(requestedRooms) && requestedRooms.length > 0) {
+      reservationData.rooms = requestedRooms;
+      if (requestedRooms.length === 1) {
+        reservationData.room = requestedRooms[0];
+      }
+    }
 
     // Persist the guest name from the form regardless of auth status
     const nameFromRequest = (guestName && guestName.firstName && guestName.lastName)
