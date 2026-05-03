@@ -160,8 +160,9 @@ const Accommodations: React.FC = () => {
       if (!assigned) return false;
       const ci = dayjs(r.checkInDate).startOf('day');
       const co = r.checkOutDate ? dayjs(r.checkOutDate).startOf('day') : ci.add(1, 'day');
-      // Occupancy condition: checkIn <= date AND checkOut > date (checkout excluded)
-      return (ci.isSame(dayStart) || ci.isBefore(dayStart)) && co.isAfter(dayStart);
+      // Occupancy condition: checkIn <= date AND checkOut >= date (checkout day is inclusive —
+      // guests checking out today are still physically in the room until they leave).
+      return (ci.isSame(dayStart) || ci.isBefore(dayStart)) && !co.isBefore(dayStart);
     });
     if (!match) return 'available';
     return match.actualCheckInAt ? 'occupied' : 'booked';

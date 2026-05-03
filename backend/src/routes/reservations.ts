@@ -81,12 +81,14 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
       const rawTo = (dateTo && typeof dateTo === 'string') ? parseLocalDate(dateTo) : null;
 
       if (rawFrom && rawTo) {
-        // Both From + To: include stays overlapping range, and daypass only if check-in within range
+        // Both From + To: include stays overlapping range, and daypass only if check-in within range.
+        // Use $gte (not $gt) for checkOutDate so guests checking OUT on fromStart are included
+        // (e.g. Johan checks out on May 3rd; his reservation must appear in the May 3rd schedule).
         const fromStart = toStartOfDay(rawFrom);
         const toEnd = toEndOfDay(rawTo);
         occupancyCondition = {
           $or: [
-            { $and: [ { checkInDate: { $lte: toEnd } }, { checkOutDate: { $gt: fromStart } } ] },
+            { $and: [ { checkInDate: { $lte: toEnd } }, { checkOutDate: { $gte: fromStart } } ] },
             { $and: [ { $or: [ { checkOutDate: { $exists: false } }, { checkOutDate: null } ] }, { checkInDate: { $gte: fromStart, $lte: toEnd } } ] }
           ]
         };
