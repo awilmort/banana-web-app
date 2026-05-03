@@ -250,9 +250,14 @@ const Accommodations: React.FC = () => {
                   ? `${r.guestName.firstName} ${r.guestName.lastName || ''}`.trim()
                   : (typeof r.user === 'object' ? `${(r.user as any).firstName} ${(r.user as any).lastName}` : t('admin.dashboard.recentReservations.guestFallback'));
                 const totalGuests = (r.guestDetails?.adults || 0) + (r.guestDetails?.children || 0) + (r.guestDetails?.infants || 0);
+                // Parse only the date portion of the ISO string so UTC-to-local timezone
+                // conversion doesn't roll the displayed date back by one day.
+                const fmtDate = (d: string | Date) => dayjs(
+                  (typeof d === 'string' ? d : (d as Date).toISOString()).split('T')[0]
+                ).format('M/D/YYYY');
                 const dateStr = r.type === 'room'
-                  ? `${new Date(r.checkInDate).toLocaleDateString()} - ${r.checkOutDate ? new Date(r.checkOutDate).toLocaleDateString() : ''}`
-                  : new Date(r.checkInDate).toLocaleDateString();
+                  ? `${fmtDate(r.checkInDate)} - ${r.checkOutDate ? fmtDate(r.checkOutDate) : ''}`
+                  : fmtDate(r.checkInDate);
                 const roomName = (() => {
                   const rooms = (r as any).rooms as any[] | undefined;
                   if (Array.isArray(rooms) && rooms.length > 0) {
